@@ -1,0 +1,437 @@
+options {
+    STATIC = false;
+}
+PARSER_BEGIN(Parser)
+package se.jsannemo.spooky.compiler;
+
+import com.google.common.collect.ImmutableList;
+import java.util.Optional;
+import se.jsannemo.spooky.compiler.ast.*;
+
+public class Parser {
+}
+PARSER_END(Parser)
+
+// Comments
+SPECIAL_TOKEN : {
+  <SINGLE_LINE_COMMENT: "//" (~["\n","\r"])*>
+}
+
+// Whitespace
+SKIP : { " " }
+SKIP : { "\n" | "\r" | "\r\n" }
+
+// Common character classes
+TOKEN : {
+    <#DIGIT : (["0"-"9"])>
+  | <#ALPHA : (["a" - "z"] | ["A" - "Z"])>
+  | <#ALPHANUM : (<ALPHA> | <DIGIT>) >
+}
+/* TEXT BLOCK LITERAL */
+MORE: { <ENTER_TEXT_BLOCK: "\"\"\"" >: IN_TEXT_BLOCK }
+<IN_TEXT_BLOCK> TOKEN : { <TEXT_BLOCK_LITERAL: "\"\"\"" >: DEFAULT }
+// Need to recognize an escaped " to prevent it from parsing as "backslash doublequote" -
+// which might match that doublequote with following doublequotes.
+<IN_TEXT_BLOCK> MORE :{ <TEXT_BLOCK_CONTENT:  ( "\\" "\"" | ~[] ) > }
+
+// Keywords
+TOKEN : {
+    <FUNC : "func">
+  | <EXTERN : "extern" >
+  | <FOR : "for" >
+  | <IF : "if" >
+  | <ELSE : "else" >
+  | <RETURN : "return" >
+  | <FALSE : "false" >
+  | <TRUE : "true" >
+}
+
+// Operators
+TOKEN : {
+    <ASSIGN : "=">
+  | <EQ : "==">
+  | <LT : "<">
+  | <LEQ : "<=">
+  | <GT : ">">
+  | <GEQ : ">=">
+  | <PLUS : "+">
+  | <MINUS : "-">
+  | <TIMES : "*">
+  | <DIV : "/">
+  | <MOD : "%">
+  | <INC : "++">
+  | <ARROW : "->">
+}
+
+// General tokens
+TOKEN : { <ARRAY_TYPE :  ("[" "]") > }
+TOKEN : { <IDENTIFIER : (<ALPHA> | "_" ) (<ALPHANUM> | "_") * > }
+TOKEN : {
+    <INT_LITERAL : ( "0" | (["1"-"9"] (<DIGIT>)*))  >
+  | <STRING_LITERAL: "\"" (
+      (~["\"","\\","\n","\r"])
+    | ("\\" ["\\", "\""] )
+  )* "\"" >
+}
+
+// General
+Identifier Identifier() : {
+    Token t;
+} {
+    t = <IDENTIFIER>
+    { return Identifier.of(t.image, t); }
+}
+
+TypeName Type() : {
+    Identifier id;
+    Token t;
+    int dim = 0;
+} {
+    id = Identifier()
+    (
+        <ARRAY_TYPE>
+        { dim++; }
+    ) *
+    {
+        if (dim > 0) return TypeName.array(id, dim);
+        else return TypeName.ofName(id);
+    }
+}
+
+int IntLiteral() : {
+    Token t;
+} {
+    t = <INT_LITERAL>
+    { return Integer.parseInt(t.image); }
+}
+
+String StringLiteral() : {
+    Token t;
+} {
+    t = <STRING_LITERAL>
+    { return t.image; }
+}
+
+boolean BoolLiteral() : {
+} {
+    ( <FALSE> { return false; } | <TRUE> { return true; } )
+}
+
+// Program file
+Program Start() : {
+    Program.Builder program = Program.builder();
+    Function func;
+    FunctionDecl decl;
+    Token t;
+} {
+    (
+        t = <EXTERN>
+        decl = FunctionDecl(t)
+        { program.addExtern(decl); }
+        |
+        func = Function()
+        { program.addFunction(func); }
+    ) *
+    <EOF>
+    { return program.build(); }
+}
+
+// Function metadata
+Function Function() : {
+    FunctionDecl decl;
+    StatementList body;
+    Token t;
+} {
+    t = <FUNC>
+    decl = FunctionDecl(t)
+    body = StatementList()
+    { return Function.of(decl, body); }
+}
+
+FunctionDecl FunctionDecl(Token keyword) : {
+    FunctionDecl.Builder builder;
+    Identifier name;
+    TypeName retType;
+    Token t;
+} {
+    name = Identifier()
+    { builder = FunctionDecl.builder(name); builder.token(keyword); }
+    FunctionDeclParams(builder)
+    (
+      <ARROW> retType = Type()
+      { builder.returnType(retType); }
+    ) ?
+    { return builder.build(); }
+}
+
+void FunctionDeclParams(FunctionDecl.Builder builder) : {
+    FunctionParam param;
+} {
+    "("
+    (
+        param = FunctionParam()
+        { builder.addParam(param); }
+        (
+            "," param = FunctionParam()
+            { builder.addParam(param) ; }
+        ) *
+    ) ?
+    ")"
+}
+
+FunctionParam FunctionParam() : {
+    Identifier name;
+    TypeName type;
+    Token t;
+} {
+    name = Identifier() ":" type = Type()
+    { return FunctionParam.ofNameAndType(name, type); }
+}
+
+// Statements
+StatementList StatementList() : {
+    Statement statement;
+    StatementList.Builder statementList = StatementList.builder();
+} {
+    (
+        ("{"
+            (
+                statement = Statement()
+                {statementList.addStatement(statement);}
+            ) *
+        "}")
+    |
+        statement = Statement()
+        { statementList.addStatement(statement); }
+    )
+    { return statementList.build(); }
+}
+
+Statement SimpleStatement() : {
+    Statement s;
+} {
+    (LOOKAHEAD(2) s = VarDecl() | s = ExprStmt())
+    { return s; }
+}
+
+Statement Statement() : {
+    Statement s;
+} {
+    (LOOKAHEAD(2) s = VarDecl() ";" | s = LoopStmt() | s = ConditionalStmt() | s = ExprStmt() ";" | s = ReturnStmt() ";")
+    { return s; }
+}
+
+Statement ReturnStmt() : {
+    Expression value = null;
+} {
+    <RETURN>
+    ( value = Expression() ) ?
+    { return Statement.returns(Optional.ofNullable(value)); }
+}
+
+Statement VarDecl() : {
+    TypeName type;
+    Expression value;
+    Identifier name;
+} {
+    name = Identifier() ":" type = Type() "=" value = Expression()
+    { return Statement.varDecl(VarDecl.of(name, type, value)); }
+}
+
+Statement LoopStmt() : {
+    Loop loop;
+} {
+    loop = Loop()
+    { return Statement.loop(loop); }
+}
+
+Loop Loop() : {
+    Statement init = Statement.ofNoop(), inc = Statement.ofNoop();
+    Expression check = Expression.boolLiteral(true);
+    StatementList body;
+} {
+    <FOR> "(" (init = SimpleStatement()) ? ";" (check = Expression()) ? ";" (inc = SimpleStatement()) ? ")"
+    body = StatementList()
+
+    {return Loop.of(init, check, inc, body);}
+}
+
+Statement ConditionalStmt() : {
+    Conditional cond;
+} {
+    cond = Conditional()
+    { return Statement.conditional(cond); }
+}
+
+Conditional Conditional() : {
+    Expression check;
+    StatementList body;
+    Token t;
+} {
+    t = <IF> "(" check = Expression() ")"
+    body = StatementList()
+    { return Conditional.of(check, body, t); }
+}
+
+Statement ExprStmt() : {
+    Expression expr;
+} {
+    expr = Expression()
+    { return Statement.expression(expr); }
+}
+
+Expression Expression() : {
+    Expression expr;
+} {
+    expr = AssignmentExpression()
+    { return expr; }
+}
+
+Expression AssignmentExpression() : {
+    Expression left;
+    Expression right;
+} {
+    left = EqExpression()
+    (
+        <ASSIGN>
+        right = EqExpression()
+        { left = Expression.binary(left, right, BinaryOperator.ASSIGN); }
+    ) ?
+    { return left; }
+}
+
+Expression EqExpression() : {
+    Expression left;
+    Expression right;
+} {
+    left = CmpExpression()
+    (
+        <EQ>
+        right = CmpExpression()
+        { left = Expression.binary(left, right, BinaryOperator.EQUALS); }
+    ) *
+    { return left; }
+}
+
+Expression CmpExpression() : {
+    Expression left;
+    Expression right;
+} {
+    left = AdditiveExpression()
+    (
+        <LT>
+        right = AdditiveExpression()
+        { left = Expression.binary(left, right, BinaryOperator.LESS_THAN); }
+        |
+        <GT>
+        right = AdditiveExpression()
+        { left = Expression.binary(left, right, BinaryOperator.GREATER_THAN); }
+        |
+        <LEQ>
+        right = AdditiveExpression()
+        { left = Expression.binary(left, right, BinaryOperator.LESS_EQUALS); }
+        |
+        <GEQ>
+        right = AdditiveExpression()
+        { left = Expression.binary(left, right, BinaryOperator.GREATER_EQUALS); }
+    ) *
+    { return left; }
+}
+
+Expression AdditiveExpression() : {
+    Expression left;
+    Expression right;
+} {
+    left = MultiplicativeExpression()
+    (
+        ( <PLUS>
+          right = MultiplicativeExpression()
+          { left = Expression.binary(left, right, BinaryOperator.ADD); }
+         | <MINUS>
+          right = MultiplicativeExpression()
+          { left = Expression.binary(left, right, BinaryOperator.SUBTRACT); }
+        )
+    ) *
+    { return left; }
+}
+
+Expression MultiplicativeExpression() : {
+    Expression left;
+    Expression right;
+} {
+    left = ArrayExpression()
+    (
+        ( <TIMES>
+          right = ArrayExpression()
+          { left = Expression.binary(left, right, BinaryOperator.MULTIPLY); }
+         | <DIV>
+          right = ArrayExpression()
+          { left = Expression.binary(left, right, BinaryOperator.DIVIDE); }
+         | <MOD>
+          right = ArrayExpression()
+          { left = Expression.binary(left, right, BinaryOperator.MODULO); }
+        )
+    ) *
+    { return left; }
+}
+
+Expression ArrayExpression() : {
+    Expression left;
+    Expression right;
+} {
+   left = CallExpression()
+    (
+        "["
+        right = Expression()
+        "]"
+        { left = Expression.binary(left, right, BinaryOperator.ARRAY_ACCESS); }
+    ) *
+    { return left; }
+}
+
+Expression CallExpression() : {
+    Expression left;
+    ImmutableList<Expression> right;
+} {
+    left = ReferenceOrLiteralExpression()
+    (
+        "("
+        right = ParamValues()
+        ")"
+        { left = Expression.functionCall(left, right); }
+    ) ?
+    { return left; }
+}
+
+Expression ReferenceOrLiteralExpression() : {
+    int i;
+    Identifier var;
+    String lit;
+    Boolean bool;
+    Expression expr;
+} {
+    i = IntLiteral() { return Expression.intLiteral(i); }
+  | var = Identifier() { return Expression.reference(var); }
+  | lit = StringLiteral() { return Expression.stringLiteral(lit); }
+  | bool = BoolLiteral() { return Expression.boolLiteral(bool); }
+  | expr = Paranthesized() { return expr; }
+}
+
+Expression Paranthesized() : {
+    Expression expr;
+} {
+    "(" expr = Expression() ")"
+    { return expr; }
+}
+
+ImmutableList<Expression> ParamValues() : {
+    ImmutableList.Builder<Expression> params = ImmutableList.builder();
+    Expression expr;
+} {
+    (
+        expr = Expression()
+        { params.add(expr); }
+        ("," expr = Expression() { params.add(expr); } ) *
+    ) ?
+    { return params.build(); }
+}

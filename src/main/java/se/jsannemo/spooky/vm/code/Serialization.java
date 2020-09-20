@@ -48,4 +48,13 @@ final class Serialization {
     out.write(value.length());
     out.write(byteVal);
   }
+
+  public static void writeAddr(OutputStream os, Instructions.Address addr) throws IOException {
+    writeInt(os, addr.baseAddr());
+    writeInt(os, addr.offset());
+  }
+
+  public static Instructions.Address readAddr(ByteStreamIterator iterator) {
+    return Instructions.Address.baseAndOffset(readInt(iterator), readInt(iterator));
+  }
 }

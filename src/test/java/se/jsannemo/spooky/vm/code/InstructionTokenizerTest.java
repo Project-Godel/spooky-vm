@@ -3,31 +3,23 @@ package se.jsannemo.spooky.vm.code;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static se.jsannemo.spooky.vm.code.OpCodes.ADD;
-import static se.jsannemo.spooky.vm.code.OpCodes.CONST;
-import static se.jsannemo.spooky.vm.code.OpCodes.DATA;
-import static se.jsannemo.spooky.vm.code.OpCodes.DIV;
-import static se.jsannemo.spooky.vm.code.OpCodes.EXTERN;
-import static se.jsannemo.spooky.vm.code.OpCodes.JMP;
-import static se.jsannemo.spooky.vm.code.OpCodes.BINDEF;
-import static se.jsannemo.spooky.vm.code.OpCodes.LT;
-import static se.jsannemo.spooky.vm.code.OpCodes.MOV;
-import static se.jsannemo.spooky.vm.code.OpCodes.MUL;
-import static se.jsannemo.spooky.vm.code.OpCodes.SUB;
-import static se.jsannemo.spooky.vm.code.OpCodes.TEXT;
+import static se.jsannemo.spooky.vm.code.OpCode.BINDEF;
 
 import com.google.common.collect.ImmutableList;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import se.jsannemo.spooky.vm.code.Instructions.Add;
+import se.jsannemo.spooky.vm.code.Instructions.Address;
+import se.jsannemo.spooky.vm.code.Instructions.BinDef;
 import se.jsannemo.spooky.vm.code.Instructions.Const;
+import se.jsannemo.spooky.vm.code.Instructions.Data;
 import se.jsannemo.spooky.vm.code.Instructions.Div;
+import se.jsannemo.spooky.vm.code.Instructions.Equals;
 import se.jsannemo.spooky.vm.code.Instructions.Extern;
+import se.jsannemo.spooky.vm.code.Instructions.Instruction;
 import se.jsannemo.spooky.vm.code.Instructions.Jump;
 import se.jsannemo.spooky.vm.code.Instructions.LessThan;
-import se.jsannemo.spooky.vm.code.Instructions.BinDef;
 import se.jsannemo.spooky.vm.code.Instructions.Move;
 import se.jsannemo.spooky.vm.code.Instructions.Mul;
 import se.jsannemo.spooky.vm.code.Instructions.Sub;
@@ -37,16 +29,6 @@ final class InstructionTokenizerTest {
 
   private static byte[] bytearg(byte arg) {
     return new byte[] {arg};
-  }
-
-  private static byte[] intarg(int arg) {
-    ByteArrayOutputStream bos = new ByteArrayOutputStream(4);
-    try {
-      Serialization.writeInt(bos, arg);
-    } catch (IOException e) {
-      throw new AssertionError("ByteArrayOutputStream should never throw an exception.");
-    }
-    return bos.toByteArray();
   }
 
   private static byte[] stringarg(String arg) {
@@ -70,22 +52,27 @@ final class InstructionTokenizerTest {
     return result;
   }
 
+  private static byte[] binary(Instruction inst) throws IOException {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    inst.writeBinary(baos);
+    return baos.toByteArray();
+  }
+
   @Test
-  void testBinDef() throws InstructionException {
-    byte[] program = concat(bytearg(BINDEF), stringarg("bin"));
-    List<Instructions.Instruction> instruction = InstructionTokenizer.tokenize(program);
-    assertThat(instruction).containsExactly(BinDef.create("bin"));
+  void testBinDef() throws InstructionException, IOException {
+    BinDef binDef = BinDef.create("program");
+    assertThat(InstructionTokenizer.tokenize(binary(binDef))).containsExactly(binDef);
   }
 
   @Test
   void testEmptyBinName() {
-    byte[] program = concat(bytearg(BINDEF), stringarg(""));
+    byte[] program = concat(bytearg(BINDEF.code), stringarg(""));
     assertThrows(InstructionException.class, () -> InstructionTokenizer.tokenize(program));
   }
 
   @Test
   void testTooShortString() {
-    byte[] program = concat(bytearg(BINDEF), bytearg((byte) 0x01));
+    byte[] program = concat(bytearg(BINDEF.code), bytearg((byte) 0x01));
     assertThrows(InstructionException.class, () -> InstructionTokenizer.tokenize(program));
   }
 
@@ -99,11 +86,12 @@ final class InstructionTokenizerTest {
 
     BinDef bc1 =
         (BinDef)
-            InstructionTokenizer.tokenize(concat(bytearg(BINDEF), bytearg((byte) 255), byte0to254))
+            InstructionTokenizer.tokenize(
+                    concat(bytearg(BINDEF.code), bytearg((byte) 255), byte0to254))
                 .get(0);
     BinDef bc2 =
         (BinDef)
-            InstructionTokenizer.tokenize(concat(bytearg(BINDEF), bytearg((byte) 1), byte255))
+            InstructionTokenizer.tokenize(concat(bytearg(BINDEF.code), bytearg((byte) 1), byte255))
                 .get(0);
 
     assertThat(bc1.name()).hasLength(255);
@@ -111,89 +99,86 @@ final class InstructionTokenizerTest {
   }
 
   @Test
-  void testText() throws InstructionException {
-    byte[] program = concat(bytearg(TEXT));
-    List<Instructions.Instruction> instruction = InstructionTokenizer.tokenize(program);
-    assertThat(instruction).containsExactly(Text.create());
+  void testText() throws InstructionException, IOException {
+    Text text = Text.create();
+    assertThat(InstructionTokenizer.tokenize(binary(text))).containsExactly(text);
   }
 
   @Test
-  void testData() throws InstructionException {
-    byte[] program =
-        concat(
-            bytearg(DATA),
-            intarg(1),
-            intarg(2),
-            intarg(Integer.MIN_VALUE),
-            intarg(Integer.MAX_VALUE));
-
-    List<Instructions.Instruction> instruction = InstructionTokenizer.tokenize(program);
-
-    assertThat(instruction)
-        .containsExactly(
-            Instructions.Data.create(ImmutableList.of(1, 2, Integer.MIN_VALUE, Integer.MAX_VALUE)));
+  void testData() throws InstructionException, IOException {
+    Data data = Data.create(ImmutableList.of(1, 2, Integer.MIN_VALUE, Integer.MAX_VALUE));
+    assertThat(InstructionTokenizer.tokenize(binary(data))).containsExactly(data);
   }
 
   @Test
-  void testAdd() throws InstructionException {
-    byte[] program = concat(bytearg(ADD), intarg(1), intarg(2), intarg(3));
-    List<Instructions.Instruction> instruction = InstructionTokenizer.tokenize(program);
-    assertThat(instruction).containsExactly(Add.create(1, 2, 3));
+  void testAdd() throws InstructionException, IOException {
+    Add add =
+        Add.create(
+            Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
+    assertThat(InstructionTokenizer.tokenize(binary(add))).containsExactly(add);
   }
 
   @Test
-  void testSub() throws InstructionException {
-    byte[] program = concat(bytearg(SUB), intarg(1), intarg(2), intarg(3));
-    List<Instructions.Instruction> instruction = InstructionTokenizer.tokenize(program);
-    assertThat(instruction).containsExactly(Sub.create(1, 2, 3));
+  void testSub() throws InstructionException, IOException {
+    Sub sub =
+        Sub.create(
+            Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
+    assertThat(InstructionTokenizer.tokenize(binary(sub))).containsExactly(sub);
   }
 
   @Test
-  void testMul() throws InstructionException {
-    byte[] program = concat(bytearg(MUL), intarg(1), intarg(2), intarg(3));
-    List<Instructions.Instruction> instruction = InstructionTokenizer.tokenize(program);
-    assertThat(instruction).containsExactly(Mul.create(1, 2, 3));
+  void testMul() throws InstructionException, IOException {
+    Mul mul =
+        Mul.create(
+            Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
+    assertThat(InstructionTokenizer.tokenize(binary(mul))).containsExactly(mul);
   }
 
   @Test
-  void testDiv() throws InstructionException {
-    byte[] program = concat(bytearg(DIV), intarg(1), intarg(2), intarg(3));
-    List<Instructions.Instruction> instruction = InstructionTokenizer.tokenize(program);
-    assertThat(instruction).containsExactly(Div.create(1, 2, 3));
+  void testDiv() throws InstructionException, IOException {
+    Div div =
+        Div.create(
+            Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
+    assertThat(InstructionTokenizer.tokenize(binary(div))).containsExactly(div);
   }
 
   @Test
-  void testExtern() throws InstructionException {
-    byte[] program = concat(bytearg(EXTERN), stringarg("random"));
-    List<Instructions.Instruction> instruction = InstructionTokenizer.tokenize(program);
-    assertThat(instruction).containsExactly(Extern.create("random"));
+  void testExtern() throws InstructionException, IOException {
+    Extern extern = Extern.create("random");
+    assertThat(InstructionTokenizer.tokenize(binary(extern))).containsExactly(extern);
   }
 
   @Test
-  void testJump() throws InstructionException {
-    byte[] program = concat(bytearg(JMP), intarg(1), intarg(2));
-    List<Instructions.Instruction> instruction = InstructionTokenizer.tokenize(program);
-    assertThat(instruction).containsExactly(Jump.create(1, 2));
+  void testJump() throws InstructionException, IOException {
+    Jump jump = Jump.create(Address.baseAndOffset(1, 2), 1);
+    assertThat(InstructionTokenizer.tokenize(binary(jump))).containsExactly(jump);
   }
 
   @Test
-  void testLessThan() throws InstructionException {
-    byte[] program = concat(bytearg(LT), intarg(1), intarg(2), intarg(3));
-    List<Instructions.Instruction> instruction = InstructionTokenizer.tokenize(program);
-    assertThat(instruction).containsExactly(LessThan.create(1, 2, 3));
+  void testLessThan() throws InstructionException, IOException {
+    LessThan lessThan =
+        LessThan.create(
+            Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
+    assertThat(InstructionTokenizer.tokenize(binary(lessThan))).containsExactly(lessThan);
   }
 
   @Test
-  void testMove() throws InstructionException {
-    byte[] program = concat(bytearg(MOV), intarg(1), intarg(2));
-    List<Instructions.Instruction> instruction = InstructionTokenizer.tokenize(program);
-    assertThat(instruction).containsExactly(Move.create(1, 2));
+  void testEquals() throws InstructionException, IOException {
+    Equals eq =
+        Equals.create(
+            Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
+    assertThat(InstructionTokenizer.tokenize(binary(eq))).containsExactly(eq);
   }
 
   @Test
-  void testConst() throws InstructionException {
-    byte[] program = concat(bytearg(CONST), intarg(1), intarg(Integer.MAX_VALUE));
-    List<Instructions.Instruction> instruction = InstructionTokenizer.tokenize(program);
-    assertThat(instruction).containsExactly(Const.create(1, Integer.MAX_VALUE));
+  void testMove() throws InstructionException, IOException {
+    Move mov = Move.create(Address.baseAndOffset(1, 0), Address.baseAndOffset(3, 4));
+    assertThat(InstructionTokenizer.tokenize(binary(mov))).containsExactly(mov);
+  }
+
+  @Test
+  void testConst() throws InstructionException, IOException {
+    Const cnst = Const.create(1, Address.baseAndOffset(0, Integer.MAX_VALUE));
+    assertThat(InstructionTokenizer.tokenize(binary(cnst))).containsExactly(cnst);
   }
 }

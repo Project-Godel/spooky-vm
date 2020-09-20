@@ -9,8 +9,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import se.jsannemo.spooky.vm.code.Instructions.Data;
 import se.jsannemo.spooky.vm.code.Instructions.BinDef;
+import se.jsannemo.spooky.vm.code.Instructions.Data;
 import se.jsannemo.spooky.vm.code.Instructions.Text;
 
 /** Parser for a binary Spooky executable into a {@link Executable}. */
@@ -19,8 +19,8 @@ public final class ExecutableParser {
   private ExecutableParser() {}
 
   /**
-   * Parses the list {@code instructions} into a {@link Executable}. If an error is found in the structure
-   * of the instruction list, an {@link InstructionException} is thrown.
+   * Parses the list {@code instructions} into a {@link Executable}. If an error is found in the
+   * structure of the instruction list, an {@link InstructionException} is thrown.
    *
    * <p>Executables must have the structure:
    *

@@ -11,6 +11,19 @@ public final class Instructions {
 
   private Instructions() {}
 
+  @AutoValue
+  public abstract static class Address {
+    Address() {}
+
+    public abstract int baseAddr();
+
+    public abstract int offset();
+
+    public static Address baseAndOffset(int baseAddr, int offset) {
+      return new AutoValue_Instructions_Address(baseAddr, offset);
+    }
+  }
+
   /**
    * Parent class for instructions. Instances can be created using the specific instruction type.
    */
@@ -41,12 +54,12 @@ public final class Instructions {
   public abstract static class BinDef extends Instruction {
     BinDef() {}
 
+    /** The name of the binary defined by the instruction. */
+    public abstract String name();
+
     public static BinDef create(String name) {
       return new AutoValue_Instructions_BinDef(name);
     }
-
-    /** The name of the binary defined by the instruction. */
-    public abstract String name();
 
     @Override
     public boolean isExecutable() {
@@ -55,7 +68,7 @@ public final class Instructions {
 
     @Override
     public void writeBinary(OutputStream os) throws IOException {
-      os.write(OpCodes.BINDEF);
+      os.write(OpCode.BINDEF.code);
       byte[] bytes = name().getBytes(StandardCharsets.UTF_8);
       os.write(bytes.length);
       os.write(bytes);
@@ -78,32 +91,32 @@ public final class Instructions {
 
     @Override
     public void writeBinary(OutputStream os) throws IOException {
-      os.write(OpCodes.TEXT);
+      os.write(OpCode.TEXT.code);
     }
   }
 
   /**
    * Copies the value from the memory cell point to by {@code addr} into the memory cell pointed to
    * by {@code target}. Essentially, it performs something akin to <code>
-   * mem[mem[target]] = mem[mem[source]]</code>
+   * mem[target] = mem[source]</code>
    */
   @AutoValue
   public abstract static class Move extends Instruction {
     Move() {}
 
-    public static Move create(int source, int target) {
+    public abstract Address source();
+
+    public abstract Address target();
+
+    public static Move create(Address source, Address target) {
       return new AutoValue_Instructions_Move(source, target);
     }
 
-    public abstract int source();
-
-    public abstract int target();
-
     @Override
     public void writeBinary(OutputStream os) throws IOException {
-      os.write(OpCodes.MOV);
-      Serialization.writeInt(os, source());
-      Serialization.writeInt(os, target());
+      os.write(OpCode.MOV.code);
+      Serialization.writeAddr(os, source());
+      Serialization.writeAddr(os, target());
     }
   }
 
@@ -112,19 +125,19 @@ public final class Instructions {
   public abstract static class Const extends Instruction {
     Const() {}
 
-    public static Const create(int value, int target) {
+    public abstract int value();
+
+    public abstract Address target();
+
+    public static Const create(int value, Address target) {
       return new AutoValue_Instructions_Const(value, target);
     }
 
-    public abstract int value();
-
-    public abstract int target();
-
     @Override
     public void writeBinary(OutputStream os) throws IOException {
-      os.write(OpCodes.CONST);
+      os.write(OpCode.CONST.code);
       Serialization.writeInt(os, value());
-      Serialization.writeInt(os, target());
+      Serialization.writeAddr(os, target());
     }
   }
 
@@ -136,22 +149,22 @@ public final class Instructions {
   public abstract static class Add extends Instruction {
     Add() {}
 
-    public static Add create(int op1, int op2, int target) {
+    public abstract Address op1();
+
+    public abstract Address op2();
+
+    public abstract Address target();
+
+    public static Add create(Address op1, Address op2, Address target) {
       return new AutoValue_Instructions_Add(op1, op2, target);
     }
 
-    public abstract int op1();
-
-    public abstract int op2();
-
-    public abstract int target();
-
     @Override
     public void writeBinary(OutputStream os) throws IOException {
-      os.write(OpCodes.ADD);
-      Serialization.writeInt(os, op1());
-      Serialization.writeInt(os, op2());
-      Serialization.writeInt(os, target());
+      os.write(OpCode.ADD.code);
+      Serialization.writeAddr(os, op1());
+      Serialization.writeAddr(os, op2());
+      Serialization.writeAddr(os, target());
     }
   }
 
@@ -163,22 +176,22 @@ public final class Instructions {
   public abstract static class Sub extends Instruction {
     Sub() {}
 
-    public static Sub create(int op1, int op2, int target) {
+    public abstract Address op1();
+
+    public abstract Address op2();
+
+    public abstract Address target();
+
+    public static Sub create(Address op1, Address op2, Address target) {
       return new AutoValue_Instructions_Sub(op1, op2, target);
     }
 
-    public abstract int op1();
-
-    public abstract int op2();
-
-    public abstract int target();
-
     @Override
     public void writeBinary(OutputStream os) throws IOException {
-      os.write(OpCodes.SUB);
-      Serialization.writeInt(os, op1());
-      Serialization.writeInt(os, op2());
-      Serialization.writeInt(os, target());
+      os.write(OpCode.SUB.code);
+      Serialization.writeAddr(os, op1());
+      Serialization.writeAddr(os, op2());
+      Serialization.writeAddr(os, target());
     }
   }
 
@@ -190,49 +203,80 @@ public final class Instructions {
   public abstract static class Mul extends Instruction {
     Mul() {}
 
-    public static Mul create(int op1, int op2, int target) {
+    public abstract Address op1();
+
+    public abstract Address op2();
+
+    public abstract Address target();
+
+    public static Mul create(Address op1, Address op2, Address target) {
       return new AutoValue_Instructions_Mul(op1, op2, target);
     }
 
-    public abstract int op1();
-
-    public abstract int op2();
-
-    public abstract int target();
-
     @Override
     public void writeBinary(OutputStream os) throws IOException {
-      os.write(OpCodes.MUL);
-      Serialization.writeInt(os, op1());
-      Serialization.writeInt(os, op2());
-      Serialization.writeInt(os, target());
+      os.write(OpCode.MUL.code);
+      Serialization.writeAddr(os, op1());
+      Serialization.writeAddr(os, op2());
+      Serialization.writeAddr(os, target());
     }
   }
 
   /**
    * Divides the values at address {@code op1} with the value at address {@code op2} and stores the
    * result at address {@code target}.
+   *
+   * <p>Throws an exception when dividing by 0.
    */
   @AutoValue
   public abstract static class Div extends Instruction {
     Div() {}
 
-    public static Div create(int op1, int op2, int target) {
+    public abstract Address op1();
+
+    public abstract Address op2();
+
+    public abstract Address target();
+
+    public static Div create(Address op1, Address op2, Address target) {
       return new AutoValue_Instructions_Div(op1, op2, target);
     }
 
-    public abstract int op1();
+    @Override
+    public void writeBinary(OutputStream os) throws IOException {
+      os.write(OpCode.DIV.code);
+      Serialization.writeAddr(os, op1());
+      Serialization.writeAddr(os, op2());
+      Serialization.writeAddr(os, target());
+    }
+  }
 
-    public abstract int op2();
+  /**
+   * Computes the remainder of the value at address {@code op1} when divided by the with the value
+   * at address {@code op2} and stores the result at address {@code target}.
+   *
+   * <p>Throws an exception when dividing by 0.
+   */
+  @AutoValue
+  public abstract static class Mod extends Instruction {
+    Mod() {}
 
-    public abstract int target();
+    public abstract Address op1();
+
+    public abstract Address op2();
+
+    public abstract Address target();
+
+    public static Mod create(Address op1, Address op2, Address target) {
+      return new AutoValue_Instructions_Mod(op1, op2, target);
+    }
 
     @Override
     public void writeBinary(OutputStream os) throws IOException {
-      os.write(OpCodes.DIV);
-      Serialization.writeInt(os, op1());
-      Serialization.writeInt(os, op2());
-      Serialization.writeInt(os, target());
+      os.write(OpCode.MOD.code);
+      Serialization.writeAddr(os, op1());
+      Serialization.writeAddr(os, op2());
+      Serialization.writeAddr(os, target());
     }
   }
 
@@ -244,47 +288,122 @@ public final class Instructions {
   public abstract static class LessThan extends Instruction {
     LessThan() {}
 
-    public static LessThan create(int op1, int op2, int target) {
+    public abstract Address op1();
+
+    public abstract Address op2();
+
+    public abstract Address target();
+
+    public static LessThan create(Address op1, Address op2, Address target) {
       return new AutoValue_Instructions_LessThan(op1, op2, target);
     }
 
-    public abstract int op1();
-
-    public abstract int op2();
-
-    public abstract int target();
-
     @Override
     public void writeBinary(OutputStream os) throws IOException {
-      os.write(OpCodes.LT);
-      Serialization.writeInt(os, op1());
-      Serialization.writeInt(os, op2());
-      Serialization.writeInt(os, target());
+      os.write(OpCode.LT.code);
+      Serialization.writeAddr(os, op1());
+      Serialization.writeAddr(os, op2());
+      Serialization.writeAddr(os, target());
     }
   }
 
   /**
-   * Jumps to the instruction pointed to by {@code addr} (indexed by 0 starting at the first
-   * instruction in the text segment) if the value stored at {@code flag} is 0, i.e. <code>
+   * Compares the values at addresses {@code op1} and {@code op2} and stores 1 (if {@code op1 <=
+   * op2}) or 0 (otherwise) at address {@code target}.
+   */
+  @AutoValue
+  public abstract static class LessEquals extends Instruction {
+    LessEquals() {}
+
+    public abstract Address op1();
+
+    public abstract Address op2();
+
+    public abstract Address target();
+
+    public static LessEquals create(Address op1, Address op2, Address target) {
+      return new AutoValue_Instructions_LessEquals(op1, op2, target);
+    }
+
+    @Override
+    public void writeBinary(OutputStream os) throws IOException {
+      os.write(OpCode.LEQ.code);
+      Serialization.writeAddr(os, op1());
+      Serialization.writeAddr(os, op2());
+      Serialization.writeAddr(os, target());
+    }
+  }
+
+  /**
+   * Compares the values at addresses {@code op1} and {@code op2} and stores 1 (if {@code op1 ==
+   * op2}) or 0 (otherwise) at address {@code target}.
+   */
+  @AutoValue
+  public abstract static class Equals extends Instruction {
+    Equals() {}
+
+    public abstract Address op1();
+
+    public abstract Address op2();
+
+    public abstract Address target();
+
+    public static Equals create(Address op1, Address op2, Address target) {
+      return new AutoValue_Instructions_Equals(op1, op2, target);
+    }
+
+    @Override
+    public void writeBinary(OutputStream os) throws IOException {
+      os.write(OpCode.EQ.code);
+      Serialization.writeAddr(os, op1());
+      Serialization.writeAddr(os, op2());
+      Serialization.writeAddr(os, target());
+    }
+  }
+
+  /**
+   * Jumps to the instruction at {@code addr} (indexed by 0 starting at the first instruction in the
+   * text segment) if the value stored at {@code flag} is 0, i.e. <code>
    * ip = mem[addr]</code>
    */
   @AutoValue
   public abstract static class Jump extends Instruction {
     Jump() {}
 
-    public static Jump create(int flag, int addr) {
-      return new AutoValue_Instructions_Jump(flag, addr);
-    }
-
-    public abstract int flag();
+    public abstract Address flag();
 
     public abstract int addr();
 
+    public static Jump create(Address flag, int addr) {
+      return new AutoValue_Instructions_Jump(flag, addr);
+    }
+
     @Override
     public void writeBinary(OutputStream os) throws IOException {
-      os.write(OpCodes.JMP);
-      Serialization.writeInt(os, flag());
+      os.write(OpCode.JMP.code);
+      Serialization.writeAddr(os, flag());
       Serialization.writeInt(os, addr());
+    }
+  }
+
+  /**
+   * Jumps to the instruction pointed to by {@code addr} (indexed by 0 starting at the first
+   * instruction in the text segment).
+   */
+  @AutoValue
+  public abstract static class JumpAddress extends Instruction {
+    JumpAddress() {}
+
+    public abstract Address addr();
+
+    public static JumpAddress create(Address addr) {
+      return new AutoValue_Instructions_JumpAddress(addr);
+    }
+
+    @Override
+    public void writeBinary(OutputStream os) throws IOException {
+      os.write(OpCode.JMPADR.code);
+      Serialization.writeAddr(os, addr());
     }
   }
 
@@ -293,16 +412,36 @@ public final class Instructions {
   public abstract static class Extern extends Instruction {
     Extern() {}
 
+    public abstract String name();
+
     public static Extern create(String name) {
       return new AutoValue_Instructions_Extern(name);
     }
 
-    public abstract String name();
+    @Override
+    public void writeBinary(OutputStream os) throws IOException {
+      os.write(OpCode.EXTERN.code);
+      Serialization.writeString(os, name());
+    }
+  }
+
+  /** An instruction halting all execution. */
+  @AutoValue
+  public abstract static class Halt extends Instruction {
+    Halt() {}
+
+    public static Halt create() {
+      return new AutoValue_Instructions_Halt();
+    }
+
+    @Override
+    public boolean isExecutable() {
+      return true;
+    }
 
     @Override
     public void writeBinary(OutputStream os) throws IOException {
-      os.write(OpCodes.EXTERN);
-      Serialization.writeString(os, name());
+      os.write(OpCode.HALT.code);
     }
   }
 
@@ -311,11 +450,11 @@ public final class Instructions {
   public abstract static class Data extends Instruction {
     Data() {}
 
+    public abstract ImmutableList<Integer> data();
+
     public static Data create(ImmutableList<Integer> data) {
       return new AutoValue_Instructions_Data(data);
     }
-
-    public abstract ImmutableList<Integer> data();
 
     @Override
     public boolean isExecutable() {
@@ -324,7 +463,7 @@ public final class Instructions {
 
     @Override
     public void writeBinary(OutputStream os) throws IOException {
-      os.write(OpCodes.DATA);
+      os.write(OpCode.DATA.code);
       for (int i : data()) {
         Serialization.writeInt(os, i);
       }

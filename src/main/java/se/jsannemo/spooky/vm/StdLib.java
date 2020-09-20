@@ -1,46 +1,47 @@
 package se.jsannemo.spooky.vm;
 
 import java.util.Random;
+import se.jsannemo.spooky.compiler.codegen.Conventions;
 
 /**
- * {@link StdLib} provides utility methods to implement extern functions with the same calling
- * convention as the Spooky standard library.
+ * {@link StdLib} provides the Spooky standard library and utility methods to implement extern
+ * functions with the same calling convention.
  */
 public final class StdLib {
 
-  private static final int STACK_PTR = 0;
   private static final Random RANDOM = new Random();
 
   private StdLib() {}
 
   /**
-   * Pops the last argument for the function from the stack and returns the value.
+   * Returns the argument with offset {@code offset} from the back.
    *
-   * @throws VmException if the pop causes the stack to underflow.
+   * @throws VmException if the stack pointer or the argument is out of bounds.
    */
-  public static int popArg(SpookyVm vm) throws VmException {
-    int sp = vm.getM(STACK_PTR);
-    int val = vm.getM(sp - 1);
-    vm.setM(STACK_PTR, sp - 1);
-    return val;
+  public static int getArg(SpookyVm vm, int offset) throws VmException {
+    int sp = vm.getM(Conventions.STACK_POINTER.absStack());
+    return vm.getM(sp - offset);
   }
 
   /**
-   * Pushes a return value for a function to the stack.
+   * Set the return value of a call with argument size {@code argSize} to {@code value}
    *
-   * @throws VmException if the push causes the stack to overflow.
+   * @throws VmException if not enough stack is reserved for the return value.
    */
-  public static void pushArg(SpookyVm vm, int val) throws VmException {
-    int sp = vm.getM(STACK_PTR);
-    vm.setM(sp, val);
-    vm.setM(STACK_PTR, sp + 1);
+  public static void setReturn(SpookyVm vm, int argSize, int value) throws VmException {
+    int sp = vm.getM(Conventions.STACK_POINTER.absStack());
+    vm.setM(sp - argSize - 1, value);
   }
 
   static void random(SpookyVm vm) throws VmException {
-    pushArg(vm, RANDOM.nextInt());
+    setReturn(vm, 0, RANDOM.nextInt());
   }
 
-  static void print(SpookyVm vm) throws VmException {
-    System.out.print((char) popArg(vm));
+  static void printChar(SpookyVm vm) throws VmException {
+    vm.getStdOut().print((char) getArg(vm, 1));
+  }
+
+  static void printInt(SpookyVm vm) throws VmException {
+    vm.getStdOut().print(getArg(vm, 1));
   }
 }

@@ -3,3 +3,4 @@ javadoc/
 out/
 *.iml
 target/
+dependency-reduced-pom.xml

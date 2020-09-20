@@ -5,7 +5,9 @@ import static com.google.common.truth.Truth.assertThat;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import se.jsannemo.spooky.vm.code.Instructions.Address;
 
 final class SerializationTest {
 
@@ -19,6 +21,14 @@ final class SerializationTest {
     assertThat(Serialization.readInt(new ByteStreamIterator(serialized))).isEqualTo(val);
   }
 
+  @ParameterizedTest()
+  @CsvSource({"0,0", "-1,0", Integer.MIN_VALUE + "," + Integer.MAX_VALUE, "234234,-432423"})
+  void testAddressSerialization(int base, int offset) throws IOException {
+    Address addr = Address.baseAndOffset(base, offset);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    Serialization.writeAddr(baos, addr);
+    byte[] serialized = baos.toByteArray();
 
-
+    assertThat(Serialization.readAddr(new ByteStreamIterator(serialized))).isEqualTo(addr);
+  }
 }

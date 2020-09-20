@@ -3,14 +3,21 @@ package se.jsannemo.spooky.vm;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableMap;
+import java.io.PrintStream;
 import se.jsannemo.spooky.vm.code.Executable;
 import se.jsannemo.spooky.vm.code.Instructions.Add;
+import se.jsannemo.spooky.vm.code.Instructions.Address;
 import se.jsannemo.spooky.vm.code.Instructions.Const;
 import se.jsannemo.spooky.vm.code.Instructions.Div;
+import se.jsannemo.spooky.vm.code.Instructions.Equals;
 import se.jsannemo.spooky.vm.code.Instructions.Extern;
+import se.jsannemo.spooky.vm.code.Instructions.Halt;
 import se.jsannemo.spooky.vm.code.Instructions.Instruction;
 import se.jsannemo.spooky.vm.code.Instructions.Jump;
+import se.jsannemo.spooky.vm.code.Instructions.JumpAddress;
+import se.jsannemo.spooky.vm.code.Instructions.LessEquals;
 import se.jsannemo.spooky.vm.code.Instructions.LessThan;
+import se.jsannemo.spooky.vm.code.Instructions.Mod;
 import se.jsannemo.spooky.vm.code.Instructions.Move;
 import se.jsannemo.spooky.vm.code.Instructions.Mul;
 import se.jsannemo.spooky.vm.code.Instructions.Sub;
@@ -18,81 +25,91 @@ import se.jsannemo.spooky.vm.code.Instructions.Sub;
 /**
  * A virtual machine, executing parsed Spooky code.
  *
- * <p>The Spooky code is given to the VM in the form of a {@link Executable}. It will start executing
- * the first instruction in the text segment.
+ * <p>The Spooky code is given to the VM in the form of a {@link Executable}. It will start
+ * executing the first instruction in the text segment.
  */
 public final class SpookyVm {
 
   private final ImmutableMap<String, ExternCall> externs;
   private final int[] memory;
+  /** The executable that we are currently executing instructions in. */
+  private final Executable curExecutable;
   /**
    * The value of the instruction pointer, with the index of the text instructions in the current
    * executable that should be executed.
    */
   private int ip;
-  /** The executable that we are currently executing instructions in. */
-  private Executable curExecutable;
+  private PrintStream stdOut;
 
-  private SpookyVm(Executable executable, ImmutableMap<String, ExternCall> externs, int memoryCells) {
+  private SpookyVm(
+      Executable executable, ImmutableMap<String, ExternCall> externs, int memoryCells,
+      PrintStream stdOut) {
     this.externs = externs;
     this.curExecutable = executable;
     this.ip = 0;
     this.memory = new int[memoryCells];
+    this.stdOut = stdOut;
   }
 
   /**
    * Executes the current instruction of the VM, advancing the instruction pointer afterwards.
    *
    * <p>If the instruction pointer points to an invalid instruction (i.e. one that is smaller or
-   * larger than the amount of instructions in the current executable), nothing happens.
+   * larger than the amount of instructions in the current executable), an error is thrown.
+   *
+   * @return false if and only if  the program halted.
    *
    * @throws VmException if the instruction caused a run-time fault in the VM.
    */
-  public void executeInstruction() throws VmException {
+  public boolean executeInstruction() throws VmException {
     // Halt VM in case if an out-of-bounds instruction.
     if (ip < 0 || ip >= curExecutable.text().size()) {
       throw new VmException("Instruction pointer out-of-bounds");
     }
     Instruction ins = curExecutable.text().get(ip++);
     checkState(ins.isExecutable());
-    if (ins instanceof Move) {
-      Move mov = (Move) ins;
-      setM(getM(mov.target()), getM(getM(mov.source())));
-    }
-    if (ins instanceof Const) {
-      Const cnst = (Const) ins;
+    if (ins instanceof Move mov) {
+      setM(mov.target(), getM(mov.source()));
+    } else if (ins instanceof Const cnst) {
       setM(cnst.target(), cnst.value());
-    }
-    if (ins instanceof Add) {
-      Add add = (Add) ins;
+    } else if (ins instanceof Add add) {
       setM(add.target(), getM(add.op1()) + getM(add.op2()));
-    }
-    if (ins instanceof Sub) {
-      Sub sub = (Sub) ins;
+    } else if (ins instanceof Sub sub) {
       setM(sub.target(), getM(sub.op1()) - getM(sub.op2()));
-    }
-    if (ins instanceof Mul) {
-      Mul mul = (Mul) ins;
+    } else if (ins instanceof Mul mul) {
       setM(mul.target(), getM(mul.op1()) * getM(mul.op2()));
-    }
-    if (ins instanceof Div) {
-      Div div = (Div) ins;
-      setM(div.target(), getM(div.op1()) / getM(div.op2()));
-    }
-    if (ins instanceof LessThan) {
-      LessThan lt = (LessThan) ins;
-      setM(lt.target(), getM(lt.op1()) < getM(lt.op2()) ? 1 : 0);
-    }
-    if (ins instanceof Jump) {
-      Jump jmp = (Jump) ins;
-      if (getM(jmp.flag()) == 0) {
-        ip = getM(jmp.addr());
+    } else if (ins instanceof Div div) {
+      int denominator = getM(div.op2());
+      if (denominator == 0) {
+        throw new VmException("Division by zero");
       }
-    }
-    if (ins instanceof Extern) {
-      Extern ext = (Extern) ins;
+      setM(div.target(), getM(div.op1()) / denominator);
+    } else if (ins instanceof Mod mod) {
+      int denominator = getM(mod.op2());
+      if (denominator == 0) {
+        throw new VmException("Division by zero");
+      }
+      setM(mod.target(), getM(mod.op1()) % denominator);
+    } else if (ins instanceof LessThan lt) {
+      setM(lt.target(), getM(lt.op1()) < getM(lt.op2()) ? 1 : 0);
+    } else if (ins instanceof LessEquals leq) {
+      setM(leq.target(), getM(leq.op1()) <= getM(leq.op2()) ? 1 : 0);
+    } else if (ins instanceof Equals eq) {
+      setM(eq.target(), getM(eq.op1()) == getM(eq.op2()) ? 1 : 0);
+    } else if (ins instanceof Jump jmp) {
+      if (getM(jmp.flag()) == 0) {
+        ip = jmp.addr();
+      }
+    } else if (ins instanceof JumpAddress jmp) {
+      ip = getM(jmp.addr());
+    } else if (ins instanceof Extern ext) {
       callExtern(ext.name());
+    } else if (ins instanceof Halt) {
+      return false;
+    } else {
+      throw new IllegalArgumentException("Invalid operation in VM: " + ins);
     }
+    return true;
   }
 
   private void callExtern(String extern) throws VmException {
@@ -120,6 +137,10 @@ public final class SpookyVm {
     throw new VmException("Memory position " + pos + " is out of bounds");
   }
 
+  public int getM(Address addr) throws VmException {
+    return getM(resolveAddress(addr));
+  }
+
   /**
    * Sets the memory at position {@code pos} in the main memory.
    *
@@ -132,6 +153,18 @@ public final class SpookyVm {
     memory[pos] = value;
   }
 
+  public void setM(Address addr, int value) throws VmException {
+    setM(resolveAddress(addr), value);
+  }
+
+  private int resolveAddress(Address addr) throws VmException {
+    return getM(addr.baseAddr()) + addr.offset();
+  }
+
+  public PrintStream getStdOut() {
+    return stdOut;
+  }
+
   /** Returns a new builder for {@link SpookyVm} instances. */
   public static Builder newBuilder(Executable executable) {
     return new Builder(executable);
@@ -142,10 +175,12 @@ public final class SpookyVm {
     private final Executable executable;
     private final ImmutableMap.Builder<String, ExternCall> externBuilder = ImmutableMap.builder();
     private int memoryCells;
+    private PrintStream stdOut;
 
     private Builder(Executable executable) {
       this.executable = executable;
       memoryCells = 0;
+      stdOut = System.out;
     }
 
     /** Make available an external call named {@code name} invoking {@code callback} when called. */
@@ -157,7 +192,8 @@ public final class SpookyVm {
     /** Add the external calls that the standard library provides. */
     public Builder addStdLib() {
       externBuilder.put("random", StdLib::random);
-      externBuilder.put("print", StdLib::print);
+      externBuilder.put("print", StdLib::printChar);
+      externBuilder.put("printInt", StdLib::printInt);
       return this;
     }
 
@@ -168,7 +204,12 @@ public final class SpookyVm {
     }
 
     public SpookyVm build() {
-      return new SpookyVm(executable, externBuilder.build(), memoryCells);
+      return new SpookyVm(executable, externBuilder.build(), memoryCells, stdOut);
+    }
+
+    public Builder setStdOut(PrintStream writer) {
+      this.stdOut = writer;
+      return this;
     }
   }
 }

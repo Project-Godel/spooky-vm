@@ -6,7 +6,6 @@ import com.google.common.collect.ImmutableList;
 /** A parsed Spooky code executable. */
 @AutoValue
 public abstract class Executable {
-
   Executable() {}
 
   static Builder builder() {

@@ -6,12 +6,18 @@ import static se.jsannemo.spooky.vm.code.Instructions.Extern.create;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import se.jsannemo.spooky.vm.code.Instructions.Add;
+import se.jsannemo.spooky.vm.code.Instructions.Address;
 import se.jsannemo.spooky.vm.code.Instructions.BinDef;
 import se.jsannemo.spooky.vm.code.Instructions.Const;
 import se.jsannemo.spooky.vm.code.Instructions.Div;
+import se.jsannemo.spooky.vm.code.Instructions.Equals;
+import se.jsannemo.spooky.vm.code.Instructions.Halt;
 import se.jsannemo.spooky.vm.code.Instructions.Instruction;
 import se.jsannemo.spooky.vm.code.Instructions.Jump;
+import se.jsannemo.spooky.vm.code.Instructions.JumpAddress;
+import se.jsannemo.spooky.vm.code.Instructions.LessEquals;
 import se.jsannemo.spooky.vm.code.Instructions.LessThan;
+import se.jsannemo.spooky.vm.code.Instructions.Mod;
 import se.jsannemo.spooky.vm.code.Instructions.Move;
 import se.jsannemo.spooky.vm.code.Instructions.Mul;
 import se.jsannemo.spooky.vm.code.Instructions.Sub;
@@ -19,25 +25,25 @@ import se.jsannemo.spooky.vm.code.Instructions.Text;
 
 /** A tokenizer of raw bytes into the corresponding instructions. */
 final class InstructionTokenizer {
-  @FunctionalInterface
-  private interface Tokenizer {
-    Instruction parse(ByteStreamIterator context) throws InstructionException;
-  }
-
   private static final ImmutableMap<Byte, Tokenizer> TOKENIZERS =
       ImmutableMap.<Byte, Tokenizer>builder()
-          .put(OpCodes.BINDEF, InstructionTokenizer::parseBinDef)
-          .put(OpCodes.TEXT, InstructionTokenizer::parseText)
-          .put(OpCodes.DATA, InstructionTokenizer::parseData)
-          .put(OpCodes.MOV, InstructionTokenizer::parseMov)
-          .put(OpCodes.CONST, InstructionTokenizer::parseConst)
-          .put(OpCodes.ADD, InstructionTokenizer::parseAdd)
-          .put(OpCodes.SUB, InstructionTokenizer::parseSub)
-          .put(OpCodes.MUL, InstructionTokenizer::parseMul)
-          .put(OpCodes.DIV, InstructionTokenizer::parseDiv)
-          .put(OpCodes.LT, InstructionTokenizer::parseLessThan)
-          .put(OpCodes.JMP, InstructionTokenizer::parseJump)
-          .put(OpCodes.EXTERN, InstructionTokenizer::parseExtern)
+          .put(OpCode.BINDEF.code, InstructionTokenizer::parseBinDef)
+          .put(OpCode.TEXT.code, InstructionTokenizer::parseText)
+          .put(OpCode.DATA.code, InstructionTokenizer::parseData)
+          .put(OpCode.MOV.code, InstructionTokenizer::parseMov)
+          .put(OpCode.CONST.code, InstructionTokenizer::parseConst)
+          .put(OpCode.ADD.code, InstructionTokenizer::parseAdd)
+          .put(OpCode.SUB.code, InstructionTokenizer::parseSub)
+          .put(OpCode.MUL.code, InstructionTokenizer::parseMul)
+          .put(OpCode.DIV.code, InstructionTokenizer::parseDiv)
+          .put(OpCode.MOD.code, InstructionTokenizer::parseMod)
+          .put(OpCode.LT.code, InstructionTokenizer::parseLessThan)
+          .put(OpCode.LEQ.code, InstructionTokenizer::parseLessEquals)
+          .put(OpCode.EQ.code, InstructionTokenizer::parseEquals)
+          .put(OpCode.JMP.code, InstructionTokenizer::parseJump)
+          .put(OpCode.JMPADR.code, InstructionTokenizer::parseJumpAddress)
+          .put(OpCode.EXTERN.code, InstructionTokenizer::parseExtern)
+          .put(OpCode.HALT.code, InstructionTokenizer::parseHalt)
           .build();
 
   static ImmutableList<Instruction> tokenize(byte[] content) throws InstructionException {
@@ -58,7 +64,8 @@ final class InstructionTokenizer {
   }
 
   private static Instruction parseData(ByteStreamIterator context) {
-    checkArgument(!context.finished() && context.currentByte() == OpCodes.DATA, "Expected DATA byte");
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.DATA.code, "Expected DATA byte");
     context.advance(1);
     ImmutableList.Builder<Integer> data = ImmutableList.builder();
     while (!context.finished()) {
@@ -68,13 +75,15 @@ final class InstructionTokenizer {
   }
 
   private static Instruction parseText(ByteStreamIterator context) {
-    checkArgument(!context.finished() && context.currentByte() == OpCodes.TEXT, "Expected TEXT byte");
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.TEXT.code, "Expected TEXT byte");
     context.advance(1);
     return Text.create();
   }
 
   private static Instruction parseBinDef(ByteStreamIterator context) throws InstructionException {
-    checkArgument(!context.finished() && context.currentByte() == OpCodes.BINDEF, "Expected BINDEF byte");
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.BINDEF.code, "Expected BINDEF byte");
     context.advance(1);
     String binName = Serialization.readString(context);
     if (binName.isEmpty()) {
@@ -84,7 +93,8 @@ final class InstructionTokenizer {
   }
 
   private static Instruction parseExtern(ByteStreamIterator context) throws InstructionException {
-    checkArgument(!context.finished() && context.currentByte() == OpCodes.EXTERN, "Expected EXTERN byte");
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.EXTERN.code, "Expected EXTERN byte");
     context.advance(1);
     String funcName = Serialization.readString(context);
     if (funcName.isEmpty()) {
@@ -94,72 +104,129 @@ final class InstructionTokenizer {
   }
 
   private static Instruction parseConst(ByteStreamIterator context) {
-    checkArgument(!context.finished() && context.currentByte() == OpCodes.CONST, "Expected CONST byte");
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.CONST.code, "Expected CONST byte");
     context.advance(1);
     int value = Serialization.readInt(context);
-    int target = Serialization.readInt(context);
-    return Const.create(value, target);
+    Address addr = Serialization.readAddr(context);
+    return Const.create(value, addr);
   }
 
   private static Instruction parseMov(ByteStreamIterator context) {
-    checkArgument(!context.finished() && context.currentByte() == OpCodes.MOV, "Expected MOV byte");
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.MOV.code, "Expected MOV byte");
     context.advance(1);
-    int source = Serialization.readInt(context);
-    int target = Serialization.readInt(context);
+    Address source = Serialization.readAddr(context);
+    Address target = Serialization.readAddr(context);
     return Move.create(source, target);
   }
 
   private static Instruction parseAdd(ByteStreamIterator context) {
-    checkArgument(!context.finished() && context.currentByte() == OpCodes.ADD, "Expected ADD byte");
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.ADD.code, "Expected ADD byte");
     context.advance(1);
-    int op1 = Serialization.readInt(context);
-    int op2 = Serialization.readInt(context);
-    int target = Serialization.readInt(context);
+    Address op1 = Serialization.readAddr(context);
+    Address op2 = Serialization.readAddr(context);
+    Address target = Serialization.readAddr(context);
     return Add.create(op1, op2, target);
   }
 
   private static Instruction parseSub(ByteStreamIterator context) {
-    checkArgument(!context.finished() && context.currentByte() == OpCodes.SUB, "Expected SUB byte");
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.SUB.code, "Expected SUB byte");
     context.advance(1);
-    int op1 = Serialization.readInt(context);
-    int op2 = Serialization.readInt(context);
-    int target = Serialization.readInt(context);
+    Address op1 = Serialization.readAddr(context);
+    Address op2 = Serialization.readAddr(context);
+    Address target = Serialization.readAddr(context);
     return Sub.create(op1, op2, target);
   }
 
   private static Instruction parseMul(ByteStreamIterator context) {
-    checkArgument(!context.finished() && context.currentByte() == OpCodes.MUL, "Expected MUL byte");
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.MUL.code, "Expected MUL byte");
     context.advance(1);
-    int op1 = Serialization.readInt(context);
-    int op2 = Serialization.readInt(context);
-    int target = Serialization.readInt(context);
+    Address op1 = Serialization.readAddr(context);
+    Address op2 = Serialization.readAddr(context);
+    Address target = Serialization.readAddr(context);
     return Mul.create(op1, op2, target);
   }
 
   private static Instruction parseDiv(ByteStreamIterator context) {
-    checkArgument(!context.finished() && context.currentByte() == OpCodes.DIV, "Expected DIV byte");
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.DIV.code, "Expected DIV byte");
     context.advance(1);
-    int op1 = Serialization.readInt(context);
-    int op2 = Serialization.readInt(context);
-    int target = Serialization.readInt(context);
+    Address op1 = Serialization.readAddr(context);
+    Address op2 = Serialization.readAddr(context);
+    Address target = Serialization.readAddr(context);
     return Div.create(op1, op2, target);
   }
 
-  private static Instruction parseJump(ByteStreamIterator context) {
-    checkArgument(!context.finished() && context.currentByte() == OpCodes.JMP, "Expected JMP byte");
+  private static Instruction parseMod(ByteStreamIterator context) {
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.MOD.code, "Expected MOD byte");
     context.advance(1);
-    int flag = Serialization.readInt(context);
+    Address op1 = Serialization.readAddr(context);
+    Address op2 = Serialization.readAddr(context);
+    Address target = Serialization.readAddr(context);
+    return Mod.create(op1, op2, target);
+  }
+
+  private static Instruction parseJump(ByteStreamIterator context) {
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.JMP.code, "Expected JMP byte");
+    context.advance(1);
+    Address flag = Serialization.readAddr(context);
     int addr = Serialization.readInt(context);
     return Jump.create(flag, addr);
   }
 
-  private static Instruction parseLessThan(ByteStreamIterator context) {
-    checkArgument(!context.finished() && context.currentByte() == OpCodes.LT, "Expected LT byte");
+  private static Instruction parseJumpAddress(ByteStreamIterator context) {
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.JMPADR.code, "Expected JMPADR byte");
     context.advance(1);
-    int op1 = Serialization.readInt(context);
-    int op2 = Serialization.readInt(context);
-    int target = Serialization.readInt(context);
+    Address addr = Serialization.readAddr(context);
+    return JumpAddress.create(addr);
+  }
+
+  private static Instruction parseLessThan(ByteStreamIterator context) {
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.LT.code, "Expected LT byte");
+    context.advance(1);
+    Address op1 = Serialization.readAddr(context);
+    Address op2 = Serialization.readAddr(context);
+    Address target = Serialization.readAddr(context);
     return LessThan.create(op1, op2, target);
   }
 
+  private static Instruction parseLessEquals(ByteStreamIterator context) {
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.LEQ.code, "Expected LEQ byte");
+    context.advance(1);
+    Address op1 = Serialization.readAddr(context);
+    Address op2 = Serialization.readAddr(context);
+    Address target = Serialization.readAddr(context);
+    return LessEquals.create(op1, op2, target);
+  }
+
+  private static Instruction parseEquals(ByteStreamIterator context) {
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.EQ.code, "Expected EQ byte");
+    context.advance(1);
+    Address op1 = Serialization.readAddr(context);
+    Address op2 = Serialization.readAddr(context);
+    Address target = Serialization.readAddr(context);
+    return Equals.create(op1, op2, target);
+  }
+
+  private static Instruction parseHalt(ByteStreamIterator context) {
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.HALT.code, "Expected HALT byte");
+    context.advance(1);
+    return Halt.create();
+  }
+
+  @FunctionalInterface
+  private interface Tokenizer {
+    Instruction parse(ByteStreamIterator context) throws InstructionException;
+  }
 }
