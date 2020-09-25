@@ -3,7 +3,7 @@ package se.jsannemo.spooky.compiler;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import se.jsannemo.spooky.vm.SpookyVm;
 import se.jsannemo.spooky.vm.VmException;
@@ -29,8 +29,7 @@ final class CompilerTest {
             .build();
     for (int i = 0; i < 10000 && vm.executeInstruction(); i++)
       ;
-    Assert.assertEquals(output.toString(), "Hello World!");
-    ;
+    Assertions.assertEquals("Hello World!", output.toString());
   }
 
   @Test
@@ -49,8 +48,13 @@ final class CompilerTest {
             .build();
     for (int i = 0; i < 10000 && vm.executeInstruction(); i++)
       ;
-    Assert.assertEquals(
-        output.toString(), "90 0\n91 0\n92 0\n93 0\n94 0\n95 0\n96 0\n97 1\n98 0\n99 0\n");
-    ;
+    Assertions.assertEquals("90 0\n91 0\n92 0\n93 0\n94 0\n95 0\n96 0\n97 1\n98 0\n99 0\n", output.toString());
+  }
+
+  @Test
+  void testCarl() {
+    InputStream programStream =
+        getClass().getClassLoader().getResourceAsStream("example_programs/carl.spooky");
+    Assertions.assertThrows(ValidationException.class, () -> Compiler.compile(programStream));
   }
 }

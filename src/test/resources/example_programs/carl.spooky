@@ -1,0 +1,10 @@
+extern print(ch: Int)
+
+func main() {
+  test();
+  print(65);
+  test2();
+}
+
+func test(a: Int) { a = 5; }
+func test2(a: Int) { a = 5; }

@@ -240,6 +240,9 @@ public final class ToIr {
             ctx.function.newStatement(IrStatement.IrStoreLabel.of(IrAddr.relSp(ctx.scope.spOffset), retLabel));
             ctx.scope.spOffset += IrType.INT.memSize();
         }
+        if (functionCall.params().size() != func.paramSignature.size()) {
+            throw new ValidationException("Wrong number of parameters to call function " + mName + " (lex Carl)");
+        }
         // Push parameters.
         for (int i = 0; i < functionCall.params().size(); i++) {
             IrType type = expr(functionCall.params().get(i), ctx);
