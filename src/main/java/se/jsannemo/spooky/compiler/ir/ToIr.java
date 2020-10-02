@@ -66,7 +66,7 @@ public final class ToIr {
 
         // Root scope for function; only includes the parameters.
         IrContext.Scope cur = ctx.newScope();
-        int offset = 0; // Offset -1 is reserved for return address
+        int offset = 0;
         for (FunctionParam param : value.declaration().params()) {
             String pName = param.name().name();
             if (cur.vals.containsKey(pName)) {
@@ -74,7 +74,6 @@ public final class ToIr {
             }
             IrType type = IrType.fromTypeName(param.type());
             offset -= type.memSize();
-
             IrValue var = IrValue.ofTypeAndAddress(type, IrAddr.relSp(offset));
             cur.addVal(pName, var);
         }
@@ -92,8 +91,7 @@ public final class ToIr {
               throw new ValidationException("Main function has non-void return type");
           }
         }
-        Statement last = stmt.get(stmt.size() - 1);
-        if (last.kind() != StatementKind.RETURNS) {
+        if (stmt.isEmpty() || stmt.get(stmt.size() - 1).kind() != StatementKind.RETURNS) {
           if (ctx.function.returnSignature.equals(IrType.VOID)) {
               stmt.add(Statement.returns(Optional.empty()));
           } else {
@@ -101,7 +99,6 @@ public final class ToIr {
           }
         }
         statementList(stmt, ctx);
-
 
         ctx.popScope();
         ctx.function = null;
@@ -152,20 +149,24 @@ public final class ToIr {
     }
 
     private static void returns(Optional<Expression> ret, IrContext ctx) throws ValidationException {
-      if (ctx.function.isMain) {
-          ctx.function.newStatement(IrHalt.of());
-          return;
-      }
+        boolean wantValue = !ctx.function.returnSignature.equals(IrType.VOID);
+        if (wantValue != ret.isPresent()) {
+            throw new ValidationException("Return value has the wrong type");
+        }
         int pos = ctx.scope.spOffset;
         if (ret.isPresent()) {
             IrType type = expr(ret.get(), ctx);
             if (!type.equals(ctx.function.returnSignature)) {
                 throw new ValidationException("Return value has the wrong type");
             }
-        } else if (!ctx.function.returnSignature.equals(IrType.VOID)) {
-            throw new ValidationException("Return value has the wrong type");
         }
-        ctx.function.newStatement(IrStatement.IrCopy.fromTo(IrAddr.relSp(pos), IrAddr.relSp(ctx.function.retValue)));
+        if (ctx.function.isMain) {
+            ctx.function.newStatement(IrHalt.of());
+            return;
+        }
+        if (ret.isPresent()) {
+            ctx.function.newStatement(IrStatement.IrCopy.fromTo(IrAddr.relSp(pos), IrAddr.relSp(ctx.function.retValue)));
+        }
         ctx.function.newStatement(IrStatement.IrJmpAdr.of(IrAddr.relSp(ctx.function.retAddress)));
     }
 

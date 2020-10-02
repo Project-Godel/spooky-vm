@@ -1,0 +1,8 @@
+extern print(ch: Int)
+
+func main() {
+  print(65);
+  test();
+}
+
+func test() { }
