@@ -51,6 +51,6 @@ public final class Main {
       return;
     }
     byte[] code = Compiler.compile(new FileInputStream(args[1]));
-    Files.write(Path.of(args[2]), code, StandardOpenOption.CREATE);
+    Files.write(Path.of(args[2]), code, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
   }
 }
