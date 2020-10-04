@@ -7,6 +7,8 @@ import com.google.common.collect.ImmutableList;
 public abstract class Program {
   Program() {}
 
+  public abstract ImmutableList<VarDecl> globals();
+
   public abstract ImmutableList<Function> functions();
 
   /** Returns the externally linked functions of the program. */
@@ -18,6 +20,13 @@ public abstract class Program {
 
   @AutoValue.Builder
   public abstract static class Builder {
+    abstract ImmutableList.Builder<VarDecl> globalsBuilder();
+
+    public Builder addGlobal(VarDecl globalDecl) {
+      this.globalsBuilder().add(globalDecl);
+      return this;
+    }
+
     abstract ImmutableList.Builder<Function> functionsBuilder();
 
     public Builder addFunction(Function function) {

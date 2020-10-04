@@ -36,7 +36,7 @@ MORE: { <ENTER_TEXT_BLOCK: "\"\"\"" >: IN_TEXT_BLOCK }
 
 // Keywords
 TOKEN : {
-    <FUNC : "func">
+  <FUNC : "func">
   | <EXTERN : "extern" >
   | <FOR : "for" >
   | <IF : "if" >
@@ -120,11 +120,15 @@ boolean BoolLiteral() : {
 // Program file
 Program Start() : {
     Program.Builder program = Program.builder();
+    VarDecl global;
     Function func;
     FunctionDecl decl;
     Token t;
 } {
     (
+        global = Global()
+        { program.addGlobal(global); }
+        |
         t = <EXTERN>
         decl = FunctionDecl(t)
         { program.addExtern(decl); }
@@ -134,6 +138,16 @@ Program Start() : {
     ) *
     <EOF>
     { return program.build(); }
+}
+
+// Globals
+VarDecl Global() : {
+    TypeName type;
+    Expression value;
+    Identifier name;
+} {
+    name = Identifier() ":" type = Type() "=" value = Expression()
+    { return VarDecl.of(name, type, value); }
 }
 
 // Function metadata

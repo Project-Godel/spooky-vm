@@ -8,7 +8,6 @@ import se.jsannemo.spooky.vm.code.Instructions.Instruction;
 
 /** Assembler for VM instructions into binary code. */
 public final class Assembler {
-
   /**
    * Assembles {@code instructions} into a binary format that can be parsed by {@link
    * ExecutableParser#fromBinary(byte[])}.
