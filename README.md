@@ -1,12 +1,37 @@
 ![Spoooky!](https://github.com/jsannemo/spooky-vm/blob/master/spook.png?raw=true)
 
-So spooky.
+Spooky is a simple programming language with an accompanying compiler and virtual machine.
 
-## Usage:
+## Requirements
+To run the compiler, you need to have Java 14 installed.
+
+## Usage
+To compile the source `source.spooky` into the compiled file `exec.spook`, run
 ```
-java --enable-preview spooky.jar compile source.spooky exec.spook
-java --enable-preview spooky.jar run exec.spook
+java --enable-preview -jar spooky.jar compile source.spooky exec.spook
 ```
+
+To execute the program, run
+```
+java --enable-preview -jar spooky.jar run exec.spook
+```
+
+## Language features
+The language is very bare bones right now, only supporting basics such as variables, functions, loops, conditionals and some simple expressions.
+While the VM itself is pretty fixed in structure, contributions to the language itself is very welcome.
+In particular, features such as
+
+- more operators, such as `++`
+- arrays
+- global variables
+- character literals
+- string literals
+
+would be nice.
+
+## External functions
+When executing programs, a set of external functions may optionally be provided.
+These are declared as `extern` functions in your source and provided by the execution environment.
 
 ## Example programs
 ```scala
