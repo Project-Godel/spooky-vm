@@ -36,7 +36,13 @@ public final class CodeGen {
 
         HashMap<Integer, String> funcLabelFills = new HashMap<>();
         HashMap<String, Integer> funcAddresses = new HashMap<>();
-        // Main must be exported first, since execution starts from IP = 0.
+        // __init__ must be exported first, then main, since execution starts from IP = 0.
+        program.functions.forEach((name, func) -> {
+            if (name.equals("__init__")) {
+                funcAddresses.put(name, ins.size());
+                function(func, ins, funcLabelFills);
+            }
+        });
         program.functions.forEach((name, func) -> {
             if (name.equals("main")) {
                 funcAddresses.put(name, ins.size());
@@ -44,7 +50,7 @@ public final class CodeGen {
             }
         });
         program.functions.forEach((name, func) -> {
-            if (!name.equals("main")) {
+            if (!name.equals("main") && !name.equals("__init__")) {
                 funcAddresses.put(name, ins.size());
                 function(func, ins, funcLabelFills);
             }

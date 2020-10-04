@@ -34,6 +34,7 @@ public final class ToIr {
         IrContext ctx = new IrContext(new IrProgram());
         // Create root scope; will be used for e.g. global variables in the future.
         ctx.newScope();
+        initDecl(p.globals(), ctx);
         for (Function func : p.functions()) {
             funcDecl(func.declaration(), false, ctx);
         }
@@ -47,6 +48,22 @@ public final class ToIr {
         Preconditions.checkState(ctx.scope == null);
         return ctx.program;
     }
+
+    private static void initDecl(List<VarDecl> globals, IrContext ctx) throws ValidationException {
+        // Create special __init__ function which will run before main.
+        IrFunction function = new IrFunction();
+        function.returnSignature = IrType.VOID;
+        ctx.program.functions.put("__init__", function);
+
+
+        // Allocate stack space and create init code for all globals.
+        // Falling through this function is okay, since main start right after.
+        ctx.function = function;
+        for (VarDecl global : globals) {
+          varDecl(global, ctx);
+        }
+        ctx.function = null;
+  }
 
     private static void funcDecl(FunctionDecl declaration, boolean extern, IrContext ctx) throws ValidationException {
         IrFunction function = new IrFunction();

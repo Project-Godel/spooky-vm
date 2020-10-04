@@ -23,7 +23,6 @@ In particular, features such as
 
 - more operators, such as `++`
 - arrays
-- global variables
 - character literals
 - string literals
 

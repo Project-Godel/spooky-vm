@@ -97,4 +97,24 @@ final class CompilerTest {
       ;
     Assertions.assertEquals("123", output.toString());
   }
+
+  @Test
+  void testGlobals() throws ParseException, ValidationException, InstructionException, VmException {
+    InputStream programStream =
+        getClass().getClassLoader().getResourceAsStream("example_programs/globals.spooky");
+
+    byte[] result = Compiler.compile(programStream);
+
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    PrintStream pw = new PrintStream(output);
+    SpookyVm vm =
+        SpookyVm.newBuilder(ExecutableParser.fromBinary(result))
+            .addStdLib()
+            .setMemorySize(1000)
+            .setStdOut(pw)
+            .build();
+    for (int i = 0; i < 10000 && vm.executeInstruction(); i++)
+      ;
+    Assertions.assertEquals("4210", output.toString());
+  }
 }
