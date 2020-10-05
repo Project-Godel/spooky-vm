@@ -67,7 +67,7 @@ public final class ToIr {
         // Root scope for function; only includes the parameters.
         IrContext.Scope cur = ctx.newScope();
         int offset = 0;
-        for (FunctionParam param : value.declaration().params()) {
+        for (FunctionParam param : value.declaration().params().reverse()) {
             String pName = param.name().name();
             if (cur.vals.containsKey(pName)) {
                 throw new ValidationException("Parameter " + pName + " already defined.", param.name().token());

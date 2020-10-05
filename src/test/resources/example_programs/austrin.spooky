@@ -1,0 +1,11 @@
+extern printInt(x: Int)
+
+func fun(a: Int, b: Int, c: Int) {
+   printInt(a);
+   printInt(b);
+   printInt(c);
+}
+
+func main() {
+    fun(1, 2, 3);
+}
