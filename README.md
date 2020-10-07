@@ -18,7 +18,7 @@ java --enable-preview -jar spooky.jar run exec.spook
 
 ## Language features
 The language is very bare bones right now, only supporting basics such as variables, functions, loops, conditionals and some simple expressions.
-While the VM itself is pretty fixed in structure, contributions to the language itself is very welcome.
+While the VM itself is pretty fixed in structure, contributions to the language itself are very welcome.
 In particular, features such as
 
 - more operators, such as `++`
