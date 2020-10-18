@@ -117,4 +117,12 @@ final class CompilerTest {
       ;
     Assertions.assertEquals("4210", output.toString());
   }
+
+  @Test
+  void testGlobalCallingFunctions() throws ParseException, ValidationException {
+    InputStream programStream =
+        getClass().getClassLoader().getResourceAsStream("example_programs/globals_calling_functions.spooky");
+
+    byte[] result = Compiler.compile(programStream);
+  }
 }

@@ -34,13 +34,13 @@ public final class ToIr {
         IrContext ctx = new IrContext(new IrProgram());
         // Create root scope; will be used for e.g. global variables in the future.
         ctx.newScope();
-        initDecl(p.globals(), ctx);
         for (Function func : p.functions()) {
             funcDecl(func.declaration(), false, ctx);
         }
         for (FunctionDecl func : p.externs()) {
             funcDecl(func, true, ctx);
         }
+        initDecl(p.globals(), ctx);
         for (Function func : p.functions()) {
             function(func, ctx);
         }
