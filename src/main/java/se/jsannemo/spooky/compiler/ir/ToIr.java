@@ -34,13 +34,13 @@ public final class ToIr {
         IrContext ctx = new IrContext(new IrProgram());
         // Create root scope; will be used for e.g. global variables in the future.
         ctx.newScope();
-        initDecl(p.globals(), ctx);
         for (Function func : p.functions()) {
             funcDecl(func.declaration(), false, ctx);
         }
         for (FunctionDecl func : p.externs()) {
             funcDecl(func, true, ctx);
         }
+        initDecl(p.globals(), ctx);
         for (Function func : p.functions()) {
             function(func, ctx);
         }
@@ -60,7 +60,7 @@ public final class ToIr {
         // Falling through this function is okay, since main start right after.
         ctx.function = function;
         for (VarDecl global : globals) {
-          varDecl(global, ctx);
+          varDecl(global, ctx, true);
         }
         ctx.function = null;
   }
@@ -131,7 +131,7 @@ public final class ToIr {
 
     private static void statement(Statement stmt, IrContext ctx) throws ValidationException {
         switch (stmt.kind()) {
-            case VAR_DECL -> varDecl(stmt.varDecl(), ctx);
+            case VAR_DECL -> varDecl(stmt.varDecl(), ctx, false);
             case LOOP -> loop(stmt.loop(), ctx);
             case CONDITIONAL -> conditional(stmt.conditional(), ctx);
             case EXPRESSION -> {
@@ -146,7 +146,7 @@ public final class ToIr {
         }
     }
 
-    private static void varDecl(VarDecl varDecl, IrContext ctx) throws ValidationException {
+    private static void varDecl(VarDecl varDecl, IrContext ctx, boolean isGlobal) throws ValidationException {
         Token declToken = varDecl.name().token();
         String varName = varDecl.name().name();
         IrContext.Scope cur = ctx.scope;
@@ -156,7 +156,9 @@ public final class ToIr {
         }
 
         IrType type = IrType.fromTypeName(varDecl.type());
-        IrValue var = IrValue.ofTypeAndAddress(type, IrAddr.relSp(cur.spOffset));
+        // Globals are not relative current stack-pointer, but start of stack.
+        IrAddr varAddr = isGlobal ? IrAddr.absStack(cur.spOffset + Conventions.NEXT_STACK.absStack()) : IrAddr.relSp(cur.spOffset);
+        IrValue var = IrValue.ofTypeAndAddress(type, varAddr);
         cur.addVal(varName, var);
         IrType valueType = expr(varDecl.value(), ctx);
         if (!type.equals(valueType)) {

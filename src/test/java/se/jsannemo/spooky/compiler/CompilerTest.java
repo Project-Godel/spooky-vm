@@ -117,4 +117,32 @@ final class CompilerTest {
       ;
     Assertions.assertEquals("4210", output.toString());
   }
+
+  @Test
+  void testGlobalCallingFunctions() throws ParseException, ValidationException {
+    InputStream programStream =
+        getClass().getClassLoader().getResourceAsStream("example_programs/globals_calling_functions.spooky");
+
+    byte[] result = Compiler.compile(programStream);
+  }
+
+  @Test
+  void testGlobalsStack() throws ParseException, ValidationException, InstructionException, VmException {
+    InputStream programStream =
+        getClass().getClassLoader().getResourceAsStream("example_programs/globals_stack.spooky");
+
+    byte[] result = Compiler.compile(programStream);
+
+    ByteArrayOutputStream output = new ByteArrayOutputStream();
+    PrintStream pw = new PrintStream(output);
+    SpookyVm vm =
+        SpookyVm.newBuilder(ExecutableParser.fromBinary(result))
+            .addStdLib()
+            .setMemorySize(1000)
+            .setStdOut(pw)
+            .build();
+    for (int i = 0; i < 10000 && vm.executeInstruction(); i++)
+      ;
+    Assertions.assertEquals("3", output.toString());
+  }
 }
