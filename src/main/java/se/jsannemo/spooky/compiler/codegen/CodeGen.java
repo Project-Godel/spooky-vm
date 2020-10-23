@@ -60,9 +60,9 @@ public final class CodeGen {
             Instructions.Jump jum = (Jump) ins.get(label.getKey());
             ins.set(label.getKey(), Instructions.Jump.create(jum.flag(), funcAddresses.get(label.getValue())));
         }
-
+        
         code.addAll(ins);
-        code.add(Instructions.Data.create(ImmutableList.of(0)));
+        code.add(Instructions.Data.create(ImmutableList.copyOf(program.data)));
         return code;
     }
 

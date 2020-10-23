@@ -40,7 +40,7 @@ public abstract class IrAddr {
         return switch (kind()) {
             case ABS_DATA -> "DT[" + absData() + "]";
             case ABS_STACK -> "[" + absStack() +"]";
-            case REL_SP -> "[SP+" + relSp() + "]";
+            case REL_SP -> "[SP" + (relSp() < 0 ? "":"+") + relSp() + "]";
         };
     }
 
