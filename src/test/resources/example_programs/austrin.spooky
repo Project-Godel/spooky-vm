@@ -7,5 +7,5 @@ func fun(a: Int, b: Int, c: Int) {
 }
 
 func main() {
-    fun(1, 2, 3);
+    fun(1, -2, 3);
 }

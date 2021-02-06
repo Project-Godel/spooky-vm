@@ -39,7 +39,7 @@ public final class CompilerTest {
 
   @Test
   void testAustrin() throws ParseException, ValidationException, InstructionException, VmException {
-    assertThat(runExample("austrin")).isEqualTo("123");
+    assertThat(runExample("austrin")).isEqualTo("1-23");
   }
 
   @Test

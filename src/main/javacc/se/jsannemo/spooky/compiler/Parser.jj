@@ -67,7 +67,7 @@ TOKEN : {
 TOKEN : { <ARRAY_TYPE :  ("[" "]") > }
 TOKEN : { <IDENTIFIER : (<ALPHA> | "_" ) (<ALPHANUM> | "_") * > }
 TOKEN : {
-    <INT_LITERAL : ( "0" | (["1"-"9"] (<DIGIT>)*))  >
+    <INT_LITERAL : ( "0" | ((<MINUS>)? ["1"-"9"] (<DIGIT>)*))  >
   | <STRING_LITERAL: "\"" (
       (~["\"","\\","\n","\r"])
     | ("\\" ["\\", "\""] )
