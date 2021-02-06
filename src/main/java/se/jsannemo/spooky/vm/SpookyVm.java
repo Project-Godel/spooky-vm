@@ -40,6 +40,8 @@ public final class SpookyVm {
    */
   private int ip;
   private PrintStream stdOut;
+  private int instructions = 0;
+  private int maxMemory = -1;
 
   private SpookyVm(
       Executable executable, ImmutableMap<String, ExternCall> externs, int memoryCells,
@@ -66,6 +68,7 @@ public final class SpookyVm {
     if (ip < 0 || ip >= curExecutable.text().size()) {
       throw new VmException("Instruction pointer out-of-bounds");
     }
+    instructions++;
     Instruction ins = curExecutable.text().get(ip++);
     checkState(ins.isExecutable());
     if (ins instanceof Move mov) {
@@ -129,6 +132,7 @@ public final class SpookyVm {
    */
   public int getM(int pos) throws VmException {
     if (0 <= pos && pos < memory.length) {
+      maxMemory = Math.max(pos, maxMemory);
       return memory[pos];
     }
     if (-this.curExecutable.data().size() <= pos && pos < 0) {
@@ -168,6 +172,16 @@ public final class SpookyVm {
   /** Returns a new builder for {@link SpookyVm} instances. */
   public static Builder newBuilder(Executable executable) {
     return new Builder(executable);
+  }
+
+  /** Returns the number of instructions the VM has executed so far. */
+  public int getInstructions() {
+    return instructions;
+  }
+
+  /** Returns the maximum stack/heap size used so far. */
+  public int getMaxMemory() {
+    return maxMemory + 1;
   }
 
   /** A builder for {@link SpookyVm} instances. */

@@ -280,11 +280,13 @@ Statement ConditionalStmt() : {
 Conditional Conditional() : {
     Expression check;
     StatementList body;
+    StatementList elseBody = null;
     Token t;
 } {
     t = <IF> "(" check = Expression() ")"
     body = StatementList()
-    { return Conditional.of(check, body, t); }
+    ( LOOKAHEAD(1) <ELSE> elseBody = StatementList() ) ?
+    { return Conditional.of(check, body, elseBody, t); }
 }
 
 Statement ExprStmt() : {

@@ -60,9 +60,9 @@
             </annotationProcessor>
           </annotationProcessors>
           <compilerArgs>
-            <compilerArg>--enable-preview</compilerArg>
-            <compilerArg>-XDcompilePolicy=simple</compilerArg>
-            <compilerArg>-Xplugin:ErrorProne</compilerArg>
+            <arg>--enable-preview</arg>
+            <arg>-XDcompilePolicy=simple</arg>
+            <arg>-Xplugin:ErrorProne</arg>
           </compilerArgs>
           <release>14</release>
           <source>14</source>

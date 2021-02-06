@@ -93,6 +93,22 @@ public class IrStatement {
   }
 
   @AutoValue
+  public abstract static class IrJmp extends IrStatement {
+    IrJmp() {}
+
+    public abstract IrLabel label();
+
+    public static IrJmp of(IrLabel label) {
+      return new AutoValue_IrStatement_IrJmp(label);
+    }
+
+    @Override
+    public String toString() {
+      return "JMP " + label();
+    }
+  }
+
+  @AutoValue
   public abstract static class IrJmpAdr extends IrStatement {
     IrJmpAdr() {}
 

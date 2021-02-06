@@ -219,10 +219,19 @@ public final class ToIr {
         if (!cond.equals(IrType.BOOL)) {
             throw new ValidationException("If-statement condition is not a boolean.", conditional.token());
         }
-        IrStatement.IrLabel label = ctx.function.newLabel();
-        ctx.function.newStatement(IrStatement.IrJmpZero.of(label, condAddr));
+        IrStatement.IrLabel elseStart = ctx.function.newLabel();
+        IrStatement.IrLabel elseEnd = ctx.function.newLabel();
+
+        ctx.function.newStatement(IrStatement.IrJmpZero.of(elseStart, condAddr));
         statementList(conditional.body().statements(), ctx);
-        ctx.function.newStatement(label);
+        if (conditional.elseBody().isPresent()) {
+            ctx.function.newStatement(IrStatement.IrJmp.of(elseEnd));
+        }
+        ctx.function.newStatement(elseStart);
+        if (conditional.elseBody().isPresent()) {
+            statementList(conditional.elseBody().get().statements(), ctx);
+            ctx.function.newStatement(elseEnd);
+        }
     }
 
     private static IrType expr(Expression expression, IrContext ctx) throws ValidationException {

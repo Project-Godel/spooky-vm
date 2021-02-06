@@ -9,11 +9,11 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import se.jsannemo.spooky.vm.code.Instructions.Address;
 
-final class SerializationTest {
+public final class SerializationTest {
 
   @ParameterizedTest()
   @ValueSource(ints = {Integer.MAX_VALUE, Integer.MIN_VALUE, 0, -1, 1, 293487, 9827598, 1238612})
-  void testIntSerialization(int val) throws IOException {
+  public void testIntSerialization(int val) throws IOException {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     Serialization.writeInt(baos, val);
     byte[] serialized = baos.toByteArray();
@@ -23,7 +23,7 @@ final class SerializationTest {
 
   @ParameterizedTest()
   @CsvSource({"0,0", "-1,0", Integer.MIN_VALUE + "," + Integer.MAX_VALUE, "234234,-432423"})
-  void testAddressSerialization(int base, int offset) throws IOException {
+  public void testAddressSerialization(int base, int offset) throws IOException {
     Address addr = Address.baseAndOffset(base, offset);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     Serialization.writeAddr(baos, addr);

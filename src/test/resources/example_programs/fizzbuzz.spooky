@@ -1,0 +1,15 @@
+extern printInt(i: Int)
+
+func main() {
+  for (i: Int = 1; i <= 15; i = i + 1) {
+      if (i % 15 == 0) {
+        printInt(12);
+      } else if (i % 3 == 0) {
+        printInt(1);
+      } else if (i % 5 == 0) {
+        printInt(2);
+      } else {
+        printInt(0);
+      }
+  }
+}

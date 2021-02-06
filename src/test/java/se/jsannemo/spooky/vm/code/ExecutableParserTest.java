@@ -14,11 +14,11 @@ import se.jsannemo.spooky.vm.code.Instructions.Data;
 import se.jsannemo.spooky.vm.code.Instructions.Instruction;
 import se.jsannemo.spooky.vm.code.Instructions.Text;
 
-final class ExecutableParserTest {
+public final class ExecutableParserTest {
 
   private static void assertParsingFails(Instruction... instructions) {
     assertThrows(
-        InstructionException.class, () -> ExecutableParser.parse(Arrays.asList(instructions)));
+            InstructionException.class, () -> ExecutableParser.parse(Arrays.asList(instructions)));
   }
 
   private static Executable parseExec(Instruction... instructions) {
@@ -26,44 +26,44 @@ final class ExecutableParserTest {
   }
 
   @Test
-  void testParseEmptyExec_fails() {
+  public void testParseEmptyExec_fails() {
     assertParsingFails();
   }
 
   @Test
-  void testParseMissingBinDef_fails() {
+  public void testParseMissingBinDef_fails() {
     assertParsingFails(Text.create(), Data.create(ImmutableList.of()));
   }
 
   @Test
-  void testParseExecName() {
+  public void testParseExecName() {
     Executable executable = parseExec(BinDef.create("name"), Text.create());
     assertThat(executable.name()).isEqualTo("name");
   }
 
   @Test
-  void testParseEmptyText() {
+  public void testParseEmptyText() {
     Executable executable = parseExec(BinDef.create("name"), Text.create());
     assertThat(executable.text()).isEmpty();
   }
 
   @Test
-  void testParseText() {
+  public void testParseText() {
     Add add =
-        Add.create(
-            Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
+            Add.create(
+                    Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
     Executable executable =
-        parseExec(BinDef.create("name"), Text.create(), add, Data.create(ImmutableList.of()));
+            parseExec(BinDef.create("name"), Text.create(), add, Data.create(ImmutableList.of()));
     assertThat(executable.text()).containsExactly(add);
   }
 
   @Test
-  void testParseData() {
+  public void testParseData() {
     Executable executable =
-        parseExec(
-            BinDef.create("name"),
-            Text.create(),
-            Data.create(ImmutableList.of(Integer.MIN_VALUE, Integer.MAX_VALUE)));
+            parseExec(
+                    BinDef.create("name"),
+                    Text.create(),
+                    Data.create(ImmutableList.of(Integer.MIN_VALUE, Integer.MAX_VALUE)));
     assertThat(executable.data()).containsExactly(Integer.MIN_VALUE, Integer.MAX_VALUE);
   }
 }

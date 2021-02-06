@@ -80,12 +80,16 @@ public final class CodeGen {
             if (st instanceof IrStatement.IrHalt) {
                 code.add(Instructions.Halt.create());
             } else if (st instanceof IrStatement.IrExtern extern) {
-                // New stack pointer
-                code.add(Instructions.Const.create(extern.spOffset(), addressTo(Conventions.REG_1)));
-                code.add(Instructions.Add.create(addressTo(Conventions.STACK_POINTER), addressTo(Conventions.REG_1), addressTo(Conventions.STACK_POINTER)));
+                // New stack pointer. Optimize changes for no-arg calls.
+                if (extern.spOffset() != 0) {
+                    code.add(Instructions.Const.create(extern.spOffset(), addressTo(Conventions.REG_1)));
+                    code.add(Instructions.Add.create(addressTo(Conventions.STACK_POINTER), addressTo(Conventions.REG_1), addressTo(Conventions.STACK_POINTER)));
+                }
                 code.add(Instructions.Extern.create(extern.name()));
-                code.add(Instructions.Const.create(extern.spOffset(), addressTo(Conventions.REG_1)));
-                code.add(Instructions.Sub.create(addressTo(Conventions.STACK_POINTER), addressTo(Conventions.REG_1), addressTo(Conventions.STACK_POINTER)));
+                if (extern.spOffset() != 0) {
+                    code.add(Instructions.Const.create(extern.spOffset(), addressTo(Conventions.REG_1)));
+                    code.add(Instructions.Sub.create(addressTo(Conventions.STACK_POINTER), addressTo(Conventions.REG_1), addressTo(Conventions.STACK_POINTER)));
+                }
             } else if (st instanceof IrStatement.IrStore store) {
                 code.add(Instructions.Const.create(store.value(), addressTo(store.addr())));
             } else if (st instanceof IrStatement.IrStoreLabel store) {
@@ -106,6 +110,9 @@ public final class CodeGen {
             } else if (st instanceof IrJmpZero jmp) {
                 labelFills.put(code.size(), jmp.label());
                 code.add(Instructions.Jump.create(addressTo(jmp.flag()), -1));
+            } else if (st instanceof IrStatement.IrJmp jmp) {
+                labelFills.put(code.size(), jmp.label());
+                code.add(Instructions.Jump.create(addressTo(Conventions.CONST_ZERO), -1));
             } else if (st instanceof IrJmpAdr jmp) {
                 code.add(Instructions.JumpAddress.create(addressTo(jmp.addr())));
             } else if (st instanceof IrStatement.IrLabel label) {
@@ -117,15 +124,19 @@ public final class CodeGen {
             } else if (st instanceof IrStatement.IrEquals eq) {
                 code.add(Instructions.Equals.create(addressTo(eq.a()), addressTo(eq.b()), addressTo(eq.result())));
             } else if (st instanceof IrStatement.IrCall call) {
-                code.add(Instructions.Const.create(call.spOffset(), addressTo(Conventions.REG_1)));
-                code.add(Instructions.Add.create(addressTo(Conventions.STACK_POINTER), addressTo(Conventions.REG_1), addressTo(Conventions.STACK_POINTER)));
-
+                // New stack pointer. Optimize changes for no-arg calls.
+                if (call.spOffset() != 0) {
+                    code.add(Instructions.Const.create(call.spOffset(), addressTo(Conventions.REG_1)));
+                    code.add(Instructions.Add.create(addressTo(Conventions.STACK_POINTER), addressTo(Conventions.REG_1), addressTo(Conventions.STACK_POINTER)));
+                }
                 funcLabelFills.put(code.size(), call.name());
+                // Placeholder address; the real address is filled in once all functions are laid out.
                 code.add(Instructions.Jump.create(addressTo(Conventions.CONST_ZERO), -1));
                 labelAddresses.put(call.jumpAfter(), code.size());
-
-                code.add(Instructions.Const.create(call.spOffset(), addressTo(Conventions.REG_1)));
-                code.add(Instructions.Sub.create(addressTo(Conventions.STACK_POINTER), addressTo(Conventions.REG_1), addressTo(Conventions.STACK_POINTER)));
+                if (call.spOffset() != 0) {
+                    code.add(Instructions.Const.create(call.spOffset(), addressTo(Conventions.REG_1)));
+                    code.add(Instructions.Sub.create(addressTo(Conventions.STACK_POINTER), addressTo(Conventions.REG_1), addressTo(Conventions.STACK_POINTER)));
+                }
             } else {
                 throw new UnsupportedOperationException("Unhandled IR: " + st);
             }

@@ -6,10 +6,10 @@ import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.Test;
 import se.jsannemo.spooky.vm.code.Instructions.BinDef;
 
-final class InstructionsTest {
+public final class InstructionsTest {
 
   @Test
-  void testIsExecutable() {
+  public void testIsExecutable() {
     assertThat(BinDef.create("test").isExecutable()).isFalse();
     assertThat(Instructions.Data.create(ImmutableList.of()).isExecutable()).isFalse();
     assertThat(Instructions.Text.create().isExecutable()).isFalse();
