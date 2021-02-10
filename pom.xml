@@ -122,6 +122,11 @@
       <scope>compile</scope>
       <version>28.1-jre</version>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.lsp4j</groupId>
+      <artifactId>org.eclipse.lsp4j</artifactId>
+      <version>0.10.0</version>
+    </dependency>
   </dependencies>
   <groupId>se.jsannemo</groupId>
   <modelVersion>4.0.0</modelVersion>

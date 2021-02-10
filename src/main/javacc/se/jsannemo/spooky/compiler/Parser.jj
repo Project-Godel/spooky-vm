@@ -61,6 +61,13 @@ TOKEN : {
   | <MOD : "%">
   | <INC : "++">
   | <ARROW : "->">
+  | <LPAR : "(" >
+  | <RPAR : ")" >
+  | <COMMA : "," >
+  | <COLON : ":" >
+  | <LBRACE : "{" >
+  | <RBRACE : "}" >
+  | <SEMI : ";" >
 }
 
 // General tokens
@@ -73,6 +80,12 @@ TOKEN : {
     | ("\\" ["\\", "\""] )
   )* "\"" >
 }
+
+< * > TOKEN :
+{
+  < UNEXPECTED_CHAR : ~[] >
+}
+
 
 // General
 Identifier Identifier() : {
@@ -146,7 +159,7 @@ VarDecl Global() : {
     Expression value;
     Identifier name;
 } {
-    name = Identifier() ":" type = Type() "=" value = Expression()
+    name = Identifier() <COLON> type = Type() "=" value = Expression()
     { return VarDecl.of(name, type, value); }
 }
 
@@ -181,16 +194,16 @@ FunctionDecl FunctionDecl(Token keyword) : {
 void FunctionDeclParams(FunctionDecl.Builder builder) : {
     FunctionParam param;
 } {
-    "("
+    <LPAR>
     (
         param = FunctionParam()
         { builder.addParam(param); }
         (
-            "," param = FunctionParam()
+            <COMMA> param = FunctionParam()
             { builder.addParam(param) ; }
         ) *
     ) ?
-    ")"
+    <RPAR>
 }
 
 FunctionParam FunctionParam() : {
@@ -198,7 +211,7 @@ FunctionParam FunctionParam() : {
     TypeName type;
     Token t;
 } {
-    name = Identifier() ":" type = Type()
+    name = Identifier() <COLON> type = Type()
     { return FunctionParam.ofNameAndType(name, type); }
 }
 
@@ -208,12 +221,12 @@ StatementList StatementList() : {
     StatementList.Builder statementList = StatementList.builder();
 } {
     (
-        ("{"
+        (<LBRACE>
             (
                 statement = Statement()
                 {statementList.addStatement(statement);}
             ) *
-        "}")
+        <RBRACE>)
     |
         statement = Statement()
         { statementList.addStatement(statement); }
@@ -231,7 +244,7 @@ Statement SimpleStatement() : {
 Statement Statement() : {
     Statement s;
 } {
-    (LOOKAHEAD(2) s = VarDecl() ";" | s = LoopStmt() | s = ConditionalStmt() | s = ExprStmt() ";" | s = ReturnStmt() ";")
+    (LOOKAHEAD(2) s = VarDecl() <SEMI> | s = LoopStmt() | s = ConditionalStmt() | s = ExprStmt() <SEMI> | s = ReturnStmt() <SEMI>)
     { return s; }
 }
 
@@ -248,7 +261,7 @@ Statement VarDecl() : {
     Expression value;
     Identifier name;
 } {
-    name = Identifier() ":" type = Type() "=" value = Expression()
+    name = Identifier() <COLON> type = Type() "=" value = Expression()
     { return Statement.varDecl(VarDecl.of(name, type, value)); }
 }
 
@@ -264,7 +277,7 @@ Loop Loop() : {
     Expression check = Expression.boolLiteral(true);
     StatementList body;
 } {
-    <FOR> "(" (init = SimpleStatement()) ? ";" (check = Expression()) ? ";" (inc = SimpleStatement()) ? ")"
+    <FOR> <LPAR> (init = SimpleStatement()) ? <SEMI> (check = Expression()) ? <SEMI> (inc = SimpleStatement()) ? <RPAR>
     body = StatementList()
 
     {return Loop.of(init, check, inc, body);}
@@ -283,7 +296,7 @@ Conditional Conditional() : {
     StatementList elseBody = null;
     Token t;
 } {
-    t = <IF> "(" check = Expression() ")"
+    t = <IF> <LPAR> check = Expression() <RPAR>
     body = StatementList()
     ( LOOKAHEAD(1) <ELSE> elseBody = StatementList() ) ?
     { return Conditional.of(check, body, elseBody, t); }
@@ -411,9 +424,9 @@ Expression CallExpression() : {
 } {
     left = ReferenceOrLiteralExpression()
     (
-        "("
+        <LPAR>
         right = ParamValues()
-        ")"
+        <RPAR>
         { left = Expression.functionCall(left, right); }
     ) ?
     { return left; }
@@ -436,7 +449,7 @@ Expression ReferenceOrLiteralExpression() : {
 Expression Paranthesized() : {
     Expression expr;
 } {
-    "(" expr = Expression() ")"
+    <LPAR> expr = Expression() <RPAR>
     { return expr; }
 }
 
@@ -447,7 +460,7 @@ ImmutableList<Expression> ParamValues() : {
     (
         expr = Expression()
         { params.add(expr); }
-        ("," expr = Expression() { params.add(expr); } ) *
+        (<COMMA> expr = Expression() { params.add(expr); } ) *
     ) ?
     { return params.build(); }
 }

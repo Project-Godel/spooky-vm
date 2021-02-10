@@ -62,6 +62,16 @@ public final class CompilerTest {
     assertThat(runExample("fizzbuzz")).isEqualTo("0010210012010012");
   }
 
+  @Test
+  void testInvalid() {
+    try {
+      runExample("invalid");
+    } catch (ParseException pe) {
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private static String runExample(String name) throws ParseException, ValidationException, InstructionException, VmException {
     InputStream programStream =
             CompilerTest.class.getClassLoader().getResourceAsStream("example_programs/" + name + ".spooky");
