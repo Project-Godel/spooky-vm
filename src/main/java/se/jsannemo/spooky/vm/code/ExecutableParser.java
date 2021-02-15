@@ -1,17 +1,18 @@
 package se.jsannemo.spooky.vm.code;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import se.jsannemo.spooky.vm.code.Instructions.BinDef;
+import se.jsannemo.spooky.vm.code.Instructions.Data;
+import se.jsannemo.spooky.vm.code.Instructions.Text;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import se.jsannemo.spooky.vm.code.Instructions.BinDef;
-import se.jsannemo.spooky.vm.code.Instructions.Data;
-import se.jsannemo.spooky.vm.code.Instructions.Text;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 
 /** Parser for a binary Spooky executable into a {@link Executable}. */
 public final class ExecutableParser {

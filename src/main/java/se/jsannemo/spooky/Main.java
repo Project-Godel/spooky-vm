@@ -1,10 +1,5 @@
 package se.jsannemo.spooky;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import se.jsannemo.spooky.compiler.Compiler;
 import se.jsannemo.spooky.compiler.ParseException;
 import se.jsannemo.spooky.compiler.ValidationException;
@@ -14,6 +9,12 @@ import se.jsannemo.spooky.vm.VmException;
 import se.jsannemo.spooky.vm.code.Executable;
 import se.jsannemo.spooky.vm.code.ExecutableParser;
 import se.jsannemo.spooky.vm.code.InstructionException;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 public final class Main {
 
@@ -64,6 +65,7 @@ public final class Main {
       return;
     }
     byte[] code = Compiler.compile(new FileInputStream(args[1]));
-    Files.write(Path.of(args[2]), code, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    Files.write(
+        Path.of(args[2]), code, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
   }
 }

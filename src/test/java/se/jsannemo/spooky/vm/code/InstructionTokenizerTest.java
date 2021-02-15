@@ -1,29 +1,16 @@
 package se.jsannemo.spooky.vm.code;
 
+import com.google.common.collect.ImmutableList;
+import org.junit.jupiter.api.Test;
+import se.jsannemo.spooky.vm.code.Instructions.*;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static se.jsannemo.spooky.vm.code.OpCode.BINDEF;
-
-import com.google.common.collect.ImmutableList;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import org.junit.jupiter.api.Test;
-import se.jsannemo.spooky.vm.code.Instructions.Add;
-import se.jsannemo.spooky.vm.code.Instructions.Address;
-import se.jsannemo.spooky.vm.code.Instructions.BinDef;
-import se.jsannemo.spooky.vm.code.Instructions.Const;
-import se.jsannemo.spooky.vm.code.Instructions.Data;
-import se.jsannemo.spooky.vm.code.Instructions.Div;
-import se.jsannemo.spooky.vm.code.Instructions.Equals;
-import se.jsannemo.spooky.vm.code.Instructions.Extern;
-import se.jsannemo.spooky.vm.code.Instructions.Instruction;
-import se.jsannemo.spooky.vm.code.Instructions.Jump;
-import se.jsannemo.spooky.vm.code.Instructions.LessThan;
-import se.jsannemo.spooky.vm.code.Instructions.Move;
-import se.jsannemo.spooky.vm.code.Instructions.Mul;
-import se.jsannemo.spooky.vm.code.Instructions.Sub;
-import se.jsannemo.spooky.vm.code.Instructions.Text;
 
 public final class InstructionTokenizerTest {
 
@@ -85,14 +72,14 @@ public final class InstructionTokenizerTest {
     byte[] byte255 = new byte[] {(byte) 0xFF};
 
     BinDef bc1 =
-            (BinDef)
-                    InstructionTokenizer.tokenize(
-                            concat(bytearg(BINDEF.code), bytearg((byte) 255), byte0to254))
-                            .get(0);
+        (BinDef)
+            InstructionTokenizer.tokenize(
+                    concat(bytearg(BINDEF.code), bytearg((byte) 255), byte0to254))
+                .get(0);
     BinDef bc2 =
-            (BinDef)
-                    InstructionTokenizer.tokenize(concat(bytearg(BINDEF.code), bytearg((byte) 1), byte255))
-                            .get(0);
+        (BinDef)
+            InstructionTokenizer.tokenize(concat(bytearg(BINDEF.code), bytearg((byte) 1), byte255))
+                .get(0);
 
     assertThat(bc1.name()).hasLength(255);
     assertThat(bc2.name()).hasLength(1);
@@ -113,32 +100,32 @@ public final class InstructionTokenizerTest {
   @Test
   public void testAdd() throws InstructionException, IOException {
     Add add =
-            Add.create(
-                    Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
+        Add.create(
+            Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
     assertThat(InstructionTokenizer.tokenize(binary(add))).containsExactly(add);
   }
 
   @Test
   public void testSub() throws InstructionException, IOException {
     Sub sub =
-            Sub.create(
-                    Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
+        Sub.create(
+            Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
     assertThat(InstructionTokenizer.tokenize(binary(sub))).containsExactly(sub);
   }
 
   @Test
   public void testMul() throws InstructionException, IOException {
     Mul mul =
-            Mul.create(
-                    Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
+        Mul.create(
+            Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
     assertThat(InstructionTokenizer.tokenize(binary(mul))).containsExactly(mul);
   }
 
   @Test
   public void testDiv() throws InstructionException, IOException {
     Div div =
-            Div.create(
-                    Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
+        Div.create(
+            Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
     assertThat(InstructionTokenizer.tokenize(binary(div))).containsExactly(div);
   }
 
@@ -157,15 +144,23 @@ public final class InstructionTokenizerTest {
   @Test
   public void testLessThan() throws InstructionException, IOException {
     LessThan lessThan =
-            LessThan.create(
-                    Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
+        LessThan.create(
+            Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
     assertThat(InstructionTokenizer.tokenize(binary(lessThan))).containsExactly(lessThan);
   }
 
   @Test
   public void testEquals() throws InstructionException, IOException {
     Equals eq =
-            Equals.create(
+        Equals.create(
+            Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
+    assertThat(InstructionTokenizer.tokenize(binary(eq))).containsExactly(eq);
+  }
+
+  @Test
+  public void testNotEquals() throws InstructionException, IOException {
+    NotEquals eq =
+            NotEquals.create(
                     Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
     assertThat(InstructionTokenizer.tokenize(binary(eq))).containsExactly(eq);
   }
@@ -181,4 +176,17 @@ public final class InstructionTokenizerTest {
     Const cnst = Const.create(1, Address.baseAndOffset(0, Integer.MAX_VALUE));
     assertThat(InstructionTokenizer.tokenize(binary(cnst))).containsExactly(cnst);
   }
+
+  @Test
+  public void testBitAnd() throws InstructionException, IOException {
+    BitAnd bitAnd = BitAnd.create(Address.baseAndOffset(1, 2), Address.baseAndOffset(3, 4), Address.baseAndOffset(5, 6));
+    assertThat(InstructionTokenizer.tokenize(binary(bitAnd))).containsExactly(bitAnd);
+  }
+
+  @Test
+  public void testBitOr() throws InstructionException, IOException {
+    BitOr bitOr = BitOr.create(Address.baseAndOffset(1, 2), Address.baseAndOffset(3, 4), Address.baseAndOffset(5, 6));
+    assertThat(InstructionTokenizer.tokenize(binary(bitOr))).containsExactly(bitOr);
+  }
+
 }

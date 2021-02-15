@@ -1,7 +1,8 @@
 package se.jsannemo.spooky.compiler.ir;
 
-import java.util.ArrayList;
 import se.jsannemo.spooky.compiler.ir.IrStatement.IrLabel;
+
+import java.util.ArrayList;
 
 public final class IrFunction {
 

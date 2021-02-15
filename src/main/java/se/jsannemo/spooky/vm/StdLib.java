@@ -1,7 +1,8 @@
 package se.jsannemo.spooky.vm;
 
-import java.util.Random;
 import se.jsannemo.spooky.compiler.codegen.Conventions;
+
+import java.util.Random;
 
 /**
  * {@link StdLib} provides the Spooky standard library and utility methods to implement extern
@@ -24,7 +25,8 @@ public final class StdLib {
   }
 
   /**
-   * Set the return value of a call to {@code value}, where the parameters of the call had size {@code argSize}.
+   * Set the return value of a call to {@code value}, where the parameters of the call had size
+   * {@code argSize}.
    *
    * @throws VmException if not enough stack is reserved for the return value.
    */

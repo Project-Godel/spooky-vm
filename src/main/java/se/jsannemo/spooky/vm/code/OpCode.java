@@ -36,7 +36,15 @@ enum OpCode {
   LEQ((byte) 0x0F),
   // A jump by address instruction.
   JMPADR((byte) 0x10),
-// Next: 0x11
+  // A bitwise and address instruction.
+  BITAND((byte) 0x11),
+  // A bitwise or address instruction.
+  BITOR((byte) 0x12),
+  // A not equals comparison instruction.
+  NEQ((byte) 0x13),
+  // A jump-not-zero instruction.
+  JMPN((byte) 0x14),
+// Next: 0x14
 ;
 
   final byte code;

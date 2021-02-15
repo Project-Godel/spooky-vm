@@ -1,27 +1,11 @@
 package se.jsannemo.spooky.vm.code;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static se.jsannemo.spooky.vm.code.Instructions.Extern.create;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import se.jsannemo.spooky.vm.code.Instructions.Add;
-import se.jsannemo.spooky.vm.code.Instructions.Address;
-import se.jsannemo.spooky.vm.code.Instructions.BinDef;
-import se.jsannemo.spooky.vm.code.Instructions.Const;
-import se.jsannemo.spooky.vm.code.Instructions.Div;
-import se.jsannemo.spooky.vm.code.Instructions.Equals;
-import se.jsannemo.spooky.vm.code.Instructions.Halt;
-import se.jsannemo.spooky.vm.code.Instructions.Instruction;
-import se.jsannemo.spooky.vm.code.Instructions.Jump;
-import se.jsannemo.spooky.vm.code.Instructions.JumpAddress;
-import se.jsannemo.spooky.vm.code.Instructions.LessEquals;
-import se.jsannemo.spooky.vm.code.Instructions.LessThan;
-import se.jsannemo.spooky.vm.code.Instructions.Mod;
-import se.jsannemo.spooky.vm.code.Instructions.Move;
-import se.jsannemo.spooky.vm.code.Instructions.Mul;
-import se.jsannemo.spooky.vm.code.Instructions.Sub;
-import se.jsannemo.spooky.vm.code.Instructions.Text;
+import se.jsannemo.spooky.vm.code.Instructions.*;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static se.jsannemo.spooky.vm.code.Instructions.Extern.create;
 
 /** A tokenizer of raw bytes into the corresponding instructions. */
 final class InstructionTokenizer {
@@ -40,10 +24,14 @@ final class InstructionTokenizer {
           .put(OpCode.LT.code, InstructionTokenizer::parseLessThan)
           .put(OpCode.LEQ.code, InstructionTokenizer::parseLessEquals)
           .put(OpCode.EQ.code, InstructionTokenizer::parseEquals)
+          .put(OpCode.NEQ.code, InstructionTokenizer::parseNotEquals)
           .put(OpCode.JMP.code, InstructionTokenizer::parseJump)
+          .put(OpCode.JMPN.code, InstructionTokenizer::parseJumpN)
           .put(OpCode.JMPADR.code, InstructionTokenizer::parseJumpAddress)
           .put(OpCode.EXTERN.code, InstructionTokenizer::parseExtern)
           .put(OpCode.HALT.code, InstructionTokenizer::parseHalt)
+          .put(OpCode.BITAND.code, InstructionTokenizer::parseBitAnd)
+          .put(OpCode.BITOR.code, InstructionTokenizer::parseBitOr)
           .build();
 
   static ImmutableList<Instruction> tokenize(byte[] content) throws InstructionException {
@@ -180,6 +168,15 @@ final class InstructionTokenizer {
     return Jump.create(flag, addr);
   }
 
+  private static Instruction parseJumpN(ByteStreamIterator context) {
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.JMPN.code, "Expected JMPN byte");
+    context.advance(1);
+    Address flag = Serialization.readAddr(context);
+    int addr = Serialization.readInt(context);
+    return JumpN.create(flag, addr);
+  }
+
   private static Instruction parseJumpAddress(ByteStreamIterator context) {
     checkArgument(
         !context.finished() && context.currentByte() == OpCode.JMPADR.code, "Expected JMPADR byte");
@@ -218,11 +215,41 @@ final class InstructionTokenizer {
     return Equals.create(op1, op2, target);
   }
 
+  private static Instruction parseNotEquals(ByteStreamIterator context) {
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.NEQ.code, "Expected NEQ byte");
+    context.advance(1);
+    Address op1 = Serialization.readAddr(context);
+    Address op2 = Serialization.readAddr(context);
+    Address target = Serialization.readAddr(context);
+    return NotEquals.create(op1, op2, target);
+  }
+
   private static Instruction parseHalt(ByteStreamIterator context) {
     checkArgument(
         !context.finished() && context.currentByte() == OpCode.HALT.code, "Expected HALT byte");
     context.advance(1);
     return Halt.create();
+  }
+
+  private static Instruction parseBitAnd(ByteStreamIterator context) {
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.BITAND.code, "Expected BITAND byte");
+    context.advance(1);
+    Address op1 = Serialization.readAddr(context);
+    Address op2 = Serialization.readAddr(context);
+    Address target = Serialization.readAddr(context);
+    return BitAnd.create(op1, op2, target);
+  }
+
+  private static Instruction parseBitOr(ByteStreamIterator context) {
+    checkArgument(
+        !context.finished() && context.currentByte() == OpCode.BITOR.code, "Expected BITOR byte");
+    context.advance(1);
+    Address op1 = Serialization.readAddr(context);
+    Address op2 = Serialization.readAddr(context);
+    Address target = Serialization.readAddr(context);
+    return BitOr.create(op1, op2, target);
   }
 
   @FunctionalInterface

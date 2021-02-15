@@ -20,9 +20,7 @@ public class LspImplementation implements LanguageServer {
   }
 
   @Override
-  public void exit() {
-
-  }
+  public void exit() {}
 
   @Override
   public TextDocumentService getTextDocumentService() {

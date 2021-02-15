@@ -1,26 +1,12 @@
 package se.jsannemo.spooky.vm;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import com.google.common.collect.ImmutableMap;
-import java.io.PrintStream;
 import se.jsannemo.spooky.vm.code.Executable;
-import se.jsannemo.spooky.vm.code.Instructions.Add;
-import se.jsannemo.spooky.vm.code.Instructions.Address;
-import se.jsannemo.spooky.vm.code.Instructions.Const;
-import se.jsannemo.spooky.vm.code.Instructions.Div;
-import se.jsannemo.spooky.vm.code.Instructions.Equals;
-import se.jsannemo.spooky.vm.code.Instructions.Extern;
-import se.jsannemo.spooky.vm.code.Instructions.Halt;
-import se.jsannemo.spooky.vm.code.Instructions.Instruction;
-import se.jsannemo.spooky.vm.code.Instructions.Jump;
-import se.jsannemo.spooky.vm.code.Instructions.JumpAddress;
-import se.jsannemo.spooky.vm.code.Instructions.LessEquals;
-import se.jsannemo.spooky.vm.code.Instructions.LessThan;
-import se.jsannemo.spooky.vm.code.Instructions.Mod;
-import se.jsannemo.spooky.vm.code.Instructions.Move;
-import se.jsannemo.spooky.vm.code.Instructions.Mul;
-import se.jsannemo.spooky.vm.code.Instructions.Sub;
+import se.jsannemo.spooky.vm.code.Instructions.*;
+
+import java.io.PrintStream;
+
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * A virtual machine, executing parsed Spooky code.
@@ -99,9 +85,20 @@ public final class SpookyVm {
       setM(leq.target(), getM(leq.op1()) <= getM(leq.op2()) ? 1 : 0);
     } else if (ins instanceof Equals eq) {
       setM(eq.target(), getM(eq.op1()) == getM(eq.op2()) ? 1 : 0);
+    } else if (ins instanceof NotEquals eq) {
+      setM(eq.target(), getM(eq.op1()) != getM(eq.op2()) ? 1 : 0);
+    } else if (ins instanceof BitOr eq) {
+      setM(eq.target(), getM(eq.op1()) | getM(eq.op2()));
+    } else if (ins instanceof BitAnd eq) {
+      setM(eq.target(), getM(eq.op1()) & getM(eq.op2()));
     } else if (ins instanceof Jump jmp) {
       if (getM(jmp.flag()) == 0) {
         ip = jmp.addr();
+      }
+    } else if (ins instanceof JumpN jmp) {
+      if (getM(jmp.flag()) != 0) {
+        ip = jmp.addr();
+        System.out.println("JNZ jump to " + ip + " of " + curExecutable.text().size());
       }
     } else if (ins instanceof JumpAddress jmp) {
       ip = getM(jmp.addr());

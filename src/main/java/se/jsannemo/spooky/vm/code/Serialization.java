@@ -1,10 +1,10 @@
 package se.jsannemo.spooky.vm.code;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /** Utility class for serializing and de-serializing non-trivial data types. */
 final class Serialization {

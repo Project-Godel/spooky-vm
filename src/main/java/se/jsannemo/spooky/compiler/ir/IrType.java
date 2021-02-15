@@ -2,11 +2,12 @@ package se.jsannemo.spooky.compiler.ir;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import se.jsannemo.spooky.compiler.ValidationException;
+import se.jsannemo.spooky.compiler.ast.TypeName;
+
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Objects;
-import se.jsannemo.spooky.compiler.ValidationException;
-import se.jsannemo.spooky.compiler.ast.TypeName;
 
 public class IrType {
   public static final ImmutableSet<String> TYPES = ImmutableSet.of("Int", "Void");
@@ -21,9 +22,11 @@ public class IrType {
   public static final IrType VOID = new IrType("Void", 0);
 
   public final String baseType;
+  public final String typeCheckingType;
   public final int dim;
 
   private IrType(String baseType, int dim) {
+    typeCheckingType = baseType;
     while (ALIAS.containsKey(baseType)) {
       Map.Entry<String, Integer> aliased = ALIAS.get(baseType);
       baseType = aliased.getKey();
@@ -57,16 +60,16 @@ public class IrType {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     IrType irType = (IrType) o;
-    return dim == irType.dim && Objects.equals(baseType, irType.baseType);
+    return dim == irType.dim && Objects.equals(typeCheckingType, irType.typeCheckingType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(baseType, dim);
+    return Objects.hash(typeCheckingType, dim);
   }
 
   @Override
   public String toString() {
-    return baseType + "[]".repeat(dim);
+    return typeCheckingType + "[]".repeat(dim);
   }
 }

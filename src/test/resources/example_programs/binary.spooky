@@ -1,0 +1,15 @@
+extern print(ch: Int)
+
+func printBinary(n: Int) {
+    while (n != 0) {
+        print(48 + n % 2);
+        n = n / 2;
+    }
+    print(10);
+}
+
+func main() {
+    printBinary(1);
+    printBinary(7);
+    printBinary(10);
+}

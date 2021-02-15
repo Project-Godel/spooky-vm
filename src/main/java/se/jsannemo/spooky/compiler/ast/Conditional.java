@@ -20,7 +20,8 @@ public abstract class Conditional {
   /** Returns the IF token. */
   public abstract Token token();
 
-  public static Conditional of(Expression condition, StatementList body, @Nullable StatementList elseBody, Token token) {
+  public static Conditional of(
+      Expression condition, StatementList body, @Nullable StatementList elseBody, Token token) {
     return new AutoValue_Conditional(condition, body, Optional.ofNullable(elseBody), token);
   }
 }

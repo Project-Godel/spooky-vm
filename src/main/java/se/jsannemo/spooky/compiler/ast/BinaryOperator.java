@@ -13,6 +13,8 @@ public enum BinaryOperator {
   GREATER_EQUALS,
   /** Check if left value is equal to right value. */
   EQUALS,
+  /** Check if left value is not equal to right value. */
+  NOT_EQUALS,
   /** Access array at given index. */
   ARRAY_ACCESS,
   /** Add the left and right values.. */
@@ -23,6 +25,10 @@ public enum BinaryOperator {
   MULTIPLY,
   /** Divide the left value by the right value. */
   DIVIDE,
-  /** Compute the left value modulo the right value.. */
+  /** Compute the left value modulo the right value. */
   MODULO,
+  /** Compute the logical AND of the two values. */
+  AND,
+  /** Compute the logical OR of the two values. */
+  OR,
 }

@@ -2,6 +2,7 @@ package se.jsannemo.spooky.vm.code;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -362,6 +363,87 @@ public final class Instructions {
   }
 
   /**
+   * Compares the values at addresses {@code op1} and {@code op2} and stores 0 (if {@code op1 ==
+   * op2}) or 1 (otherwise) at address {@code target}.
+   */
+  @AutoValue
+  public abstract static class NotEquals extends Instruction {
+    NotEquals() {}
+
+    public abstract Address op1();
+
+    public abstract Address op2();
+
+    public abstract Address target();
+
+    public static Instructions.NotEquals create(Address op1, Address op2, Address target) {
+      return new AutoValue_Instructions_NotEquals(op1, op2, target);
+    }
+
+    @Override
+    public void writeBinary(OutputStream os) throws IOException {
+      os.write(OpCode.NEQ.code);
+      Serialization.writeAddr(os, op1());
+      Serialization.writeAddr(os, op2());
+      Serialization.writeAddr(os, target());
+    }
+  }
+
+  /**
+   * Computes the bitwise and of the value at address {@code op2} and the value at addresss {@code
+   * op} and stores the result at address {@code target}.
+   */
+  @AutoValue
+  public abstract static class BitAnd extends Instruction {
+    BitAnd() {}
+
+    public abstract Address op1();
+
+    public abstract Address op2();
+
+    public abstract Address target();
+
+    public static BitAnd create(Address op1, Address op2, Address target) {
+      return new AutoValue_Instructions_BitAnd(op1, op2, target);
+    }
+
+    @Override
+    public void writeBinary(OutputStream os) throws IOException {
+      os.write(OpCode.BITAND.code);
+      Serialization.writeAddr(os, op1());
+      Serialization.writeAddr(os, op2());
+      Serialization.writeAddr(os, target());
+    }
+  }
+
+  /**
+   * Computes the bitwise or of the value at address {@code op2} and the value at addresss {@code
+   * op} and stores the result at address {@code target}.
+   */
+  @AutoValue
+  public abstract static class BitOr extends Instruction {
+    BitOr() {}
+
+    public abstract Address op1();
+
+    public abstract Address op2();
+
+    public abstract Address target();
+
+    public static BitOr create(Address op1, Address op2, Address target) {
+      return new AutoValue_Instructions_BitOr(op1, op2, target);
+    }
+
+    @Override
+    public void writeBinary(OutputStream os) throws IOException {
+      os.write(OpCode.BITOR.code);
+      Serialization.writeAddr(os, op1());
+      Serialization.writeAddr(os, op2());
+      Serialization.writeAddr(os, target());
+    }
+  }
+
+  /**
    * Jumps to the instruction at {@code addr} (indexed by 0 starting at the first instruction in the
    * text segment) if the value stored at {@code flag} is 0, i.e. <code>
    * ip = mem[addr]</code>
@@ -381,6 +463,31 @@ public final class Instructions {
     @Override
     public void writeBinary(OutputStream os) throws IOException {
       os.write(OpCode.JMP.code);
+      Serialization.writeAddr(os, flag());
+      Serialization.writeInt(os, addr());
+    }
+  }
+
+  /**
+   * Jumps to the instruction at {@code addr} (indexed by 0 starting at the first instruction in the
+   * text segment) if the value stored at {@code flag} is 1, i.e. <code>
+   * ip = mem[addr]</code>
+   */
+  @AutoValue
+  public abstract static class JumpN extends Instruction {
+    JumpN() {}
+
+    public abstract Address flag();
+
+    public abstract int addr();
+
+    public static JumpN create(Address flag, int addr) {
+      return new AutoValue_Instructions_JumpN(flag, addr);
+    }
+
+    @Override
+    public void writeBinary(OutputStream os) throws IOException {
+      os.write(OpCode.JMPN.code);
       Serialization.writeAddr(os, flag());
       Serialization.writeInt(os, addr());
     }

@@ -1,6 +1,7 @@
 package se.jsannemo.spooky.compiler.ast;
 
 import com.google.auto.value.AutoOneOf;
+
 import java.util.Optional;
 
 @AutoOneOf(Statement.StatementKind.class)

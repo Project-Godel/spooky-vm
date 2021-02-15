@@ -1,13 +1,14 @@
 package se.jsannemo.spooky.vm.code;
 
-import static com.google.common.truth.Truth.assertThat;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import se.jsannemo.spooky.vm.code.Instructions.Address;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public final class SerializationTest {
 

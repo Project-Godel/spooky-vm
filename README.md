@@ -37,7 +37,7 @@ These are declared as `extern` functions in your source and provided by the exec
 extern printInt(i: Int)
 extern print(ch: Int)
 
-func isPrime(n: Int) -> Int {
+func isPrime(n: Int) -> Boolean {
   p: Int = 1;
   for (i: Int = 2; i * i <= n; i = i + 1) {
     if (n % i == 0) {

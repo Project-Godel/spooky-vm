@@ -93,6 +93,24 @@ public class IrStatement {
   }
 
   @AutoValue
+  public abstract static class IrJmpNZero extends IrStatement {
+    IrJmpNZero() {}
+
+    public abstract IrLabel label();
+
+    public abstract IrAddr flag();
+
+    public static IrJmpNZero of(IrLabel label, IrAddr flag) {
+      return new AutoValue_IrStatement_IrJmpNZero(label, flag);
+    }
+
+    @Override
+    public String toString() {
+      return "JNZ " + flag() + " " + label();
+    }
+  }
+
+  @AutoValue
   public abstract static class IrJmp extends IrStatement {
     IrJmp() {}
 
@@ -301,6 +319,46 @@ public class IrStatement {
   }
 
   @AutoValue
+  public abstract static class IrBitOr extends IrStatement {
+    IrBitOr() {}
+
+    public abstract IrAddr a();
+
+    public abstract IrAddr b();
+
+    public abstract IrAddr result();
+
+    public static IrBitOr forTermsAndTarget(IrAddr termA, IrAddr termB, IrAddr target) {
+      return new AutoValue_IrStatement_IrBitOr(termA, termB, target);
+    }
+
+    @Override
+    public String toString() {
+      return result() + " = " + a() + " | " + b();
+    }
+  }
+
+  @AutoValue
+  public abstract static class IrBitAnd extends IrStatement {
+    IrBitAnd() {}
+
+    public abstract IrAddr a();
+
+    public abstract IrAddr b();
+
+    public abstract IrAddr result();
+
+    public static IrBitAnd forTermsAndTarget(IrAddr termA, IrAddr termB, IrAddr target) {
+      return new AutoValue_IrStatement_IrBitAnd(termA, termB, target);
+    }
+
+    @Override
+    public String toString() {
+      return result() + " = " + a() + " | " + b();
+    }
+  }
+
+  @AutoValue
   public abstract static class IrEquals extends IrStatement {
     IrEquals() {}
 
@@ -317,6 +375,26 @@ public class IrStatement {
     @Override
     public String toString() {
       return result() + " = " + a() + " == " + b();
+    }
+  }
+
+  @AutoValue
+  public abstract static class IrNotEquals extends IrStatement {
+    IrNotEquals() {}
+
+    public abstract IrAddr a();
+
+    public abstract IrAddr b();
+
+    public abstract IrAddr result();
+
+    public static IrNotEquals forTermsAndTarget(IrAddr termA, IrAddr termB, IrAddr target) {
+      return new AutoValue_IrStatement_IrNotEquals(termA, termB, target);
+    }
+
+    @Override
+    public String toString() {
+      return result() + " = " + a() + " != " + b();
     }
   }
 

@@ -1,24 +1,20 @@
 package se.jsannemo.spooky.vm.code;
 
+import com.google.common.collect.ImmutableList;
+import org.junit.jupiter.api.Test;
+import se.jsannemo.spooky.vm.code.Instructions.*;
+
+import java.util.Arrays;
+
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import com.google.common.collect.ImmutableList;
-import java.util.Arrays;
-import org.junit.jupiter.api.Test;
-import se.jsannemo.spooky.vm.code.Instructions.Add;
-import se.jsannemo.spooky.vm.code.Instructions.Address;
-import se.jsannemo.spooky.vm.code.Instructions.BinDef;
-import se.jsannemo.spooky.vm.code.Instructions.Data;
-import se.jsannemo.spooky.vm.code.Instructions.Instruction;
-import se.jsannemo.spooky.vm.code.Instructions.Text;
 
 public final class ExecutableParserTest {
 
   private static void assertParsingFails(Instruction... instructions) {
     assertThrows(
-            InstructionException.class, () -> ExecutableParser.parse(Arrays.asList(instructions)));
+        InstructionException.class, () -> ExecutableParser.parse(Arrays.asList(instructions)));
   }
 
   private static Executable parseExec(Instruction... instructions) {
@@ -50,20 +46,20 @@ public final class ExecutableParserTest {
   @Test
   public void testParseText() {
     Add add =
-            Add.create(
-                    Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
+        Add.create(
+            Address.baseAndOffset(0, 1), Address.baseAndOffset(2, 3), Address.baseAndOffset(4, 5));
     Executable executable =
-            parseExec(BinDef.create("name"), Text.create(), add, Data.create(ImmutableList.of()));
+        parseExec(BinDef.create("name"), Text.create(), add, Data.create(ImmutableList.of()));
     assertThat(executable.text()).containsExactly(add);
   }
 
   @Test
   public void testParseData() {
     Executable executable =
-            parseExec(
-                    BinDef.create("name"),
-                    Text.create(),
-                    Data.create(ImmutableList.of(Integer.MIN_VALUE, Integer.MAX_VALUE)));
+        parseExec(
+            BinDef.create("name"),
+            Text.create(),
+            Data.create(ImmutableList.of(Integer.MIN_VALUE, Integer.MAX_VALUE)));
     assertThat(executable.data()).containsExactly(Integer.MIN_VALUE, Integer.MAX_VALUE);
   }
 }

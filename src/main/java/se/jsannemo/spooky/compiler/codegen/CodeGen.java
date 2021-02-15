@@ -1,15 +1,7 @@
 package se.jsannemo.spooky.compiler.codegen;
 
 import com.google.common.collect.ImmutableList;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map.Entry;
-import se.jsannemo.spooky.compiler.ir.IrAddr;
-import se.jsannemo.spooky.compiler.ir.IrFunction;
-import se.jsannemo.spooky.compiler.ir.IrIpAddr;
-import se.jsannemo.spooky.compiler.ir.IrProgram;
-import se.jsannemo.spooky.compiler.ir.IrStatement;
+import se.jsannemo.spooky.compiler.ir.*;
 import se.jsannemo.spooky.compiler.ir.IrStatement.IrJmpAdr;
 import se.jsannemo.spooky.compiler.ir.IrStatement.IrJmpZero;
 import se.jsannemo.spooky.compiler.ir.IrStatement.IrLabel;
@@ -18,6 +10,12 @@ import se.jsannemo.spooky.vm.code.Instructions.Address;
 import se.jsannemo.spooky.vm.code.Instructions.Const;
 import se.jsannemo.spooky.vm.code.Instructions.Instruction;
 import se.jsannemo.spooky.vm.code.Instructions.Jump;
+import se.jsannemo.spooky.vm.code.Instructions.JumpN;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
 
 public final class CodeGen {
 
@@ -110,6 +108,9 @@ public final class CodeGen {
             } else if (st instanceof IrJmpZero jmp) {
                 labelFills.put(code.size(), jmp.label());
                 code.add(Instructions.Jump.create(addressTo(jmp.flag()), -1));
+            } else if (st instanceof IrStatement.IrJmpNZero jmp) {
+                labelFills.put(code.size(), jmp.label());
+                code.add(Instructions.JumpN.create(addressTo(jmp.flag()), -1));
             } else if (st instanceof IrStatement.IrJmp jmp) {
                 labelFills.put(code.size(), jmp.label());
                 code.add(Instructions.Jump.create(addressTo(Conventions.CONST_ZERO), -1));
@@ -123,6 +124,8 @@ public final class CodeGen {
                 code.add(Instructions.LessEquals.create(addressTo(leq.a()), addressTo(leq.b()), addressTo(leq.result())));
             } else if (st instanceof IrStatement.IrEquals eq) {
                 code.add(Instructions.Equals.create(addressTo(eq.a()), addressTo(eq.b()), addressTo(eq.result())));
+            } else if (st instanceof IrStatement.IrNotEquals eq) {
+                code.add(Instructions.NotEquals.create(addressTo(eq.a()), addressTo(eq.b()), addressTo(eq.result())));
             } else if (st instanceof IrStatement.IrCall call) {
                 // New stack pointer. Optimize changes for no-arg calls.
                 if (call.spOffset() != 0) {
@@ -137,6 +140,10 @@ public final class CodeGen {
                     code.add(Instructions.Const.create(call.spOffset(), addressTo(Conventions.REG_1)));
                     code.add(Instructions.Sub.create(addressTo(Conventions.STACK_POINTER), addressTo(Conventions.REG_1), addressTo(Conventions.STACK_POINTER)));
                 }
+            } else if (st instanceof IrStatement.IrBitAnd bitAnd) {
+                code.add(Instructions.BitAnd.create(addressTo(bitAnd.a()), addressTo(bitAnd.b()), addressTo(bitAnd.result())));
+            } else if (st instanceof IrStatement.IrBitOr bitOr) {
+                code.add(Instructions.BitOr.create(addressTo(bitOr.a()), addressTo(bitOr.b()), addressTo(bitOr.result())));
             } else {
                 throw new UnsupportedOperationException("Unhandled IR: " + st);
             }
@@ -145,6 +152,8 @@ public final class CodeGen {
             Instructions.Instruction ins = code.get(label.getKey());
             if (ins instanceof Jump jum) {
                 code.set(label.getKey(), Instructions.Jump.create(jum.flag(), labelAddresses.get(label.getValue())));
+            } else if (ins instanceof JumpN jum) {
+                code.set(label.getKey(), Instructions.JumpN.create(jum.flag(), labelAddresses.get(label.getValue())));
             } else if (ins instanceof Const cnst) {
                 code.set(label.getKey(), Instructions.Const.create(labelAddresses.get(label.getValue()), cnst.target()));
             }

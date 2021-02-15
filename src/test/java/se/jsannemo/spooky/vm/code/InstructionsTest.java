@@ -1,10 +1,10 @@
 package se.jsannemo.spooky.vm.code;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.Test;
 import se.jsannemo.spooky.vm.code.Instructions.BinDef;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public final class InstructionsTest {
 

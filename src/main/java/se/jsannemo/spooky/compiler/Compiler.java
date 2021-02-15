@@ -1,13 +1,14 @@
 package se.jsannemo.spooky.compiler;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 import se.jsannemo.spooky.compiler.ast.Program;
 import se.jsannemo.spooky.compiler.codegen.CodeGen;
 import se.jsannemo.spooky.compiler.ir.IrProgram;
 import se.jsannemo.spooky.compiler.ir.ToIr;
 import se.jsannemo.spooky.vm.code.Instructions;
+
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 public final class Compiler {
 

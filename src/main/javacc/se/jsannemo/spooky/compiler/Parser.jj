@@ -39,6 +39,7 @@ TOKEN : {
   <FUNC : "func">
   | <EXTERN : "extern" >
   | <FOR : "for" >
+  | <WHILE : "while" >
   | <IF : "if" >
   | <ELSE : "else" >
   | <RETURN : "return" >
@@ -50,6 +51,7 @@ TOKEN : {
 TOKEN : {
     <ASSIGN : "=">
   | <EQ : "==">
+  | <NEQ : "!=">
   | <LT : "<">
   | <LEQ : "<=">
   | <GT : ">">
@@ -68,6 +70,8 @@ TOKEN : {
   | <LBRACE : "{" >
   | <RBRACE : "}" >
   | <SEMI : ";" >
+  | <AND : "&&" >
+  | <OR : "||" >
 }
 
 // General tokens
@@ -111,23 +115,25 @@ TypeName Type() : {
     }
 }
 
-int IntLiteral() : {
+Expression IntLiteral() : {
     Token t;
 } {
     t = <INT_LITERAL>
-    { return Integer.parseInt(t.image); }
+    { return Expression.intLiteral(Integer.parseInt(t.image), t); }
 }
 
-String StringLiteral() : {
+Expression StringLiteral() : {
     Token t;
 } {
     t = <STRING_LITERAL>
-    { return t.image; }
+    { return Expression.stringLiteral(t.image, t); }
 }
 
-boolean BoolLiteral() : {
+Expression BoolLiteral() : {
+ Token t;
 } {
-    ( <FALSE> { return false; } | <TRUE> { return true; } )
+    t = <FALSE> { return Expression.boolLiteral(false, t); }
+    | t = <TRUE> { return Expression.boolLiteral(true, t); }
 }
 
 // Program file
@@ -268,19 +274,28 @@ Statement VarDecl() : {
 Statement LoopStmt() : {
     Loop loop;
 } {
-    loop = Loop()
+    (loop = ForLoop() | loop = WhileLoop())
     { return Statement.loop(loop); }
 }
 
-Loop Loop() : {
+Loop ForLoop() : {
     Statement init = Statement.ofNoop(), inc = Statement.ofNoop();
-    Expression check = Expression.boolLiteral(true);
+    Expression check = Expression.boolLiteral(true, new Token(0));
     StatementList body;
 } {
     <FOR> <LPAR> (init = SimpleStatement()) ? <SEMI> (check = Expression()) ? <SEMI> (inc = SimpleStatement()) ? <RPAR>
     body = StatementList()
 
     {return Loop.of(init, check, inc, body);}
+}
+
+Loop WhileLoop() : {
+    StatementList body;
+    Expression check;
+} {
+    <WHILE> <LPAR> check = Expression() <RPAR>
+    body = StatementList()
+    {return Loop.of(Statement.ofNoop(), check, Statement.ofNoop(), body);}
 }
 
 Statement ConditionalStmt() : {
@@ -320,12 +335,37 @@ Expression AssignmentExpression() : {
     Expression left;
     Expression right;
 } {
-    left = EqExpression()
+    left = OrExpression()
     (
         <ASSIGN>
-        right = EqExpression()
+        right = OrExpression()
         { left = Expression.binary(left, right, BinaryOperator.ASSIGN); }
     ) ?
+    { return left; }
+}
+Expression OrExpression() : {
+    Expression left;
+    Expression right;
+} {
+    left = AndExpression()
+    (
+        <OR>
+        right = AndExpression()
+        { left = Expression.binary(left, right, BinaryOperator.OR); }
+    ) *
+    { return left; }
+}
+
+Expression AndExpression() : {
+    Expression left;
+    Expression right;
+} {
+    left = EqExpression()
+    (
+        <AND>
+        right = EqExpression()
+        { left = Expression.binary(left, right, BinaryOperator.AND); }
+    ) *
     { return left; }
 }
 
@@ -335,9 +375,14 @@ Expression EqExpression() : {
 } {
     left = CmpExpression()
     (
-        <EQ>
+        ( <EQ>
         right = CmpExpression()
         { left = Expression.binary(left, right, BinaryOperator.EQUALS); }
+        ) | (
+         <NEQ>
+        right = CmpExpression()
+        { left = Expression.binary(left, right, BinaryOperator.NOT_EQUALS); }
+        )
     ) *
     { return left; }
 }
@@ -433,16 +478,14 @@ Expression CallExpression() : {
 }
 
 Expression ReferenceOrLiteralExpression() : {
-    int i;
     Identifier var;
-    String lit;
     Boolean bool;
     Expression expr;
 } {
-    i = IntLiteral() { return Expression.intLiteral(i); }
+    expr = IntLiteral() { return expr; }
   | var = Identifier() { return Expression.reference(var); }
-  | lit = StringLiteral() { return Expression.stringLiteral(lit); }
-  | bool = BoolLiteral() { return Expression.boolLiteral(bool); }
+  | expr = StringLiteral() { return expr; }
+  | expr = BoolLiteral() { return expr; }
   | expr = Paranthesized() { return expr; }
 }
 

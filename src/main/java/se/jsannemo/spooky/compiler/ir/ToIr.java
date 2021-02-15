@@ -1,29 +1,17 @@
 package se.jsannemo.spooky.compiler.ir;
 
 import com.google.common.base.Preconditions;
+import se.jsannemo.spooky.compiler.Token;
+import se.jsannemo.spooky.compiler.ValidationException;
+import se.jsannemo.spooky.compiler.ast.*;
+import se.jsannemo.spooky.compiler.ast.Statement.StatementKind;
+import se.jsannemo.spooky.compiler.codegen.Conventions;
+import se.jsannemo.spooky.compiler.ir.IrStatement.IrHalt;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import se.jsannemo.spooky.compiler.Token;
-import se.jsannemo.spooky.compiler.ValidationException;
-import se.jsannemo.spooky.compiler.ast.BinaryExpression;
-import se.jsannemo.spooky.compiler.ast.BinaryOperator;
-import se.jsannemo.spooky.compiler.ast.Conditional;
-import se.jsannemo.spooky.compiler.ast.Expression;
-import se.jsannemo.spooky.compiler.ast.Function;
-import se.jsannemo.spooky.compiler.ast.FunctionCall;
-import se.jsannemo.spooky.compiler.ast.FunctionDecl;
-import se.jsannemo.spooky.compiler.ast.FunctionParam;
-import se.jsannemo.spooky.compiler.ast.Identifier;
-import se.jsannemo.spooky.compiler.ast.Loop;
-import se.jsannemo.spooky.compiler.ast.Program;
-import se.jsannemo.spooky.compiler.ast.Statement;
-import se.jsannemo.spooky.compiler.ast.Statement.StatementKind;
-import se.jsannemo.spooky.compiler.ast.StatementList;
-import se.jsannemo.spooky.compiler.ast.VarDecl;
-import se.jsannemo.spooky.compiler.codegen.Conventions;
-import se.jsannemo.spooky.compiler.ir.IrStatement.IrHalt;
 
 public final class ToIr {
 
@@ -199,7 +187,7 @@ public final class ToIr {
 
         // Check
         ctx.function.newStatement(check);
-        int condAddr = evalType(loop.condition(), IrType.INT, ctx);
+        int condAddr = evalType(loop.condition(), IrType.BOOL, ctx);
         ctx.function.newStatement(IrStatement.IrJmpZero.of(end, IrAddr.relSp(condAddr)));
         ctx.scope.spOffset = condAddr;
 
@@ -238,9 +226,14 @@ public final class ToIr {
         IrContext.Scope cur = ctx.scope;
         return switch (expression.kind()) {
             case INT_LITERAL -> {
-                ctx.function.newStatement(IrStatement.IrStore.of(IrAddr.relSp(cur.spOffset), expression.intLiteral()));
+                ctx.function.newStatement(IrStatement.IrStore.of(IrAddr.relSp(cur.spOffset), expression.intLiteral().value()));
                 cur.spOffset += IrType.INT.memSize();
                 yield IrType.INT;
+            }
+            case BOOL_LITERAL -> {
+                ctx.function.newStatement(IrStatement.IrStore.of(IrAddr.relSp(cur.spOffset), expression.boolLiteral().value() ? 1 : 0));
+                cur.spOffset += IrType.BOOL.memSize();
+                yield IrType.BOOL;
             }
             case BINARY -> binary(expression.binary(), ctx);
             case REFERENCE -> reference(expression.reference(), ctx);
@@ -300,7 +293,8 @@ public final class ToIr {
     private static IrType binary(BinaryExpression binary, IrContext ctx) throws ValidationException {
         return switch (binary.operator()) {
             case ADD, SUBTRACT, MULTIPLY, DIVIDE, MODULO -> arithmetic(binary.operator(), binary.left(), binary.right(), ctx);
-            case LESS_THAN, GREATER_THAN, LESS_EQUALS, GREATER_EQUALS, EQUALS -> comparison(binary.operator(), binary.left(), binary.right(), ctx);
+            case LESS_THAN, GREATER_THAN, LESS_EQUALS, GREATER_EQUALS, EQUALS, NOT_EQUALS -> comparison(binary.operator(), binary.left(), binary.right(), ctx);
+            case OR, AND -> logical(binary.operator(), binary.left(), binary.right(), ctx);
             case ASSIGN -> assign(binary.left(), binary.right(), ctx);
             case ARRAY_ACCESS -> throw new UnsupportedOperationException("Unimplemented");
         };
@@ -341,6 +335,25 @@ public final class ToIr {
         return IrType.INT;
     }
 
+    private static IrType logical(BinaryOperator op, Expression left, Expression right, IrContext ctx) throws ValidationException {
+        IrContext.Scope cur = ctx.scope;
+        int origOffset = cur.spOffset;
+        IrStatement.IrLabel shortcircuit = ctx.function.newLabel();
+        int addr1 = evalType(left, IrType.BOOL, ctx);
+        if (op == BinaryOperator.OR) {
+            ctx.function.newStatement(IrStatement.IrJmpNZero.of(shortcircuit, IrAddr.relSp(addr1)));
+        } else if (op == BinaryOperator.AND) {
+            ctx.function.newStatement(IrStatement.IrJmpZero.of(shortcircuit, IrAddr.relSp(addr1)));
+        } else {
+            throw new AssertionError("Unexpected logical op?");
+        }
+        cur.spOffset = origOffset;
+        addr1 = evalType(right, IrType.BOOL, ctx);
+        ctx.function.newStatement(shortcircuit);
+        cur.spOffset = addr1 + IrType.BOOL.memSize();
+        return IrType.BOOL;
+    }
+
     private static IrType comparison(BinaryOperator op, Expression left, Expression right, IrContext ctx) throws ValidationException {
         IrContext.Scope cur = ctx.scope;
         int addr1 = evalType(left, IrType.INT, ctx);
@@ -355,6 +368,8 @@ public final class ToIr {
             ctx.function.newStatement(IrStatement.IrLessEquals.forTermsAndTarget(IrAddr.relSp(addr2), IrAddr.relSp(addr1), IrAddr.relSp(addr1)));
         } else if (op == BinaryOperator.EQUALS) {
             ctx.function.newStatement(IrStatement.IrEquals.forTermsAndTarget(IrAddr.relSp(addr1), IrAddr.relSp(addr2), IrAddr.relSp(addr1)));
+        } else if (op == BinaryOperator.NOT_EQUALS) {
+            ctx.function.newStatement(IrStatement.IrNotEquals.forTermsAndTarget(IrAddr.relSp(addr1), IrAddr.relSp(addr2), IrAddr.relSp(addr1)));
         } else {
             throw new AssertionError("Unexpected arithmetic op?");
         }
@@ -366,7 +381,7 @@ public final class ToIr {
         int sp = ctx.scope.spOffset;
         IrType type = expr(e, ctx);
         if (!type.equals(expected)) {
-            throw new ValidationException("Expression has incorrect type " + type + ", expected " + expected);
+            throw new ValidationException("Expression has incorrect type " + type + ", expected " + expected, e.firstToken());
         }
         return sp;
     }
