@@ -2,6 +2,7 @@ package se.jsannemo.spooky.compiler;
 
 import se.jsannemo.spooky.compiler.ast.Program;
 import se.jsannemo.spooky.compiler.codegen.CodeGen;
+import se.jsannemo.spooky.compiler.codegen.CodeOptimizer;
 import se.jsannemo.spooky.compiler.ir.IrProgram;
 import se.jsannemo.spooky.compiler.ir.ToIr;
 import se.jsannemo.spooky.vm.code.Instructions;
@@ -18,6 +19,10 @@ public final class Compiler {
     Parser parser = new Parser(is, StandardCharsets.UTF_8.name());
     Program program = parser.Start();
     IrProgram ir = ToIr.generate(program);
+
+    /* Optimization by 'HardCoded' */
+    CodeOptimizer.optimize(ir);
+    
     List<Instructions.Instruction> instructions = CodeGen.codegen("program", ir);
     return Assembler.assemble(instructions);
   }
