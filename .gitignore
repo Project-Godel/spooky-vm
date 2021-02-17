@@ -1,7 +1,8 @@
 .idea
 javadoc/
-out/
 *.iml
-target/
-dependency-reduced-pom.xml
-.gradle
+.ijwb
+bazel-bin
+bazel-out
+bazel-spooky-vm
+bazel-testlogs

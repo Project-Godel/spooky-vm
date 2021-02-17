@@ -1,0 +1,136 @@
+syntax = "proto3";
+
+option java_package = "se.jsannemo.spooky.compiler.ast";
+
+message Program {
+  repeated VarDecl globals = 1;
+  repeated Func functions = 2;
+  repeated FuncDecl externs = 3;
+}
+
+message Func {
+  FuncDecl decl = 1;
+  Statement body = 2;
+}
+
+message FuncParam {
+  Identifier name = 1;
+  Type type = 2;
+}
+
+message FuncDecl {
+  Identifier name = 1;
+  repeated FuncParam params = 2;
+  Type returnType = 3;
+}
+
+message Statement {
+  oneof statement {
+    Block block = 1;
+    Conditional conditional = 2;
+    Loop loop = 3;
+    VarDecl decl = 4;
+    Expr expression = 5;
+  }
+}
+
+message Block {
+  repeated Statement body = 1;
+}
+
+message Loop {
+  Statement init = 1;
+  Expr condition = 2;
+  Statement increment = 3;
+  Statement body = 4;
+}
+
+message Conditional {
+  Expr condition = 1;
+  Statement body = 2;
+  Statement elseBody = 3;
+}
+
+message VarDecl {
+  Identifier name = 1;
+  Expr init = 2;
+}
+
+message Expr {
+  oneof expr {
+    BinaryExpr binary = 1;
+    Value value = 2;
+    FuncCall call = 3;
+    Identifier reference = 4;
+    Ternary conditional = 5;
+  }
+}
+
+message Ternary {
+  Expr cond = 1;
+  Expr left = 2;
+  Expr right = 3;
+}
+
+enum BinaryOp {
+  BINARY_OP_UNSPECIFIED = 0;
+  // Assign value of the right expression to the left reference.
+  ASSIGN = 1;
+  // Check if left value is smaller than right value.
+  LESS_THAN = 2;
+  // Check if left value is greater than right value.
+  GREATER_THAN = 3;
+  // Check if left value is smaller than or equal to the right value.
+  LESS_EQUALS = 4;
+  // Check if left value is greater than or equal to the right value.
+  GREATER_EQUALS = 5;
+  // Check if left value is equal to right value.
+  EQUALS = 6;
+  // Check if left value is not equal to right value.
+  NOT_EQUALS = 7;
+  // Access array at given index.
+  ARRAY_ACCESS = 8;
+  // Add the left and right values.
+  ADD = 9;
+  // Subtract the right from the left value.
+  SUBTRACT = 10;
+  // Multiply the left and right values
+  MULTIPLY = 11;
+  // Divide the left value by the right value.
+  DIVIDE = 12;
+  // Compute the left value modulo the right value.
+  MODULO = 13;
+  // Compute the logical AND of the two values.
+  AND = 14;
+  // Compute the logical OR of the two values.
+  OR = 15;
+}
+
+/** An expression computed using a binary operator on two sub-expressions. */
+message BinaryExpr {
+  Expr left = 1;
+  Expr right = 2;
+  BinaryOp operator = 3;
+}
+
+message Value {
+  oneof literal {
+    bool bool_literal = 1;
+    int32 int_literal = 2;
+    string string_literal = 3;
+  }
+}
+
+message FuncCall {
+  Expr function = 1;
+  repeated Expr params = 2;
+}
+
+message Identifier {
+  string name = 1;
+}
+
+message Type {
+  string name = 1;
+  int32 dimension = 2;
+}

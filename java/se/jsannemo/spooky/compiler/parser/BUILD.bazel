@@ -1,0 +1,32 @@
+load("@rules_antlr//antlr:antlr4.bzl", "antlr")
+
+proto_library(
+    name = "ast_proto",
+    srcs = ["ast.proto"],
+)
+
+java_proto_library(
+    name = "ast_java_proto",
+    deps = [":ast_proto"],
+)
+
+antlr(
+    name = "antlr_parser",
+    srcs = [
+        "Spooky.g4",
+    ],
+    package = "se.jsannemo.spooky.compiler.parser",
+)
+
+java_library(
+    name = "ast",
+    srcs = [
+        ":antlr_parser",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":ast_java_proto",
+        "@antlr4_runtime//jar",
+        "@com_google_protobuf//:protobuf_java",
+    ],
+)

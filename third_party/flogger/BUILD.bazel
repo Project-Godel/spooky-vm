@@ -1,0 +1,8 @@
+java_library(
+    name = "flogger",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_flogger_flogger",
+        "@maven//:com_google_flogger_flogger_system_backend",
+    ],
+)
