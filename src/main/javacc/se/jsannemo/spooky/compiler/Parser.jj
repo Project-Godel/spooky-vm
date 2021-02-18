@@ -51,6 +51,7 @@ TOKEN : {
 TOKEN : {
     <ASSIGN : "=">
   | <EQ : "==">
+  | <ASSIGN_ADD : "+=">
   | <NEQ : "!=">
   | <LT : "<">
   | <LEQ : "<=">
@@ -337,12 +338,19 @@ Expression AssignmentExpression() : {
 } {
     left = OrExpression()
     (
-        <ASSIGN>
-        right = OrExpression()
-        { left = Expression.binary(left, right, BinaryOperator.ASSIGN); }
+        (
+            <ASSIGN>
+            right = OrExpression()
+            { left = Expression.binary(left, right, BinaryOperator.ASSIGN); }
+        ) | (
+            <ASSIGN_ADD>
+            right = OrExpression()
+            { left = Expression.binary(left, right, BinaryOperator.ASSIGN_ADD); }
+        )
     ) ?
     { return left; }
 }
+
 Expression OrExpression() : {
     Expression left;
     Expression right;

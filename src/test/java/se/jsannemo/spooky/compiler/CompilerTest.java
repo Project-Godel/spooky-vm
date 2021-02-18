@@ -78,6 +78,13 @@ public final class CompilerTest {
   }
 
   @Test
+  void testModifyingOperators()
+      throws ParseException, ValidationException, InstructionException, VmException {
+    assertThat(runExample("modifying_operators")).isEqualTo("1 2 ");
+  }
+
+
+  @Test
   void testInvalid() {
     try {
       runExample("invalid");

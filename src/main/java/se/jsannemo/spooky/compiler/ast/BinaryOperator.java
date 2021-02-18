@@ -3,6 +3,8 @@ package se.jsannemo.spooky.compiler.ast;
 public enum BinaryOperator {
   /** Assign value of the right expression to the left reference. */
   ASSIGN,
+  /** Add the value of the right expression to the left reference. */
+  ASSIGN_ADD,
   /** Check if left value is smaller than right value. */
   LESS_THAN,
   /** Check if left value is greater than right value. */

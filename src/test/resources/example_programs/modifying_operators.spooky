@@ -1,0 +1,15 @@
+extern printInt(ch: Int)
+extern print(ch: Int)
+
+func printSep(ch: Int) {
+    printInt(ch);
+    print(32);  // space
+}
+
+func main() {
+    x: Int = 0;
+    x += 1;
+    printSep(x);
+    x += 1;
+    printSep(x);
+}

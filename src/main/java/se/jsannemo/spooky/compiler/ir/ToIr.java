@@ -296,21 +296,35 @@ public final class ToIr {
             case LESS_THAN, GREATER_THAN, LESS_EQUALS, GREATER_EQUALS, EQUALS, NOT_EQUALS -> comparison(binary.operator(), binary.left(), binary.right(), ctx);
             case OR, AND -> logical(binary.operator(), binary.left(), binary.right(), ctx);
             case ASSIGN -> assign(binary.left(), binary.right(), ctx);
+            case ASSIGN_ADD -> assignAdd(binary.left(), binary.right(), ctx);
             case ARRAY_ACCESS -> throw new UnsupportedOperationException("Unimplemented");
         };
     }
 
-    private static IrType assign(Expression left, Expression right, IrContext ctx) throws ValidationException {
+    private static IrValue assignLhs(Expression left, IrContext ctx) throws ValidationException {
         IrContext.Scope cur = ctx.scope;
         if (left.kind() != Expression.ExpressionKind.REFERENCE) {
             throw new ValidationException("LHS of assignment is not variable");
         }
         String refName = left.reference().name();
-        IrValue ref = cur.resolve(refName).orElseThrow(() ->
+        return cur.resolve(refName).orElseThrow(() ->
             new ValidationException("Variable " + refName + " does not exist", left.reference().token()));
+    }
+
+    private static IrType assign(Expression left, Expression right, IrContext ctx) throws ValidationException {
+        IrValue ref = assignLhs(left, ctx);
         int sp = evalType(right, ref.type(), ctx);
         ctx.function.newStatement(IrStatement.IrCopy.fromTo(IrAddr.relSp(sp), ref.address()));
-        cur.spOffset = sp;
+        ctx.scope.spOffset = sp;
+        return ref.type();
+    }
+
+    private static IrType assignAdd(Expression left, Expression right, IrContext ctx) throws ValidationException {
+        IrValue ref = assignLhs(left, ctx);
+        Expression rightPlusRef = Expression.binary(left, right, BinaryOperator.ADD);
+        int sp = evalType(rightPlusRef, ref.type(), ctx);
+        ctx.function.newStatement(IrStatement.IrCopy.fromTo(IrAddr.relSp(sp), ref.address()));
+        ctx.scope.spOffset = sp;
         return ref.type();
     }
 
