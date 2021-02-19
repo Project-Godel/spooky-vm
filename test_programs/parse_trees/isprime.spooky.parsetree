@@ -1,0 +1,1068 @@
+functions {
+  decl {
+    name {
+      name: "isPrime"
+      position {
+        line: 4
+        col: 6
+        offset: 56
+      }
+    }
+    params {
+      name {
+        name: "n"
+        position {
+          line: 4
+          col: 14
+          offset: 64
+        }
+      }
+      type {
+        name: "Int"
+        position {
+          line: 4
+          col: 17
+          offset: 67
+        }
+      }
+      position {
+        line: 4
+        col: 14
+        offset: 64
+      }
+    }
+    returnType {
+      name: "Boolean"
+      position {
+        line: 4
+        col: 25
+        offset: 75
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        decl {
+          name {
+            name: "p"
+            position {
+              line: 5
+              col: 3
+              offset: 88
+            }
+          }
+          type {
+            name: "Int"
+            position {
+              line: 5
+              col: 6
+              offset: 91
+            }
+          }
+          init {
+            value {
+              int_literal: 1
+              position {
+                line: 5
+                col: 12
+                offset: 97
+              }
+            }
+            position {
+              line: 5
+              col: 12
+              offset: 97
+            }
+          }
+          position {
+            line: 5
+            col: 3
+            offset: 88
+          }
+        }
+        position {
+          line: 5
+          col: 3
+          offset: 88
+        }
+      }
+      body {
+        loop {
+          init {
+            decl {
+              name {
+                name: "i"
+                position {
+                  line: 6
+                  col: 8
+                  offset: 108
+                }
+              }
+              type {
+                name: "Int"
+                position {
+                  line: 6
+                  col: 11
+                  offset: 111
+                }
+              }
+              init {
+                value {
+                  int_literal: 2
+                  position {
+                    line: 6
+                    col: 17
+                    offset: 117
+                  }
+                }
+                position {
+                  line: 6
+                  col: 17
+                  offset: 117
+                }
+              }
+              position {
+                line: 6
+                col: 8
+                offset: 108
+              }
+            }
+            position {
+              line: 6
+              col: 8
+              offset: 108
+            }
+          }
+          condition {
+            binary {
+              left {
+                binary {
+                  left {
+                    reference {
+                      name: "i"
+                      position {
+                        line: 6
+                        col: 20
+                        offset: 120
+                      }
+                    }
+                    position {
+                      line: 6
+                      col: 20
+                      offset: 120
+                    }
+                  }
+                  right {
+                    reference {
+                      name: "i"
+                      position {
+                        line: 6
+                        col: 24
+                        offset: 124
+                      }
+                    }
+                    position {
+                      line: 6
+                      col: 24
+                      offset: 124
+                    }
+                  }
+                  operator: MULTIPLY
+                  position {
+                    line: 6
+                    col: 20
+                    offset: 120
+                  }
+                }
+                position {
+                  line: 6
+                  col: 20
+                  offset: 120
+                }
+              }
+              right {
+                reference {
+                  name: "n"
+                  position {
+                    line: 6
+                    col: 29
+                    offset: 129
+                  }
+                }
+                position {
+                  line: 6
+                  col: 29
+                  offset: 129
+                }
+              }
+              operator: LESS_EQUALS
+              position {
+                line: 6
+                col: 20
+                offset: 120
+              }
+            }
+            position {
+              line: 6
+              col: 20
+              offset: 120
+            }
+          }
+          increment {
+            expression {
+              assignment {
+                variable {
+                  name: "i"
+                  position {
+                    line: 6
+                    col: 32
+                    offset: 132
+                  }
+                }
+                value {
+                  binary {
+                    left {
+                      reference {
+                        name: "i"
+                        position {
+                          line: 6
+                          col: 32
+                          offset: 132
+                        }
+                      }
+                      position {
+                        line: 6
+                        col: 32
+                        offset: 132
+                      }
+                    }
+                    right {
+                      value {
+                        int_literal: 1
+                        position {
+                          line: 6
+                          col: 37
+                          offset: 137
+                        }
+                      }
+                      position {
+                        line: 6
+                        col: 37
+                        offset: 137
+                      }
+                    }
+                    operator: ADD
+                    position {
+                      line: 6
+                      col: 32
+                      offset: 132
+                    }
+                  }
+                  position {
+                    line: 6
+                    col: 32
+                    offset: 132
+                  }
+                }
+                position {
+                  line: 6
+                  col: 32
+                  offset: 132
+                }
+              }
+              position {
+                line: 6
+                col: 32
+                offset: 132
+              }
+            }
+            position {
+              line: 6
+              col: 32
+              offset: 132
+            }
+          }
+          body {
+            block {
+              body {
+                conditional {
+                  condition {
+                    binary {
+                      left {
+                        binary {
+                          left {
+                            reference {
+                              name: "n"
+                              position {
+                                line: 7
+                                col: 9
+                                offset: 151
+                              }
+                            }
+                            position {
+                              line: 7
+                              col: 9
+                              offset: 151
+                            }
+                          }
+                          right {
+                            reference {
+                              name: "i"
+                              position {
+                                line: 7
+                                col: 13
+                                offset: 155
+                              }
+                            }
+                            position {
+                              line: 7
+                              col: 13
+                              offset: 155
+                            }
+                          }
+                          operator: MODULO
+                          position {
+                            line: 7
+                            col: 9
+                            offset: 151
+                          }
+                        }
+                        position {
+                          line: 7
+                          col: 9
+                          offset: 151
+                        }
+                      }
+                      right {
+                        value {
+                          int_literal: 0
+                          position {
+                            line: 7
+                            col: 18
+                            offset: 160
+                          }
+                        }
+                        position {
+                          line: 7
+                          col: 18
+                          offset: 160
+                        }
+                      }
+                      operator: EQUALS
+                      position {
+                        line: 7
+                        col: 9
+                        offset: 151
+                      }
+                    }
+                    position {
+                      line: 7
+                      col: 9
+                      offset: 151
+                    }
+                  }
+                  body {
+                    block {
+                      body {
+                        returnValue {
+                          value {
+                            value {
+                              bool_literal: false
+                              position {
+                                line: 8
+                                col: 14
+                                offset: 179
+                              }
+                            }
+                            position {
+                              line: 8
+                              col: 14
+                              offset: 179
+                            }
+                          }
+                          position {
+                            line: 8
+                            col: 7
+                            offset: 172
+                          }
+                        }
+                        position {
+                          line: 8
+                          col: 7
+                          offset: 172
+                        }
+                      }
+                      position {
+                        line: 7
+                        col: 21
+                        offset: 163
+                      }
+                    }
+                    position {
+                      line: 7
+                      col: 21
+                      offset: 163
+                    }
+                  }
+                  position {
+                    line: 7
+                    col: 5
+                    offset: 147
+                  }
+                }
+                position {
+                  line: 7
+                  col: 5
+                  offset: 147
+                }
+              }
+              position {
+                line: 6
+                col: 40
+                offset: 140
+              }
+            }
+            position {
+              line: 6
+              col: 40
+              offset: 140
+            }
+          }
+          position {
+            line: 6
+            col: 3
+            offset: 103
+          }
+        }
+        position {
+          line: 6
+          col: 3
+          offset: 103
+        }
+      }
+      body {
+        returnValue {
+          value {
+            value {
+              bool_literal: true
+              position {
+                line: 11
+                col: 10
+                offset: 208
+              }
+            }
+            position {
+              line: 11
+              col: 10
+              offset: 208
+            }
+          }
+          position {
+            line: 11
+            col: 3
+            offset: 201
+          }
+        }
+        position {
+          line: 11
+          col: 3
+          offset: 201
+        }
+      }
+      position {
+        line: 4
+        col: 33
+        offset: 83
+      }
+    }
+    position {
+      line: 4
+      col: 33
+      offset: 83
+    }
+  }
+  position {
+    line: 4
+    col: 1
+    offset: 51
+  }
+}
+functions {
+  decl {
+    name {
+      name: "main"
+      position {
+        line: 14
+        col: 6
+        offset: 225
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        loop {
+          init {
+            decl {
+              name {
+                name: "n"
+                position {
+                  line: 15
+                  col: 8
+                  offset: 242
+                }
+              }
+              type {
+                name: "Int"
+                position {
+                  line: 15
+                  col: 11
+                  offset: 245
+                }
+              }
+              init {
+                value {
+                  int_literal: 90
+                  position {
+                    line: 15
+                    col: 17
+                    offset: 251
+                  }
+                }
+                position {
+                  line: 15
+                  col: 17
+                  offset: 251
+                }
+              }
+              position {
+                line: 15
+                col: 8
+                offset: 242
+              }
+            }
+            position {
+              line: 15
+              col: 8
+              offset: 242
+            }
+          }
+          condition {
+            binary {
+              left {
+                reference {
+                  name: "n"
+                  position {
+                    line: 15
+                    col: 21
+                    offset: 255
+                  }
+                }
+                position {
+                  line: 15
+                  col: 21
+                  offset: 255
+                }
+              }
+              right {
+                value {
+                  int_literal: 100
+                  position {
+                    line: 15
+                    col: 25
+                    offset: 259
+                  }
+                }
+                position {
+                  line: 15
+                  col: 25
+                  offset: 259
+                }
+              }
+              operator: LESS_THAN
+              position {
+                line: 15
+                col: 21
+                offset: 255
+              }
+            }
+            position {
+              line: 15
+              col: 21
+              offset: 255
+            }
+          }
+          increment {
+            expression {
+              assignment {
+                variable {
+                  name: "n"
+                  position {
+                    line: 15
+                    col: 30
+                    offset: 264
+                  }
+                }
+                value {
+                  binary {
+                    left {
+                      reference {
+                        name: "n"
+                        position {
+                          line: 15
+                          col: 34
+                          offset: 268
+                        }
+                      }
+                      position {
+                        line: 15
+                        col: 34
+                        offset: 268
+                      }
+                    }
+                    right {
+                      value {
+                        int_literal: 1
+                        position {
+                          line: 15
+                          col: 38
+                          offset: 272
+                        }
+                      }
+                      position {
+                        line: 15
+                        col: 38
+                        offset: 272
+                      }
+                    }
+                    operator: ADD
+                    position {
+                      line: 15
+                      col: 34
+                      offset: 268
+                    }
+                  }
+                  position {
+                    line: 15
+                    col: 34
+                    offset: 268
+                  }
+                }
+                position {
+                  line: 15
+                  col: 30
+                  offset: 264
+                }
+              }
+              position {
+                line: 15
+                col: 30
+                offset: 264
+              }
+            }
+            position {
+              line: 15
+              col: 30
+              offset: 264
+            }
+          }
+          body {
+            block {
+              body {
+                expression {
+                  call {
+                    function {
+                      name: "printInt"
+                      position {
+                        line: 16
+                        col: 5
+                        offset: 282
+                      }
+                    }
+                    params {
+                      reference {
+                        name: "n"
+                        position {
+                          line: 16
+                          col: 14
+                          offset: 291
+                        }
+                      }
+                      position {
+                        line: 16
+                        col: 14
+                        offset: 291
+                      }
+                    }
+                    position {
+                      line: 16
+                      col: 5
+                      offset: 282
+                    }
+                  }
+                  position {
+                    line: 16
+                    col: 5
+                    offset: 282
+                  }
+                }
+                position {
+                  line: 16
+                  col: 5
+                  offset: 282
+                }
+              }
+              body {
+                expression {
+                  call {
+                    function {
+                      name: "print"
+                      position {
+                        line: 17
+                        col: 5
+                        offset: 300
+                      }
+                    }
+                    params {
+                      value {
+                        char_literal: 32
+                      }
+                      position {
+                        line: 17
+                        col: 11
+                        offset: 306
+                      }
+                    }
+                    position {
+                      line: 17
+                      col: 5
+                      offset: 300
+                    }
+                  }
+                  position {
+                    line: 17
+                    col: 5
+                    offset: 300
+                  }
+                }
+                position {
+                  line: 17
+                  col: 5
+                  offset: 300
+                }
+              }
+              body {
+                conditional {
+                  condition {
+                    call {
+                      function {
+                        name: "isPrime"
+                        position {
+                          line: 18
+                          col: 9
+                          offset: 321
+                        }
+                      }
+                      params {
+                        reference {
+                          name: "n"
+                          position {
+                            line: 18
+                            col: 17
+                            offset: 329
+                          }
+                        }
+                        position {
+                          line: 18
+                          col: 17
+                          offset: 329
+                        }
+                      }
+                      position {
+                        line: 18
+                        col: 9
+                        offset: 321
+                      }
+                    }
+                    position {
+                      line: 18
+                      col: 9
+                      offset: 321
+                    }
+                  }
+                  body {
+                    block {
+                      body {
+                        expression {
+                          call {
+                            function {
+                              name: "printInt"
+                              position {
+                                line: 19
+                                col: 9
+                                offset: 344
+                              }
+                            }
+                            params {
+                              value {
+                                int_literal: 1
+                                position {
+                                  line: 19
+                                  col: 18
+                                  offset: 353
+                                }
+                              }
+                              position {
+                                line: 19
+                                col: 18
+                                offset: 353
+                              }
+                            }
+                            position {
+                              line: 19
+                              col: 9
+                              offset: 344
+                            }
+                          }
+                          position {
+                            line: 19
+                            col: 9
+                            offset: 344
+                          }
+                        }
+                        position {
+                          line: 19
+                          col: 9
+                          offset: 344
+                        }
+                      }
+                      position {
+                        line: 18
+                        col: 21
+                        offset: 333
+                      }
+                    }
+                    position {
+                      line: 18
+                      col: 21
+                      offset: 333
+                    }
+                  }
+                  elseBody {
+                    block {
+                      body {
+                        expression {
+                          call {
+                            function {
+                              name: "printInt"
+                              position {
+                                line: 21
+                                col: 9
+                                offset: 380
+                              }
+                            }
+                            params {
+                              value {
+                                int_literal: 0
+                                position {
+                                  line: 21
+                                  col: 18
+                                  offset: 389
+                                }
+                              }
+                              position {
+                                line: 21
+                                col: 18
+                                offset: 389
+                              }
+                            }
+                            position {
+                              line: 21
+                              col: 9
+                              offset: 380
+                            }
+                          }
+                          position {
+                            line: 21
+                            col: 9
+                            offset: 380
+                          }
+                        }
+                        position {
+                          line: 21
+                          col: 9
+                          offset: 380
+                        }
+                      }
+                      position {
+                        line: 20
+                        col: 12
+                        offset: 369
+                      }
+                    }
+                    position {
+                      line: 20
+                      col: 12
+                      offset: 369
+                    }
+                  }
+                  position {
+                    line: 18
+                    col: 5
+                    offset: 317
+                  }
+                }
+                position {
+                  line: 18
+                  col: 5
+                  offset: 317
+                }
+              }
+              body {
+                expression {
+                  call {
+                    function {
+                      name: "print"
+                      position {
+                        line: 23
+                        col: 5
+                        offset: 405
+                      }
+                    }
+                    params {
+                      value {
+                        char_literal: 10
+                      }
+                      position {
+                        line: 23
+                        col: 11
+                        offset: 411
+                      }
+                    }
+                    position {
+                      line: 23
+                      col: 5
+                      offset: 405
+                    }
+                  }
+                  position {
+                    line: 23
+                    col: 5
+                    offset: 405
+                  }
+                }
+                position {
+                  line: 23
+                  col: 5
+                  offset: 405
+                }
+              }
+              position {
+                line: 15
+                col: 41
+                offset: 275
+              }
+            }
+            position {
+              line: 15
+              col: 41
+              offset: 275
+            }
+          }
+          position {
+            line: 15
+            col: 3
+            offset: 237
+          }
+        }
+        position {
+          line: 15
+          col: 3
+          offset: 237
+        }
+      }
+      position {
+        line: 14
+        col: 13
+        offset: 232
+      }
+    }
+    position {
+      line: 14
+      col: 13
+      offset: 232
+    }
+  }
+  position {
+    line: 14
+    col: 1
+    offset: 220
+  }
+}
+externs {
+  name {
+    name: "printInt"
+    position {
+      line: 1
+      col: 8
+      offset: 7
+    }
+  }
+  params {
+    name {
+      name: "i"
+      position {
+        line: 1
+        col: 17
+        offset: 16
+      }
+    }
+    type {
+      name: "Int"
+      position {
+        line: 1
+        col: 20
+        offset: 19
+      }
+    }
+    position {
+      line: 1
+      col: 17
+      offset: 16
+    }
+  }
+}
+externs {
+  name {
+    name: "print"
+    position {
+      line: 2
+      col: 8
+      offset: 32
+    }
+  }
+  params {
+    name {
+      name: "ch"
+      position {
+        line: 2
+        col: 14
+        offset: 38
+      }
+    }
+    type {
+      name: "Char"
+      position {
+        line: 2
+        col: 18
+        offset: 42
+      }
+    }
+    position {
+      line: 2
+      col: 14
+      offset: 38
+    }
+  }
+}

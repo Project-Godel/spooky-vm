@@ -1,0 +1,845 @@
+tokens {
+  kind: EXTERN
+  position {
+    line: 1
+    col: 1
+  }
+  text: "extern"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 1
+    col: 8
+    offset: 7
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 1
+    col: 16
+    offset: 15
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 1
+    col: 17
+    offset: 16
+  }
+  text: "i"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 1
+    col: 18
+    offset: 17
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 1
+    col: 20
+    offset: 19
+  }
+  text: "Int"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 1
+    col: 23
+    offset: 22
+  }
+  text: ")"
+}
+tokens {
+  kind: FUNC
+  position {
+    line: 3
+    col: 1
+    offset: 25
+  }
+  text: "func"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 3
+    col: 6
+    offset: 30
+  }
+  text: "main"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 3
+    col: 10
+    offset: 34
+  }
+  text: "("
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 3
+    col: 11
+    offset: 35
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 3
+    col: 13
+    offset: 37
+  }
+  text: "{"
+}
+tokens {
+  kind: FOR
+  position {
+    line: 4
+    col: 3
+    offset: 41
+  }
+  text: "for"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 4
+    col: 7
+    offset: 45
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 8
+    offset: 46
+  }
+  text: "i"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 4
+    col: 9
+    offset: 47
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 11
+    offset: 49
+  }
+  text: "Int"
+}
+tokens {
+  kind: ASSIGN
+  position {
+    line: 4
+    col: 15
+    offset: 53
+  }
+  text: "="
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 4
+    col: 17
+    offset: 55
+  }
+  text: "1"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 4
+    col: 18
+    offset: 56
+  }
+  text: ";"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 20
+    offset: 58
+  }
+  text: "i"
+}
+tokens {
+  kind: LESS_EQUALS
+  position {
+    line: 4
+    col: 22
+    offset: 60
+  }
+  text: "<="
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 4
+    col: 25
+    offset: 63
+  }
+  text: "15"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 4
+    col: 27
+    offset: 65
+  }
+  text: ";"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 29
+    offset: 67
+  }
+  text: "i"
+}
+tokens {
+  kind: ASSIGN
+  position {
+    line: 4
+    col: 31
+    offset: 69
+  }
+  text: "="
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 33
+    offset: 71
+  }
+  text: "i"
+}
+tokens {
+  kind: PLUS
+  position {
+    line: 4
+    col: 35
+    offset: 73
+  }
+  text: "+"
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 4
+    col: 37
+    offset: 75
+  }
+  text: "1"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 4
+    col: 38
+    offset: 76
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 4
+    col: 40
+    offset: 78
+  }
+  text: "{"
+}
+tokens {
+  kind: IF
+  position {
+    line: 5
+    col: 7
+    offset: 86
+  }
+  text: "if"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 5
+    col: 10
+    offset: 89
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 5
+    col: 11
+    offset: 90
+  }
+  text: "i"
+}
+tokens {
+  kind: PERCENT
+  position {
+    line: 5
+    col: 13
+    offset: 92
+  }
+  text: "%"
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 5
+    col: 15
+    offset: 94
+  }
+  text: "3"
+}
+tokens {
+  kind: EQUALS
+  position {
+    line: 5
+    col: 17
+    offset: 96
+  }
+  text: "=="
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 5
+    col: 20
+    offset: 99
+  }
+  text: "0"
+}
+tokens {
+  kind: AND
+  position {
+    line: 5
+    col: 22
+    offset: 101
+  }
+  text: "&&"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 5
+    col: 25
+    offset: 104
+  }
+  text: "i"
+}
+tokens {
+  kind: PERCENT
+  position {
+    line: 5
+    col: 27
+    offset: 106
+  }
+  text: "%"
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 5
+    col: 29
+    offset: 108
+  }
+  text: "5"
+}
+tokens {
+  kind: EQUALS
+  position {
+    line: 5
+    col: 31
+    offset: 110
+  }
+  text: "=="
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 5
+    col: 34
+    offset: 113
+  }
+  text: "0"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 5
+    col: 35
+    offset: 114
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 5
+    col: 37
+    offset: 116
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 6
+    col: 9
+    offset: 126
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 6
+    col: 17
+    offset: 134
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 6
+    col: 18
+    offset: 135
+  }
+  text: "12"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 6
+    col: 20
+    offset: 137
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 6
+    col: 21
+    offset: 138
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 7
+    col: 7
+    offset: 146
+  }
+  text: "}"
+}
+tokens {
+  kind: ELSE
+  position {
+    line: 7
+    col: 9
+    offset: 148
+  }
+  text: "else"
+}
+tokens {
+  kind: IF
+  position {
+    line: 7
+    col: 14
+    offset: 153
+  }
+  text: "if"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 7
+    col: 17
+    offset: 156
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 7
+    col: 18
+    offset: 157
+  }
+  text: "i"
+}
+tokens {
+  kind: PERCENT
+  position {
+    line: 7
+    col: 20
+    offset: 159
+  }
+  text: "%"
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 7
+    col: 22
+    offset: 161
+  }
+  text: "3"
+}
+tokens {
+  kind: EQUALS
+  position {
+    line: 7
+    col: 24
+    offset: 163
+  }
+  text: "=="
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 7
+    col: 27
+    offset: 166
+  }
+  text: "0"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 7
+    col: 28
+    offset: 167
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 7
+    col: 30
+    offset: 169
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 8
+    col: 9
+    offset: 179
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 8
+    col: 17
+    offset: 187
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 8
+    col: 18
+    offset: 188
+  }
+  text: "1"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 8
+    col: 19
+    offset: 189
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 8
+    col: 20
+    offset: 190
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 9
+    col: 7
+    offset: 198
+  }
+  text: "}"
+}
+tokens {
+  kind: ELSE
+  position {
+    line: 9
+    col: 9
+    offset: 200
+  }
+  text: "else"
+}
+tokens {
+  kind: IF
+  position {
+    line: 9
+    col: 14
+    offset: 205
+  }
+  text: "if"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 9
+    col: 17
+    offset: 208
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 9
+    col: 18
+    offset: 209
+  }
+  text: "i"
+}
+tokens {
+  kind: PERCENT
+  position {
+    line: 9
+    col: 20
+    offset: 211
+  }
+  text: "%"
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 9
+    col: 22
+    offset: 213
+  }
+  text: "5"
+}
+tokens {
+  kind: EQUALS
+  position {
+    line: 9
+    col: 24
+    offset: 215
+  }
+  text: "=="
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 9
+    col: 27
+    offset: 218
+  }
+  text: "0"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 9
+    col: 28
+    offset: 219
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 9
+    col: 30
+    offset: 221
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 10
+    col: 9
+    offset: 231
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 10
+    col: 17
+    offset: 239
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 10
+    col: 18
+    offset: 240
+  }
+  text: "2"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 10
+    col: 19
+    offset: 241
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 10
+    col: 20
+    offset: 242
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 11
+    col: 7
+    offset: 250
+  }
+  text: "}"
+}
+tokens {
+  kind: ELSE
+  position {
+    line: 11
+    col: 9
+    offset: 252
+  }
+  text: "else"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 11
+    col: 14
+    offset: 257
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 12
+    col: 9
+    offset: 267
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 12
+    col: 17
+    offset: 275
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 12
+    col: 18
+    offset: 276
+  }
+  text: "0"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 12
+    col: 19
+    offset: 277
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 12
+    col: 20
+    offset: 278
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 13
+    col: 7
+    offset: 286
+  }
+  text: "}"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 14
+    col: 3
+    offset: 290
+  }
+  text: "}"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 15
+    col: 1
+    offset: 292
+  }
+  text: "}"
+}

@@ -1,0 +1,25 @@
+load("//:rules.bzl", "junit_tests")
+
+junit_tests(
+    name = "tests",
+    srcs = [
+        "FullProgramTest.java",
+    ],
+    data = [
+        "//test_programs",
+    ],
+    deps = [
+        "//java/se/jsannemo/spooky/compiler:common",
+        "//java/se/jsannemo/spooky/compiler/codegen",
+        "//java/se/jsannemo/spooky/compiler/ir",
+        "//java/se/jsannemo/spooky/compiler/parser",
+        "//java/se/jsannemo/spooky/compiler/parser:ast_java_proto",
+        "//java/se/jsannemo/spooky/compiler/testing",
+        "//java/se/jsannemo/spooky/compiler/testing:testcases_java_proto",
+        "//java/se/jsannemo/spooky/vm",
+        "//java/se/jsannemo/spooky/vm:code_java_proto",
+        "//third_party/junit",
+        "//third_party/truth",
+        "@com_google_protobuf//:protobuf_java",
+    ],
+)

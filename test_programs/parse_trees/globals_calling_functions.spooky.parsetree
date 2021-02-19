@@ -1,0 +1,366 @@
+globals {
+  name {
+    name: "x"
+    position {
+      line: 8
+      col: 1
+      offset: 90
+    }
+  }
+  type {
+    name: "Int"
+    position {
+      line: 8
+      col: 4
+      offset: 93
+    }
+  }
+  init {
+    call {
+      function {
+        name: "echo"
+        position {
+          line: 8
+          col: 10
+          offset: 99
+        }
+      }
+      params {
+        value {
+          int_literal: 4
+          position {
+            line: 8
+            col: 15
+            offset: 104
+          }
+        }
+        position {
+          line: 8
+          col: 15
+          offset: 104
+        }
+      }
+      position {
+        line: 8
+        col: 10
+        offset: 99
+      }
+    }
+    position {
+      line: 8
+      col: 10
+      offset: 99
+    }
+  }
+  position {
+    line: 8
+    col: 1
+    offset: 90
+  }
+}
+globals {
+  name {
+    name: "y"
+    position {
+      line: 9
+      col: 1
+      offset: 108
+    }
+  }
+  type {
+    name: "Int"
+    position {
+      line: 9
+      col: 4
+      offset: 111
+    }
+  }
+  init {
+    call {
+      function {
+        name: "getTwo"
+        position {
+          line: 9
+          col: 10
+          offset: 117
+        }
+      }
+      position {
+        line: 9
+        col: 10
+        offset: 117
+      }
+    }
+    position {
+      line: 9
+      col: 10
+      offset: 117
+    }
+  }
+  position {
+    line: 9
+    col: 1
+    offset: 108
+  }
+}
+functions {
+  decl {
+    name {
+      name: "getTwo"
+      position {
+        line: 4
+        col: 6
+        offset: 57
+      }
+    }
+    returnType {
+      name: "Int"
+      position {
+        line: 4
+        col: 18
+        offset: 69
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        returnValue {
+          value {
+            value {
+              int_literal: 2
+              position {
+                line: 5
+                col: 10
+                offset: 84
+              }
+            }
+            position {
+              line: 5
+              col: 10
+              offset: 84
+            }
+          }
+          position {
+            line: 5
+            col: 3
+            offset: 77
+          }
+        }
+        position {
+          line: 5
+          col: 3
+          offset: 77
+        }
+      }
+      position {
+        line: 4
+        col: 22
+        offset: 73
+      }
+    }
+    position {
+      line: 4
+      col: 22
+      offset: 73
+    }
+  }
+  position {
+    line: 4
+    col: 1
+    offset: 52
+  }
+}
+functions {
+  decl {
+    name {
+      name: "main"
+      position {
+        line: 11
+        col: 6
+        offset: 133
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        expression {
+          call {
+            function {
+              name: "printInt"
+              position {
+                line: 12
+                col: 3
+                offset: 144
+              }
+            }
+            params {
+              reference {
+                name: "x"
+                position {
+                  line: 12
+                  col: 12
+                  offset: 153
+                }
+              }
+              position {
+                line: 12
+                col: 12
+                offset: 153
+              }
+            }
+            position {
+              line: 12
+              col: 3
+              offset: 144
+            }
+          }
+          position {
+            line: 12
+            col: 3
+            offset: 144
+          }
+        }
+        position {
+          line: 12
+          col: 3
+          offset: 144
+        }
+      }
+      body {
+        expression {
+          call {
+            function {
+              name: "printInt"
+              position {
+                line: 13
+                col: 3
+                offset: 159
+              }
+            }
+            params {
+              reference {
+                name: "y"
+                position {
+                  line: 13
+                  col: 12
+                  offset: 168
+                }
+              }
+              position {
+                line: 13
+                col: 12
+                offset: 168
+              }
+            }
+            position {
+              line: 13
+              col: 3
+              offset: 159
+            }
+          }
+          position {
+            line: 13
+            col: 3
+            offset: 159
+          }
+        }
+        position {
+          line: 13
+          col: 3
+          offset: 159
+        }
+      }
+      position {
+        line: 11
+        col: 13
+        offset: 140
+      }
+    }
+    position {
+      line: 11
+      col: 13
+      offset: 140
+    }
+  }
+  position {
+    line: 11
+    col: 1
+    offset: 128
+  }
+}
+externs {
+  name {
+    name: "printInt"
+    position {
+      line: 1
+      col: 8
+      offset: 7
+    }
+  }
+  params {
+    name {
+      name: "i"
+      position {
+        line: 1
+        col: 17
+        offset: 16
+      }
+    }
+    type {
+      name: "Int"
+      position {
+        line: 1
+        col: 20
+        offset: 19
+      }
+    }
+    position {
+      line: 1
+      col: 17
+      offset: 16
+    }
+  }
+}
+externs {
+  name {
+    name: "echo"
+    position {
+      line: 2
+      col: 8
+      offset: 31
+    }
+  }
+  params {
+    name {
+      name: "i"
+      position {
+        line: 2
+        col: 13
+        offset: 36
+      }
+    }
+    type {
+      name: "Int"
+      position {
+        line: 2
+        col: 16
+        offset: 39
+      }
+    }
+    position {
+      line: 2
+      col: 13
+      offset: 36
+    }
+  }
+  returnType {
+    name: "Int"
+    position {
+      line: 2
+      col: 24
+      offset: 47
+    }
+  }
+}

@@ -1,0 +1,845 @@
+functions {
+  decl {
+    name {
+      name: "main"
+      position {
+        line: 3
+        col: 6
+        offset: 30
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        loop {
+          init {
+            decl {
+              name {
+                name: "i"
+                position {
+                  line: 4
+                  col: 8
+                  offset: 46
+                }
+              }
+              type {
+                name: "Int"
+                position {
+                  line: 4
+                  col: 11
+                  offset: 49
+                }
+              }
+              init {
+                value {
+                  int_literal: 1
+                  position {
+                    line: 4
+                    col: 17
+                    offset: 55
+                  }
+                }
+                position {
+                  line: 4
+                  col: 17
+                  offset: 55
+                }
+              }
+              position {
+                line: 4
+                col: 8
+                offset: 46
+              }
+            }
+            position {
+              line: 4
+              col: 8
+              offset: 46
+            }
+          }
+          condition {
+            binary {
+              left {
+                reference {
+                  name: "i"
+                  position {
+                    line: 4
+                    col: 20
+                    offset: 58
+                  }
+                }
+                position {
+                  line: 4
+                  col: 20
+                  offset: 58
+                }
+              }
+              right {
+                value {
+                  int_literal: 15
+                  position {
+                    line: 4
+                    col: 25
+                    offset: 63
+                  }
+                }
+                position {
+                  line: 4
+                  col: 25
+                  offset: 63
+                }
+              }
+              operator: LESS_EQUALS
+              position {
+                line: 4
+                col: 20
+                offset: 58
+              }
+            }
+            position {
+              line: 4
+              col: 20
+              offset: 58
+            }
+          }
+          increment {
+            expression {
+              assignment {
+                variable {
+                  name: "i"
+                  position {
+                    line: 4
+                    col: 29
+                    offset: 67
+                  }
+                }
+                value {
+                  binary {
+                    left {
+                      reference {
+                        name: "i"
+                        position {
+                          line: 4
+                          col: 33
+                          offset: 71
+                        }
+                      }
+                      position {
+                        line: 4
+                        col: 33
+                        offset: 71
+                      }
+                    }
+                    right {
+                      value {
+                        int_literal: 1
+                        position {
+                          line: 4
+                          col: 37
+                          offset: 75
+                        }
+                      }
+                      position {
+                        line: 4
+                        col: 37
+                        offset: 75
+                      }
+                    }
+                    operator: ADD
+                    position {
+                      line: 4
+                      col: 33
+                      offset: 71
+                    }
+                  }
+                  position {
+                    line: 4
+                    col: 33
+                    offset: 71
+                  }
+                }
+                position {
+                  line: 4
+                  col: 29
+                  offset: 67
+                }
+              }
+              position {
+                line: 4
+                col: 29
+                offset: 67
+              }
+            }
+            position {
+              line: 4
+              col: 29
+              offset: 67
+            }
+          }
+          body {
+            block {
+              body {
+                conditional {
+                  condition {
+                    binary {
+                      left {
+                        binary {
+                          left {
+                            binary {
+                              left {
+                                reference {
+                                  name: "i"
+                                  position {
+                                    line: 5
+                                    col: 11
+                                    offset: 90
+                                  }
+                                }
+                                position {
+                                  line: 5
+                                  col: 11
+                                  offset: 90
+                                }
+                              }
+                              right {
+                                value {
+                                  int_literal: 3
+                                  position {
+                                    line: 5
+                                    col: 15
+                                    offset: 94
+                                  }
+                                }
+                                position {
+                                  line: 5
+                                  col: 15
+                                  offset: 94
+                                }
+                              }
+                              operator: MODULO
+                              position {
+                                line: 5
+                                col: 11
+                                offset: 90
+                              }
+                            }
+                            position {
+                              line: 5
+                              col: 11
+                              offset: 90
+                            }
+                          }
+                          right {
+                            value {
+                              int_literal: 0
+                              position {
+                                line: 5
+                                col: 20
+                                offset: 99
+                              }
+                            }
+                            position {
+                              line: 5
+                              col: 20
+                              offset: 99
+                            }
+                          }
+                          operator: EQUALS
+                          position {
+                            line: 5
+                            col: 11
+                            offset: 90
+                          }
+                        }
+                        position {
+                          line: 5
+                          col: 11
+                          offset: 90
+                        }
+                      }
+                      right {
+                        binary {
+                          left {
+                            binary {
+                              left {
+                                reference {
+                                  name: "i"
+                                  position {
+                                    line: 5
+                                    col: 25
+                                    offset: 104
+                                  }
+                                }
+                                position {
+                                  line: 5
+                                  col: 25
+                                  offset: 104
+                                }
+                              }
+                              right {
+                                value {
+                                  int_literal: 5
+                                  position {
+                                    line: 5
+                                    col: 29
+                                    offset: 108
+                                  }
+                                }
+                                position {
+                                  line: 5
+                                  col: 29
+                                  offset: 108
+                                }
+                              }
+                              operator: MODULO
+                              position {
+                                line: 5
+                                col: 25
+                                offset: 104
+                              }
+                            }
+                            position {
+                              line: 5
+                              col: 25
+                              offset: 104
+                            }
+                          }
+                          right {
+                            value {
+                              int_literal: 0
+                              position {
+                                line: 5
+                                col: 34
+                                offset: 113
+                              }
+                            }
+                            position {
+                              line: 5
+                              col: 34
+                              offset: 113
+                            }
+                          }
+                          operator: EQUALS
+                          position {
+                            line: 5
+                            col: 25
+                            offset: 104
+                          }
+                        }
+                        position {
+                          line: 5
+                          col: 25
+                          offset: 104
+                        }
+                      }
+                      operator: AND
+                      position {
+                        line: 5
+                        col: 11
+                        offset: 90
+                      }
+                    }
+                    position {
+                      line: 5
+                      col: 11
+                      offset: 90
+                    }
+                  }
+                  body {
+                    block {
+                      body {
+                        expression {
+                          call {
+                            function {
+                              name: "printInt"
+                              position {
+                                line: 6
+                                col: 9
+                                offset: 126
+                              }
+                            }
+                            params {
+                              value {
+                                int_literal: 12
+                                position {
+                                  line: 6
+                                  col: 18
+                                  offset: 135
+                                }
+                              }
+                              position {
+                                line: 6
+                                col: 18
+                                offset: 135
+                              }
+                            }
+                            position {
+                              line: 6
+                              col: 9
+                              offset: 126
+                            }
+                          }
+                          position {
+                            line: 6
+                            col: 9
+                            offset: 126
+                          }
+                        }
+                        position {
+                          line: 6
+                          col: 9
+                          offset: 126
+                        }
+                      }
+                      position {
+                        line: 5
+                        col: 37
+                        offset: 116
+                      }
+                    }
+                    position {
+                      line: 5
+                      col: 37
+                      offset: 116
+                    }
+                  }
+                  elseBody {
+                    conditional {
+                      condition {
+                        binary {
+                          left {
+                            binary {
+                              left {
+                                reference {
+                                  name: "i"
+                                  position {
+                                    line: 7
+                                    col: 18
+                                    offset: 157
+                                  }
+                                }
+                                position {
+                                  line: 7
+                                  col: 18
+                                  offset: 157
+                                }
+                              }
+                              right {
+                                value {
+                                  int_literal: 3
+                                  position {
+                                    line: 7
+                                    col: 22
+                                    offset: 161
+                                  }
+                                }
+                                position {
+                                  line: 7
+                                  col: 22
+                                  offset: 161
+                                }
+                              }
+                              operator: MODULO
+                              position {
+                                line: 7
+                                col: 18
+                                offset: 157
+                              }
+                            }
+                            position {
+                              line: 7
+                              col: 18
+                              offset: 157
+                            }
+                          }
+                          right {
+                            value {
+                              int_literal: 0
+                              position {
+                                line: 7
+                                col: 27
+                                offset: 166
+                              }
+                            }
+                            position {
+                              line: 7
+                              col: 27
+                              offset: 166
+                            }
+                          }
+                          operator: EQUALS
+                          position {
+                            line: 7
+                            col: 18
+                            offset: 157
+                          }
+                        }
+                        position {
+                          line: 7
+                          col: 18
+                          offset: 157
+                        }
+                      }
+                      body {
+                        block {
+                          body {
+                            expression {
+                              call {
+                                function {
+                                  name: "printInt"
+                                  position {
+                                    line: 8
+                                    col: 9
+                                    offset: 179
+                                  }
+                                }
+                                params {
+                                  value {
+                                    int_literal: 1
+                                    position {
+                                      line: 8
+                                      col: 18
+                                      offset: 188
+                                    }
+                                  }
+                                  position {
+                                    line: 8
+                                    col: 18
+                                    offset: 188
+                                  }
+                                }
+                                position {
+                                  line: 8
+                                  col: 9
+                                  offset: 179
+                                }
+                              }
+                              position {
+                                line: 8
+                                col: 9
+                                offset: 179
+                              }
+                            }
+                            position {
+                              line: 8
+                              col: 9
+                              offset: 179
+                            }
+                          }
+                          position {
+                            line: 7
+                            col: 30
+                            offset: 169
+                          }
+                        }
+                        position {
+                          line: 7
+                          col: 30
+                          offset: 169
+                        }
+                      }
+                      elseBody {
+                        conditional {
+                          condition {
+                            binary {
+                              left {
+                                binary {
+                                  left {
+                                    reference {
+                                      name: "i"
+                                      position {
+                                        line: 9
+                                        col: 18
+                                        offset: 209
+                                      }
+                                    }
+                                    position {
+                                      line: 9
+                                      col: 18
+                                      offset: 209
+                                    }
+                                  }
+                                  right {
+                                    value {
+                                      int_literal: 5
+                                      position {
+                                        line: 9
+                                        col: 22
+                                        offset: 213
+                                      }
+                                    }
+                                    position {
+                                      line: 9
+                                      col: 22
+                                      offset: 213
+                                    }
+                                  }
+                                  operator: MODULO
+                                  position {
+                                    line: 9
+                                    col: 18
+                                    offset: 209
+                                  }
+                                }
+                                position {
+                                  line: 9
+                                  col: 18
+                                  offset: 209
+                                }
+                              }
+                              right {
+                                value {
+                                  int_literal: 0
+                                  position {
+                                    line: 9
+                                    col: 27
+                                    offset: 218
+                                  }
+                                }
+                                position {
+                                  line: 9
+                                  col: 27
+                                  offset: 218
+                                }
+                              }
+                              operator: EQUALS
+                              position {
+                                line: 9
+                                col: 18
+                                offset: 209
+                              }
+                            }
+                            position {
+                              line: 9
+                              col: 18
+                              offset: 209
+                            }
+                          }
+                          body {
+                            block {
+                              body {
+                                expression {
+                                  call {
+                                    function {
+                                      name: "printInt"
+                                      position {
+                                        line: 10
+                                        col: 9
+                                        offset: 231
+                                      }
+                                    }
+                                    params {
+                                      value {
+                                        int_literal: 2
+                                        position {
+                                          line: 10
+                                          col: 18
+                                          offset: 240
+                                        }
+                                      }
+                                      position {
+                                        line: 10
+                                        col: 18
+                                        offset: 240
+                                      }
+                                    }
+                                    position {
+                                      line: 10
+                                      col: 9
+                                      offset: 231
+                                    }
+                                  }
+                                  position {
+                                    line: 10
+                                    col: 9
+                                    offset: 231
+                                  }
+                                }
+                                position {
+                                  line: 10
+                                  col: 9
+                                  offset: 231
+                                }
+                              }
+                              position {
+                                line: 9
+                                col: 30
+                                offset: 221
+                              }
+                            }
+                            position {
+                              line: 9
+                              col: 30
+                              offset: 221
+                            }
+                          }
+                          elseBody {
+                            block {
+                              body {
+                                expression {
+                                  call {
+                                    function {
+                                      name: "printInt"
+                                      position {
+                                        line: 12
+                                        col: 9
+                                        offset: 267
+                                      }
+                                    }
+                                    params {
+                                      value {
+                                        int_literal: 0
+                                        position {
+                                          line: 12
+                                          col: 18
+                                          offset: 276
+                                        }
+                                      }
+                                      position {
+                                        line: 12
+                                        col: 18
+                                        offset: 276
+                                      }
+                                    }
+                                    position {
+                                      line: 12
+                                      col: 9
+                                      offset: 267
+                                    }
+                                  }
+                                  position {
+                                    line: 12
+                                    col: 9
+                                    offset: 267
+                                  }
+                                }
+                                position {
+                                  line: 12
+                                  col: 9
+                                  offset: 267
+                                }
+                              }
+                              position {
+                                line: 11
+                                col: 14
+                                offset: 257
+                              }
+                            }
+                            position {
+                              line: 11
+                              col: 14
+                              offset: 257
+                            }
+                          }
+                          position {
+                            line: 9
+                            col: 14
+                            offset: 205
+                          }
+                        }
+                        position {
+                          line: 9
+                          col: 14
+                          offset: 205
+                        }
+                      }
+                      position {
+                        line: 7
+                        col: 14
+                        offset: 153
+                      }
+                    }
+                    position {
+                      line: 7
+                      col: 14
+                      offset: 153
+                    }
+                  }
+                  position {
+                    line: 5
+                    col: 7
+                    offset: 86
+                  }
+                }
+                position {
+                  line: 5
+                  col: 7
+                  offset: 86
+                }
+              }
+              position {
+                line: 4
+                col: 40
+                offset: 78
+              }
+            }
+            position {
+              line: 4
+              col: 40
+              offset: 78
+            }
+          }
+          position {
+            line: 4
+            col: 3
+            offset: 41
+          }
+        }
+        position {
+          line: 4
+          col: 3
+          offset: 41
+        }
+      }
+      position {
+        line: 3
+        col: 13
+        offset: 37
+      }
+    }
+    position {
+      line: 3
+      col: 13
+      offset: 37
+    }
+  }
+  position {
+    line: 3
+    col: 1
+    offset: 25
+  }
+}
+externs {
+  name {
+    name: "printInt"
+    position {
+      line: 1
+      col: 8
+      offset: 7
+    }
+  }
+  params {
+    name {
+      name: "i"
+      position {
+        line: 1
+        col: 17
+        offset: 16
+      }
+    }
+    type {
+      name: "Int"
+      position {
+        line: 1
+        col: 20
+        offset: 19
+      }
+    }
+    position {
+      line: 1
+      col: 17
+      offset: 16
+    }
+  }
+}

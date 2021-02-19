@@ -1,0 +1,168 @@
+functions {
+  decl {
+    name {
+      name: "main"
+      position {
+        line: 3
+        col: 6
+        offset: 28
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        expression {
+          call {
+            function {
+              name: "print"
+              position {
+                line: 4
+                col: 3
+                offset: 39
+              }
+            }
+            params {
+              value {
+                int_literal: 65
+                position {
+                  line: 4
+                  col: 9
+                  offset: 45
+                }
+              }
+              position {
+                line: 4
+                col: 9
+                offset: 45
+              }
+            }
+            position {
+              line: 4
+              col: 3
+              offset: 39
+            }
+          }
+          position {
+            line: 4
+            col: 3
+            offset: 39
+          }
+        }
+        position {
+          line: 4
+          col: 3
+          offset: 39
+        }
+      }
+      body {
+        expression {
+          call {
+            function {
+              name: "test"
+              position {
+                line: 5
+                col: 3
+                offset: 52
+              }
+            }
+            position {
+              line: 5
+              col: 3
+              offset: 52
+            }
+          }
+          position {
+            line: 5
+            col: 3
+            offset: 52
+          }
+        }
+        position {
+          line: 5
+          col: 3
+          offset: 52
+        }
+      }
+      position {
+        line: 3
+        col: 13
+        offset: 35
+      }
+    }
+    position {
+      line: 3
+      col: 13
+      offset: 35
+    }
+  }
+  position {
+    line: 3
+    col: 1
+    offset: 23
+  }
+}
+functions {
+  decl {
+    name {
+      name: "test"
+      position {
+        line: 8
+        col: 6
+        offset: 68
+      }
+    }
+  }
+  body {
+    block {
+      position {
+        line: 8
+        col: 13
+        offset: 75
+      }
+    }
+    position {
+      line: 8
+      col: 13
+      offset: 75
+    }
+  }
+  position {
+    line: 8
+    col: 1
+    offset: 63
+  }
+}
+externs {
+  name {
+    name: "print"
+    position {
+      line: 1
+      col: 8
+      offset: 7
+    }
+  }
+  params {
+    name {
+      name: "ch"
+      position {
+        line: 1
+        col: 14
+        offset: 13
+      }
+    }
+    type {
+      name: "Int"
+      position {
+        line: 1
+        col: 18
+        offset: 17
+      }
+    }
+    position {
+      line: 1
+      col: 14
+      offset: 13
+    }
+  }
+}

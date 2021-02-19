@@ -1,0 +1,545 @@
+functions {
+  decl {
+    name {
+      name: "printBinary"
+      position {
+        line: 3
+        col: 6
+        offset: 30
+      }
+    }
+    params {
+      name {
+        name: "n"
+        position {
+          line: 3
+          col: 18
+          offset: 42
+        }
+      }
+      type {
+        name: "Int"
+        position {
+          line: 3
+          col: 21
+          offset: 45
+        }
+      }
+      position {
+        line: 3
+        col: 18
+        offset: 42
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        loop {
+          condition {
+            binary {
+              left {
+                reference {
+                  name: "n"
+                  position {
+                    line: 4
+                    col: 12
+                    offset: 64
+                  }
+                }
+                position {
+                  line: 4
+                  col: 12
+                  offset: 64
+                }
+              }
+              right {
+                value {
+                  int_literal: 0
+                  position {
+                    line: 4
+                    col: 17
+                    offset: 69
+                  }
+                }
+                position {
+                  line: 4
+                  col: 17
+                  offset: 69
+                }
+              }
+              operator: NOT_EQUALS
+              position {
+                line: 4
+                col: 12
+                offset: 64
+              }
+            }
+            position {
+              line: 4
+              col: 12
+              offset: 64
+            }
+          }
+          body {
+            block {
+              body {
+                expression {
+                  call {
+                    function {
+                      name: "print"
+                      position {
+                        line: 5
+                        col: 9
+                        offset: 83
+                      }
+                    }
+                    params {
+                      binary {
+                        left {
+                          value {
+                            int_literal: 48
+                            position {
+                              line: 5
+                              col: 15
+                              offset: 89
+                            }
+                          }
+                          position {
+                            line: 5
+                            col: 15
+                            offset: 89
+                          }
+                        }
+                        right {
+                          binary {
+                            left {
+                              reference {
+                                name: "n"
+                                position {
+                                  line: 5
+                                  col: 20
+                                  offset: 94
+                                }
+                              }
+                              position {
+                                line: 5
+                                col: 20
+                                offset: 94
+                              }
+                            }
+                            right {
+                              value {
+                                int_literal: 2
+                                position {
+                                  line: 5
+                                  col: 24
+                                  offset: 98
+                                }
+                              }
+                              position {
+                                line: 5
+                                col: 24
+                                offset: 98
+                              }
+                            }
+                            operator: MODULO
+                            position {
+                              line: 5
+                              col: 20
+                              offset: 94
+                            }
+                          }
+                          position {
+                            line: 5
+                            col: 20
+                            offset: 94
+                          }
+                        }
+                        operator: ADD
+                        position {
+                          line: 5
+                          col: 15
+                          offset: 89
+                        }
+                      }
+                      position {
+                        line: 5
+                        col: 15
+                        offset: 89
+                      }
+                    }
+                    position {
+                      line: 5
+                      col: 9
+                      offset: 83
+                    }
+                  }
+                  position {
+                    line: 5
+                    col: 9
+                    offset: 83
+                  }
+                }
+                position {
+                  line: 5
+                  col: 9
+                  offset: 83
+                }
+              }
+              body {
+                expression {
+                  assignment {
+                    variable {
+                      name: "n"
+                      position {
+                        line: 6
+                        col: 9
+                        offset: 111
+                      }
+                    }
+                    value {
+                      binary {
+                        left {
+                          reference {
+                            name: "n"
+                            position {
+                              line: 6
+                              col: 13
+                              offset: 115
+                            }
+                          }
+                          position {
+                            line: 6
+                            col: 13
+                            offset: 115
+                          }
+                        }
+                        right {
+                          value {
+                            int_literal: 2
+                            position {
+                              line: 6
+                              col: 17
+                              offset: 119
+                            }
+                          }
+                          position {
+                            line: 6
+                            col: 17
+                            offset: 119
+                          }
+                        }
+                        operator: DIVIDE
+                        position {
+                          line: 6
+                          col: 13
+                          offset: 115
+                        }
+                      }
+                      position {
+                        line: 6
+                        col: 13
+                        offset: 115
+                      }
+                    }
+                    position {
+                      line: 6
+                      col: 9
+                      offset: 111
+                    }
+                  }
+                  position {
+                    line: 6
+                    col: 9
+                    offset: 111
+                  }
+                }
+                position {
+                  line: 6
+                  col: 9
+                  offset: 111
+                }
+              }
+              position {
+                line: 4
+                col: 20
+                offset: 72
+              }
+            }
+            position {
+              line: 4
+              col: 20
+              offset: 72
+            }
+          }
+          position {
+            line: 4
+            col: 5
+            offset: 57
+          }
+        }
+        position {
+          line: 4
+          col: 5
+          offset: 57
+        }
+      }
+      body {
+        expression {
+          call {
+            function {
+              name: "print"
+              position {
+                line: 8
+                col: 5
+                offset: 134
+              }
+            }
+            params {
+              value {
+                int_literal: 10
+                position {
+                  line: 8
+                  col: 11
+                  offset: 140
+                }
+              }
+              position {
+                line: 8
+                col: 11
+                offset: 140
+              }
+            }
+            position {
+              line: 8
+              col: 5
+              offset: 134
+            }
+          }
+          position {
+            line: 8
+            col: 5
+            offset: 134
+          }
+        }
+        position {
+          line: 8
+          col: 5
+          offset: 134
+        }
+      }
+      position {
+        line: 3
+        col: 26
+        offset: 50
+      }
+    }
+    position {
+      line: 3
+      col: 26
+      offset: 50
+    }
+  }
+  position {
+    line: 3
+    col: 1
+    offset: 25
+  }
+}
+functions {
+  decl {
+    name {
+      name: "main"
+      position {
+        line: 11
+        col: 6
+        offset: 156
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        expression {
+          call {
+            function {
+              name: "printBinary"
+              position {
+                line: 12
+                col: 5
+                offset: 170
+              }
+            }
+            params {
+              value {
+                int_literal: 1
+                position {
+                  line: 12
+                  col: 17
+                  offset: 182
+                }
+              }
+              position {
+                line: 12
+                col: 17
+                offset: 182
+              }
+            }
+            position {
+              line: 12
+              col: 5
+              offset: 170
+            }
+          }
+          position {
+            line: 12
+            col: 5
+            offset: 170
+          }
+        }
+        position {
+          line: 12
+          col: 5
+          offset: 170
+        }
+      }
+      body {
+        expression {
+          call {
+            function {
+              name: "printBinary"
+              position {
+                line: 13
+                col: 5
+                offset: 191
+              }
+            }
+            params {
+              value {
+                int_literal: 7
+                position {
+                  line: 13
+                  col: 17
+                  offset: 203
+                }
+              }
+              position {
+                line: 13
+                col: 17
+                offset: 203
+              }
+            }
+            position {
+              line: 13
+              col: 5
+              offset: 191
+            }
+          }
+          position {
+            line: 13
+            col: 5
+            offset: 191
+          }
+        }
+        position {
+          line: 13
+          col: 5
+          offset: 191
+        }
+      }
+      body {
+        expression {
+          call {
+            function {
+              name: "printBinary"
+              position {
+                line: 14
+                col: 5
+                offset: 212
+              }
+            }
+            params {
+              value {
+                int_literal: 10
+                position {
+                  line: 14
+                  col: 17
+                  offset: 224
+                }
+              }
+              position {
+                line: 14
+                col: 17
+                offset: 224
+              }
+            }
+            position {
+              line: 14
+              col: 5
+              offset: 212
+            }
+          }
+          position {
+            line: 14
+            col: 5
+            offset: 212
+          }
+        }
+        position {
+          line: 14
+          col: 5
+          offset: 212
+        }
+      }
+      position {
+        line: 11
+        col: 13
+        offset: 163
+      }
+    }
+    position {
+      line: 11
+      col: 13
+      offset: 163
+    }
+  }
+  position {
+    line: 11
+    col: 1
+    offset: 151
+  }
+}
+externs {
+  name {
+    name: "print"
+    position {
+      line: 1
+      col: 8
+      offset: 7
+    }
+  }
+  params {
+    name {
+      name: "ch"
+      position {
+        line: 1
+        col: 14
+        offset: 13
+      }
+    }
+    type {
+      name: "Int"
+      position {
+        line: 1
+        col: 18
+        offset: 17
+      }
+    }
+    position {
+      line: 1
+      col: 14
+      offset: 13
+    }
+  }
+}

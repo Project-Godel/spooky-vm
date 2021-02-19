@@ -14,4 +14,9 @@ def truth_maven():
             artifact = "com.google.truth.extensions:truth-java8-extension",
             version = VERSION,
         ),
+        maven_jar(
+            name = "truth-proto",
+            artifact = "com.google.truth.extensions:truth-proto-extension",
+            version = VERSION,
+        ),
     ]

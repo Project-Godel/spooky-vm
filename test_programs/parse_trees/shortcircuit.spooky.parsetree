@@ -1,0 +1,968 @@
+functions {
+  decl {
+    name {
+      name: "printS"
+      position {
+        line: 4
+        col: 6
+        offset: 55
+      }
+    }
+    params {
+      name {
+        name: "i"
+        position {
+          line: 4
+          col: 13
+          offset: 62
+        }
+      }
+      type {
+        name: "Int"
+        position {
+          line: 4
+          col: 16
+          offset: 65
+        }
+      }
+      position {
+        line: 4
+        col: 13
+        offset: 62
+      }
+    }
+    returnType {
+      name: "Boolean"
+      position {
+        line: 4
+        col: 24
+        offset: 73
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        expression {
+          call {
+            function {
+              name: "printInt"
+              position {
+                line: 5
+                col: 3
+                offset: 86
+              }
+            }
+            params {
+              reference {
+                name: "i"
+                position {
+                  line: 5
+                  col: 12
+                  offset: 95
+                }
+              }
+              position {
+                line: 5
+                col: 12
+                offset: 95
+              }
+            }
+            position {
+              line: 5
+              col: 3
+              offset: 86
+            }
+          }
+          position {
+            line: 5
+            col: 3
+            offset: 86
+          }
+        }
+        position {
+          line: 5
+          col: 3
+          offset: 86
+        }
+      }
+      body {
+        returnValue {
+          value {
+            value {
+              bool_literal: false
+              position {
+                line: 6
+                col: 10
+                offset: 109
+              }
+            }
+            position {
+              line: 6
+              col: 10
+              offset: 109
+            }
+          }
+          position {
+            line: 6
+            col: 3
+            offset: 102
+          }
+        }
+        position {
+          line: 6
+          col: 3
+          offset: 102
+        }
+      }
+      position {
+        line: 4
+        col: 32
+        offset: 81
+      }
+    }
+    position {
+      line: 4
+      col: 32
+      offset: 81
+    }
+  }
+  position {
+    line: 4
+    col: 1
+    offset: 50
+  }
+}
+functions {
+  decl {
+    name {
+      name: "main"
+      position {
+        line: 9
+        col: 6
+        offset: 127
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        decl {
+          name {
+            name: "v1"
+            position {
+              line: 10
+              col: 3
+              offset: 139
+            }
+          }
+          type {
+            name: "Boolean"
+            position {
+              line: 10
+              col: 7
+              offset: 143
+            }
+          }
+          init {
+            binary {
+              left {
+                value {
+                  bool_literal: false
+                  position {
+                    line: 10
+                    col: 17
+                    offset: 153
+                  }
+                }
+                position {
+                  line: 10
+                  col: 17
+                  offset: 153
+                }
+              }
+              right {
+                call {
+                  function {
+                    name: "printS"
+                    position {
+                      line: 10
+                      col: 26
+                      offset: 162
+                    }
+                  }
+                  params {
+                    value {
+                      int_literal: 1
+                      position {
+                        line: 10
+                        col: 33
+                        offset: 169
+                      }
+                    }
+                    position {
+                      line: 10
+                      col: 33
+                      offset: 169
+                    }
+                  }
+                  position {
+                    line: 10
+                    col: 26
+                    offset: 162
+                  }
+                }
+                position {
+                  line: 10
+                  col: 26
+                  offset: 162
+                }
+              }
+              operator: AND
+              position {
+                line: 10
+                col: 17
+                offset: 153
+              }
+            }
+            position {
+              line: 10
+              col: 17
+              offset: 153
+            }
+          }
+          position {
+            line: 10
+            col: 3
+            offset: 139
+          }
+        }
+        position {
+          line: 10
+          col: 3
+          offset: 139
+        }
+      }
+      body {
+        decl {
+          name {
+            name: "v2"
+            position {
+              line: 11
+              col: 3
+              offset: 176
+            }
+          }
+          type {
+            name: "Boolean"
+            position {
+              line: 11
+              col: 7
+              offset: 180
+            }
+          }
+          init {
+            binary {
+              left {
+                value {
+                  bool_literal: true
+                  position {
+                    line: 11
+                    col: 17
+                    offset: 190
+                  }
+                }
+                position {
+                  line: 11
+                  col: 17
+                  offset: 190
+                }
+              }
+              right {
+                call {
+                  function {
+                    name: "printS"
+                    position {
+                      line: 11
+                      col: 25
+                      offset: 198
+                    }
+                  }
+                  params {
+                    value {
+                      int_literal: 2
+                      position {
+                        line: 11
+                        col: 32
+                        offset: 205
+                      }
+                    }
+                    position {
+                      line: 11
+                      col: 32
+                      offset: 205
+                    }
+                  }
+                  position {
+                    line: 11
+                    col: 25
+                    offset: 198
+                  }
+                }
+                position {
+                  line: 11
+                  col: 25
+                  offset: 198
+                }
+              }
+              operator: OR
+              position {
+                line: 11
+                col: 17
+                offset: 190
+              }
+            }
+            position {
+              line: 11
+              col: 17
+              offset: 190
+            }
+          }
+          position {
+            line: 11
+            col: 3
+            offset: 176
+          }
+        }
+        position {
+          line: 11
+          col: 3
+          offset: 176
+        }
+      }
+      body {
+        decl {
+          name {
+            name: "v3"
+            position {
+              line: 12
+              col: 3
+              offset: 212
+            }
+          }
+          type {
+            name: "Boolean"
+            position {
+              line: 12
+              col: 7
+              offset: 216
+            }
+          }
+          init {
+            binary {
+              left {
+                value {
+                  bool_literal: true
+                  position {
+                    line: 12
+                    col: 17
+                    offset: 226
+                  }
+                }
+                position {
+                  line: 12
+                  col: 17
+                  offset: 226
+                }
+              }
+              right {
+                call {
+                  function {
+                    name: "printS"
+                    position {
+                      line: 12
+                      col: 25
+                      offset: 234
+                    }
+                  }
+                  params {
+                    value {
+                      int_literal: 3
+                      position {
+                        line: 12
+                        col: 32
+                        offset: 241
+                      }
+                    }
+                    position {
+                      line: 12
+                      col: 32
+                      offset: 241
+                    }
+                  }
+                  position {
+                    line: 12
+                    col: 25
+                    offset: 234
+                  }
+                }
+                position {
+                  line: 12
+                  col: 25
+                  offset: 234
+                }
+              }
+              operator: AND
+              position {
+                line: 12
+                col: 17
+                offset: 226
+              }
+            }
+            position {
+              line: 12
+              col: 17
+              offset: 226
+            }
+          }
+          position {
+            line: 12
+            col: 3
+            offset: 212
+          }
+        }
+        position {
+          line: 12
+          col: 3
+          offset: 212
+        }
+      }
+      body {
+        decl {
+          name {
+            name: "v4"
+            position {
+              line: 13
+              col: 3
+              offset: 248
+            }
+          }
+          type {
+            name: "Boolean"
+            position {
+              line: 13
+              col: 7
+              offset: 252
+            }
+          }
+          init {
+            binary {
+              left {
+                value {
+                  bool_literal: false
+                  position {
+                    line: 13
+                    col: 17
+                    offset: 262
+                  }
+                }
+                position {
+                  line: 13
+                  col: 17
+                  offset: 262
+                }
+              }
+              right {
+                call {
+                  function {
+                    name: "printS"
+                    position {
+                      line: 13
+                      col: 26
+                      offset: 271
+                    }
+                  }
+                  params {
+                    value {
+                      int_literal: 4
+                      position {
+                        line: 13
+                        col: 33
+                        offset: 278
+                      }
+                    }
+                    position {
+                      line: 13
+                      col: 33
+                      offset: 278
+                    }
+                  }
+                  position {
+                    line: 13
+                    col: 26
+                    offset: 271
+                  }
+                }
+                position {
+                  line: 13
+                  col: 26
+                  offset: 271
+                }
+              }
+              operator: OR
+              position {
+                line: 13
+                col: 17
+                offset: 262
+              }
+            }
+            position {
+              line: 13
+              col: 17
+              offset: 262
+            }
+          }
+          position {
+            line: 13
+            col: 3
+            offset: 248
+          }
+        }
+        position {
+          line: 13
+          col: 3
+          offset: 248
+        }
+      }
+      body {
+        conditional {
+          condition {
+            reference {
+              name: "v1"
+              position {
+                line: 15
+                col: 7
+                offset: 291
+              }
+            }
+            position {
+              line: 15
+              col: 7
+              offset: 291
+            }
+          }
+          body {
+            block {
+              body {
+                expression {
+                  call {
+                    function {
+                      name: "printS"
+                      position {
+                        line: 15
+                        col: 13
+                        offset: 297
+                      }
+                    }
+                    params {
+                      value {
+                        int_literal: 1
+                        position {
+                          line: 15
+                          col: 20
+                          offset: 304
+                        }
+                      }
+                      position {
+                        line: 15
+                        col: 20
+                        offset: 304
+                      }
+                    }
+                    position {
+                      line: 15
+                      col: 13
+                      offset: 297
+                    }
+                  }
+                  position {
+                    line: 15
+                    col: 13
+                    offset: 297
+                  }
+                }
+                position {
+                  line: 15
+                  col: 13
+                  offset: 297
+                }
+              }
+              position {
+                line: 15
+                col: 11
+                offset: 295
+              }
+            }
+            position {
+              line: 15
+              col: 11
+              offset: 295
+            }
+          }
+          position {
+            line: 15
+            col: 3
+            offset: 287
+          }
+        }
+        position {
+          line: 15
+          col: 3
+          offset: 287
+        }
+      }
+      body {
+        conditional {
+          condition {
+            reference {
+              name: "v2"
+              position {
+                line: 16
+                col: 7
+                offset: 317
+              }
+            }
+            position {
+              line: 16
+              col: 7
+              offset: 317
+            }
+          }
+          body {
+            block {
+              body {
+                expression {
+                  call {
+                    function {
+                      name: "printS"
+                      position {
+                        line: 16
+                        col: 13
+                        offset: 323
+                      }
+                    }
+                    params {
+                      value {
+                        int_literal: 2
+                        position {
+                          line: 16
+                          col: 20
+                          offset: 330
+                        }
+                      }
+                      position {
+                        line: 16
+                        col: 20
+                        offset: 330
+                      }
+                    }
+                    position {
+                      line: 16
+                      col: 13
+                      offset: 323
+                    }
+                  }
+                  position {
+                    line: 16
+                    col: 13
+                    offset: 323
+                  }
+                }
+                position {
+                  line: 16
+                  col: 13
+                  offset: 323
+                }
+              }
+              position {
+                line: 16
+                col: 11
+                offset: 321
+              }
+            }
+            position {
+              line: 16
+              col: 11
+              offset: 321
+            }
+          }
+          position {
+            line: 16
+            col: 3
+            offset: 313
+          }
+        }
+        position {
+          line: 16
+          col: 3
+          offset: 313
+        }
+      }
+      body {
+        conditional {
+          condition {
+            reference {
+              name: "v3"
+              position {
+                line: 17
+                col: 7
+                offset: 343
+              }
+            }
+            position {
+              line: 17
+              col: 7
+              offset: 343
+            }
+          }
+          body {
+            block {
+              body {
+                expression {
+                  call {
+                    function {
+                      name: "printS"
+                      position {
+                        line: 17
+                        col: 13
+                        offset: 349
+                      }
+                    }
+                    params {
+                      value {
+                        int_literal: 3
+                        position {
+                          line: 17
+                          col: 20
+                          offset: 356
+                        }
+                      }
+                      position {
+                        line: 17
+                        col: 20
+                        offset: 356
+                      }
+                    }
+                    position {
+                      line: 17
+                      col: 13
+                      offset: 349
+                    }
+                  }
+                  position {
+                    line: 17
+                    col: 13
+                    offset: 349
+                  }
+                }
+                position {
+                  line: 17
+                  col: 13
+                  offset: 349
+                }
+              }
+              position {
+                line: 17
+                col: 11
+                offset: 347
+              }
+            }
+            position {
+              line: 17
+              col: 11
+              offset: 347
+            }
+          }
+          position {
+            line: 17
+            col: 3
+            offset: 339
+          }
+        }
+        position {
+          line: 17
+          col: 3
+          offset: 339
+        }
+      }
+      body {
+        conditional {
+          condition {
+            reference {
+              name: "v4"
+              position {
+                line: 18
+                col: 7
+                offset: 369
+              }
+            }
+            position {
+              line: 18
+              col: 7
+              offset: 369
+            }
+          }
+          body {
+            block {
+              body {
+                expression {
+                  call {
+                    function {
+                      name: "printS"
+                      position {
+                        line: 18
+                        col: 13
+                        offset: 375
+                      }
+                    }
+                    params {
+                      value {
+                        int_literal: 4
+                        position {
+                          line: 18
+                          col: 20
+                          offset: 382
+                        }
+                      }
+                      position {
+                        line: 18
+                        col: 20
+                        offset: 382
+                      }
+                    }
+                    position {
+                      line: 18
+                      col: 13
+                      offset: 375
+                    }
+                  }
+                  position {
+                    line: 18
+                    col: 13
+                    offset: 375
+                  }
+                }
+                position {
+                  line: 18
+                  col: 13
+                  offset: 375
+                }
+              }
+              position {
+                line: 18
+                col: 11
+                offset: 373
+              }
+            }
+            position {
+              line: 18
+              col: 11
+              offset: 373
+            }
+          }
+          position {
+            line: 18
+            col: 3
+            offset: 365
+          }
+        }
+        position {
+          line: 18
+          col: 3
+          offset: 365
+        }
+      }
+      position {
+        line: 9
+        col: 13
+        offset: 134
+      }
+    }
+    position {
+      line: 9
+      col: 13
+      offset: 134
+    }
+  }
+  position {
+    line: 9
+    col: 1
+    offset: 122
+  }
+}
+externs {
+  name {
+    name: "printInt"
+    position {
+      line: 1
+      col: 8
+      offset: 7
+    }
+  }
+  params {
+    name {
+      name: "i"
+      position {
+        line: 1
+        col: 17
+        offset: 16
+      }
+    }
+    type {
+      name: "Int"
+      position {
+        line: 1
+        col: 20
+        offset: 19
+      }
+    }
+    position {
+      line: 1
+      col: 17
+      offset: 16
+    }
+  }
+}
+externs {
+  name {
+    name: "print"
+    position {
+      line: 2
+      col: 8
+      offset: 32
+    }
+  }
+  params {
+    name {
+      name: "ch"
+      position {
+        line: 2
+        col: 14
+        offset: 38
+      }
+    }
+    type {
+      name: "Int"
+      position {
+        line: 2
+        col: 18
+        offset: 42
+      }
+    }
+    position {
+      line: 2
+      col: 14
+      offset: 38
+    }
+  }
+}

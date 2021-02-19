@@ -1,0 +1,1142 @@
+tokens {
+  kind: EXTERN
+  position {
+    line: 1
+    col: 1
+  }
+  text: "extern"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 1
+    col: 8
+    offset: 7
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 1
+    col: 16
+    offset: 15
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 1
+    col: 17
+    offset: 16
+  }
+  text: "i"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 1
+    col: 18
+    offset: 17
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 1
+    col: 20
+    offset: 19
+  }
+  text: "Int"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 1
+    col: 23
+    offset: 22
+  }
+  text: ")"
+}
+tokens {
+  kind: EXTERN
+  position {
+    line: 2
+    col: 1
+    offset: 25
+  }
+  text: "extern"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 2
+    col: 8
+    offset: 32
+  }
+  text: "print"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 2
+    col: 13
+    offset: 37
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 2
+    col: 14
+    offset: 38
+  }
+  text: "ch"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 2
+    col: 16
+    offset: 40
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 2
+    col: 18
+    offset: 42
+  }
+  text: "Int"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 2
+    col: 21
+    offset: 45
+  }
+  text: ")"
+}
+tokens {
+  kind: FUNC
+  position {
+    line: 4
+    col: 1
+    offset: 50
+  }
+  text: "func"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 6
+    offset: 55
+  }
+  text: "printS"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 4
+    col: 12
+    offset: 61
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 13
+    offset: 62
+  }
+  text: "i"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 4
+    col: 14
+    offset: 63
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 16
+    offset: 65
+  }
+  text: "Int"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 4
+    col: 19
+    offset: 68
+  }
+  text: ")"
+}
+tokens {
+  kind: ARROW
+  position {
+    line: 4
+    col: 21
+    offset: 70
+  }
+  text: "->"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 24
+    offset: 73
+  }
+  text: "Boolean"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 4
+    col: 32
+    offset: 81
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 5
+    col: 3
+    offset: 86
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 5
+    col: 11
+    offset: 94
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 5
+    col: 12
+    offset: 95
+  }
+  text: "i"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 5
+    col: 13
+    offset: 96
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 5
+    col: 14
+    offset: 97
+  }
+  text: ";"
+}
+tokens {
+  kind: RETURN
+  position {
+    line: 6
+    col: 3
+    offset: 102
+  }
+  text: "return"
+}
+tokens {
+  kind: FALSE
+  position {
+    line: 6
+    col: 10
+    offset: 109
+  }
+  text: "false"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 6
+    col: 15
+    offset: 114
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 7
+    col: 1
+    offset: 117
+  }
+  text: "}"
+}
+tokens {
+  kind: FUNC
+  position {
+    line: 9
+    col: 1
+    offset: 122
+  }
+  text: "func"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 9
+    col: 6
+    offset: 127
+  }
+  text: "main"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 9
+    col: 10
+    offset: 131
+  }
+  text: "("
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 9
+    col: 11
+    offset: 132
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 9
+    col: 13
+    offset: 134
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 10
+    col: 3
+    offset: 139
+  }
+  text: "v1"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 10
+    col: 5
+    offset: 141
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 10
+    col: 7
+    offset: 143
+  }
+  text: "Boolean"
+}
+tokens {
+  kind: ASSIGN
+  position {
+    line: 10
+    col: 15
+    offset: 151
+  }
+  text: "="
+}
+tokens {
+  kind: FALSE
+  position {
+    line: 10
+    col: 17
+    offset: 153
+  }
+  text: "false"
+}
+tokens {
+  kind: AND
+  position {
+    line: 10
+    col: 23
+    offset: 159
+  }
+  text: "&&"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 10
+    col: 26
+    offset: 162
+  }
+  text: "printS"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 10
+    col: 32
+    offset: 168
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 10
+    col: 33
+    offset: 169
+  }
+  text: "1"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 10
+    col: 34
+    offset: 170
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 10
+    col: 35
+    offset: 171
+  }
+  text: ";"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 11
+    col: 3
+    offset: 176
+  }
+  text: "v2"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 11
+    col: 5
+    offset: 178
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 11
+    col: 7
+    offset: 180
+  }
+  text: "Boolean"
+}
+tokens {
+  kind: ASSIGN
+  position {
+    line: 11
+    col: 15
+    offset: 188
+  }
+  text: "="
+}
+tokens {
+  kind: TRUE
+  position {
+    line: 11
+    col: 17
+    offset: 190
+  }
+  text: "true"
+}
+tokens {
+  kind: OR
+  position {
+    line: 11
+    col: 22
+    offset: 195
+  }
+  text: "||"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 11
+    col: 25
+    offset: 198
+  }
+  text: "printS"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 11
+    col: 31
+    offset: 204
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 11
+    col: 32
+    offset: 205
+  }
+  text: "2"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 11
+    col: 33
+    offset: 206
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 11
+    col: 34
+    offset: 207
+  }
+  text: ";"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 12
+    col: 3
+    offset: 212
+  }
+  text: "v3"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 12
+    col: 5
+    offset: 214
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 12
+    col: 7
+    offset: 216
+  }
+  text: "Boolean"
+}
+tokens {
+  kind: ASSIGN
+  position {
+    line: 12
+    col: 15
+    offset: 224
+  }
+  text: "="
+}
+tokens {
+  kind: TRUE
+  position {
+    line: 12
+    col: 17
+    offset: 226
+  }
+  text: "true"
+}
+tokens {
+  kind: AND
+  position {
+    line: 12
+    col: 22
+    offset: 231
+  }
+  text: "&&"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 12
+    col: 25
+    offset: 234
+  }
+  text: "printS"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 12
+    col: 31
+    offset: 240
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 12
+    col: 32
+    offset: 241
+  }
+  text: "3"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 12
+    col: 33
+    offset: 242
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 12
+    col: 34
+    offset: 243
+  }
+  text: ";"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 13
+    col: 3
+    offset: 248
+  }
+  text: "v4"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 13
+    col: 5
+    offset: 250
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 13
+    col: 7
+    offset: 252
+  }
+  text: "Boolean"
+}
+tokens {
+  kind: ASSIGN
+  position {
+    line: 13
+    col: 15
+    offset: 260
+  }
+  text: "="
+}
+tokens {
+  kind: FALSE
+  position {
+    line: 13
+    col: 17
+    offset: 262
+  }
+  text: "false"
+}
+tokens {
+  kind: OR
+  position {
+    line: 13
+    col: 23
+    offset: 268
+  }
+  text: "||"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 13
+    col: 26
+    offset: 271
+  }
+  text: "printS"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 13
+    col: 32
+    offset: 277
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 13
+    col: 33
+    offset: 278
+  }
+  text: "4"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 13
+    col: 34
+    offset: 279
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 13
+    col: 35
+    offset: 280
+  }
+  text: ";"
+}
+tokens {
+  kind: IF
+  position {
+    line: 15
+    col: 3
+    offset: 287
+  }
+  text: "if"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 15
+    col: 6
+    offset: 290
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 15
+    col: 7
+    offset: 291
+  }
+  text: "v1"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 15
+    col: 9
+    offset: 293
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 15
+    col: 11
+    offset: 295
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 15
+    col: 13
+    offset: 297
+  }
+  text: "printS"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 15
+    col: 19
+    offset: 303
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 15
+    col: 20
+    offset: 304
+  }
+  text: "1"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 15
+    col: 21
+    offset: 305
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 15
+    col: 22
+    offset: 306
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 15
+    col: 24
+    offset: 308
+  }
+  text: "}"
+}
+tokens {
+  kind: IF
+  position {
+    line: 16
+    col: 3
+    offset: 313
+  }
+  text: "if"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 16
+    col: 6
+    offset: 316
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 16
+    col: 7
+    offset: 317
+  }
+  text: "v2"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 16
+    col: 9
+    offset: 319
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 16
+    col: 11
+    offset: 321
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 16
+    col: 13
+    offset: 323
+  }
+  text: "printS"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 16
+    col: 19
+    offset: 329
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 16
+    col: 20
+    offset: 330
+  }
+  text: "2"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 16
+    col: 21
+    offset: 331
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 16
+    col: 22
+    offset: 332
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 16
+    col: 24
+    offset: 334
+  }
+  text: "}"
+}
+tokens {
+  kind: IF
+  position {
+    line: 17
+    col: 3
+    offset: 339
+  }
+  text: "if"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 17
+    col: 6
+    offset: 342
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 17
+    col: 7
+    offset: 343
+  }
+  text: "v3"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 17
+    col: 9
+    offset: 345
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 17
+    col: 11
+    offset: 347
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 17
+    col: 13
+    offset: 349
+  }
+  text: "printS"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 17
+    col: 19
+    offset: 355
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 17
+    col: 20
+    offset: 356
+  }
+  text: "3"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 17
+    col: 21
+    offset: 357
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 17
+    col: 22
+    offset: 358
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 17
+    col: 24
+    offset: 360
+  }
+  text: "}"
+}
+tokens {
+  kind: IF
+  position {
+    line: 18
+    col: 3
+    offset: 365
+  }
+  text: "if"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 18
+    col: 6
+    offset: 368
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 18
+    col: 7
+    offset: 369
+  }
+  text: "v4"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 18
+    col: 9
+    offset: 371
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 18
+    col: 11
+    offset: 373
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 18
+    col: 13
+    offset: 375
+  }
+  text: "printS"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 18
+    col: 19
+    offset: 381
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 18
+    col: 20
+    offset: 382
+  }
+  text: "4"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 18
+    col: 21
+    offset: 383
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 18
+    col: 22
+    offset: 384
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 18
+    col: 24
+    offset: 386
+  }
+  text: "}"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 19
+    col: 1
+    offset: 389
+  }
+  text: "}"
+}

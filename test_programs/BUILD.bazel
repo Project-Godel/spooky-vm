@@ -1,0 +1,9 @@
+filegroup(
+    name = "test_programs",
+    srcs = ["tests.textproto"] + glob([
+        "sources/*.spooky",
+        "parse_trees/*.parsetree",
+        "tokenizations/*.tokens",
+    ]),
+    visibility = ["//visibility:public"],
+)

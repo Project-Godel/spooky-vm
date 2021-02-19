@@ -1,0 +1,14 @@
+extern printInt(i: Int)
+extern echo(i: Int) -> Int
+
+func getTwo() -> Int {
+  return 2;
+}
+
+x: Int = echo(4);
+y: Int = getTwo();
+
+func main() {
+  printInt(x);
+  printInt(y);
+}

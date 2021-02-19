@@ -1,0 +1,411 @@
+globals {
+  name {
+    name: "x"
+    position {
+      line: 5
+      col: 1
+      offset: 49
+    }
+  }
+  type {
+    name: "Int"
+    position {
+      line: 5
+      col: 4
+      offset: 52
+    }
+  }
+  init {
+    value {
+      int_literal: 1
+      position {
+        line: 5
+        col: 10
+        offset: 58
+      }
+    }
+    position {
+      line: 5
+      col: 10
+      offset: 58
+    }
+  }
+  position {
+    line: 5
+    col: 1
+    offset: 49
+  }
+}
+functions {
+  decl {
+    name {
+      name: "xPlus"
+      position {
+        line: 7
+        col: 6
+        offset: 67
+      }
+    }
+    params {
+      name {
+        name: "y"
+        position {
+          line: 7
+          col: 12
+          offset: 73
+        }
+      }
+      type {
+        name: "Int"
+        position {
+          line: 7
+          col: 15
+          offset: 76
+        }
+      }
+      position {
+        line: 7
+        col: 12
+        offset: 73
+      }
+    }
+    returnType {
+      name: "Int"
+      position {
+        line: 7
+        col: 23
+        offset: 84
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        returnValue {
+          value {
+            binary {
+              left {
+                reference {
+                  name: "x"
+                  position {
+                    line: 8
+                    col: 10
+                    offset: 99
+                  }
+                }
+                position {
+                  line: 8
+                  col: 10
+                  offset: 99
+                }
+              }
+              right {
+                reference {
+                  name: "y"
+                  position {
+                    line: 8
+                    col: 14
+                    offset: 103
+                  }
+                }
+                position {
+                  line: 8
+                  col: 14
+                  offset: 103
+                }
+              }
+              operator: ADD
+              position {
+                line: 8
+                col: 10
+                offset: 99
+              }
+            }
+            position {
+              line: 8
+              col: 10
+              offset: 99
+            }
+          }
+          position {
+            line: 8
+            col: 3
+            offset: 92
+          }
+        }
+        position {
+          line: 8
+          col: 3
+          offset: 92
+        }
+      }
+      position {
+        line: 7
+        col: 27
+        offset: 88
+      }
+    }
+    position {
+      line: 7
+      col: 27
+      offset: 88
+    }
+  }
+  position {
+    line: 7
+    col: 1
+    offset: 62
+  }
+}
+functions {
+  decl {
+    name {
+      name: "assignX"
+      position {
+        line: 11
+        col: 6
+        offset: 114
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        expression {
+          assignment {
+            variable {
+              name: "x"
+              position {
+                line: 12
+                col: 3
+                offset: 128
+              }
+            }
+            value {
+              call {
+                function {
+                  name: "xPlus"
+                  position {
+                    line: 12
+                    col: 7
+                    offset: 132
+                  }
+                }
+                params {
+                  value {
+                    int_literal: 2
+                    position {
+                      line: 12
+                      col: 13
+                      offset: 138
+                    }
+                  }
+                  position {
+                    line: 12
+                    col: 13
+                    offset: 138
+                  }
+                }
+                position {
+                  line: 12
+                  col: 7
+                  offset: 132
+                }
+              }
+              position {
+                line: 12
+                col: 7
+                offset: 132
+              }
+            }
+            position {
+              line: 12
+              col: 3
+              offset: 128
+            }
+          }
+          position {
+            line: 12
+            col: 3
+            offset: 128
+          }
+        }
+        position {
+          line: 12
+          col: 3
+          offset: 128
+        }
+      }
+      position {
+        line: 11
+        col: 16
+        offset: 124
+      }
+    }
+    position {
+      line: 11
+      col: 16
+      offset: 124
+    }
+  }
+  position {
+    line: 11
+    col: 1
+    offset: 109
+  }
+}
+functions {
+  decl {
+    name {
+      name: "main"
+      position {
+        line: 15
+        col: 6
+        offset: 150
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        expression {
+          call {
+            function {
+              name: "assignX"
+              position {
+                line: 16
+                col: 3
+                offset: 161
+              }
+            }
+            position {
+              line: 16
+              col: 3
+              offset: 161
+            }
+          }
+          position {
+            line: 16
+            col: 3
+            offset: 161
+          }
+        }
+        position {
+          line: 16
+          col: 3
+          offset: 161
+        }
+      }
+      body {
+        expression {
+          call {
+            function {
+              name: "printInt"
+              position {
+                line: 17
+                col: 3
+                offset: 174
+              }
+            }
+            params {
+              reference {
+                name: "x"
+                position {
+                  line: 17
+                  col: 12
+                  offset: 183
+                }
+              }
+              position {
+                line: 17
+                col: 12
+                offset: 183
+              }
+            }
+            position {
+              line: 17
+              col: 3
+              offset: 174
+            }
+          }
+          position {
+            line: 17
+            col: 3
+            offset: 174
+          }
+        }
+        position {
+          line: 17
+          col: 3
+          offset: 174
+        }
+      }
+      position {
+        line: 15
+        col: 13
+        offset: 157
+      }
+    }
+    position {
+      line: 15
+      col: 13
+      offset: 157
+    }
+  }
+  position {
+    line: 15
+    col: 1
+    offset: 145
+  }
+}
+externs {
+  name {
+    name: "printInt"
+    position {
+      line: 1
+      col: 8
+      offset: 7
+    }
+  }
+  params {
+    name {
+      name: "i"
+      position {
+        line: 1
+        col: 17
+        offset: 16
+      }
+    }
+    type {
+      name: "Int"
+      position {
+        line: 1
+        col: 20
+        offset: 19
+      }
+    }
+    position {
+      line: 1
+      col: 17
+      offset: 16
+    }
+  }
+}
+externs {
+  name {
+    name: "random"
+    position {
+      line: 2
+      col: 8
+      offset: 31
+    }
+  }
+  returnType {
+    name: "Int"
+    position {
+      line: 2
+      col: 20
+      offset: 43
+    }
+  }
+}

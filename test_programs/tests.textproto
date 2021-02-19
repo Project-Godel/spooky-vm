@@ -1,0 +1,58 @@
+# proto-file: se/jsannemo/spooky/compiler/testing/testcases.proto
+# proto-message: TestCases
+test_case {
+  name: "absolutelynothing.spooky"
+  expected_output: "42"
+}
+test_case {
+  name: "austrin.spooky"
+  expected_output: "1-23"
+}
+test_case {
+  name: "binary.spooky"
+  expected_output: "1\n111\n0101\n"
+}
+test_case {
+  name: "carl.spooky"
+  failure: VALIDATION
+}
+test_case {
+  name: "carl2.spooky"
+  expected_output: "A"
+}
+test_case {
+  name: "fizzbuzz.spooky"
+  expected_output: "0010210012010012"
+}
+test_case {
+  name: "globals.spooky"
+  expected_output: "4210"
+}
+test_case {
+  name: "globals_calling_functions.spooky"
+  expected_output: "42"
+}
+test_case {
+  name: "globals_stack.spooky"
+  expected_output: "3"
+}
+test_case {
+  name: "helloworld.spooky"
+  expected_output: "Hello World!"
+}
+test_case {
+  name: "invalid_token.spooky"
+  failure: PARSING
+}
+test_case {
+  name: "isprime.spooky"
+  expected_output: "90 0\n91 0\n92 0\n93 0\n94 0\n95 0\n96 0\n97 1\n98 0\n99 0\n"
+}
+test_case {
+  name: "shortcircuit.spooky"
+  expected_output: "342"
+}
+test_case {
+  name: "invalid_strings.spooky"
+  failure: PARSING
+}

@@ -1,0 +1,25 @@
+extern printInt(i: Int)
+extern print(ch: Char)
+
+func isPrime(n: Int) -> Boolean {
+  p: Int = 1;
+  for (i: Int = 2; i * i <= n; i += 1) {
+    if (n % i == 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+func main() {
+  for (n: Int = 90; n < 100; n = n + 1) {
+    printInt(n);
+    print(' ');
+    if (isPrime(n)) {
+        printInt(1);
+    } else {
+        printInt(0);
+    }
+    print('\n');
+  }
+}

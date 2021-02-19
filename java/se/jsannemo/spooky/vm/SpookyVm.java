@@ -1,12 +1,8 @@
 package se.jsannemo.spooky.vm;
 
 import com.google.common.collect.ImmutableMap;
-import se.jsannemo.spooky.vm.code.Executable;
-import se.jsannemo.spooky.vm.code.Instructions.*;
 
 import java.io.PrintStream;
-
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * A virtual machine, executing parsed Spooky code.
@@ -25,12 +21,15 @@ public final class SpookyVm {
    * executable that should be executed.
    */
   private int ip;
+
   private PrintStream stdOut;
   private int instructions = 0;
   private int maxMemory = -1;
 
   private SpookyVm(
-      Executable executable, ImmutableMap<String, ExternCall> externs, int memoryCells,
+      Executable executable,
+      ImmutableMap<String, ExternCall> externs,
+      int memoryCells,
       PrintStream stdOut) {
     this.externs = externs;
     this.curExecutable = executable;
@@ -45,69 +44,87 @@ public final class SpookyVm {
    * <p>If the instruction pointer points to an invalid instruction (i.e. one that is smaller or
    * larger than the amount of instructions in the current executable), an error is thrown.
    *
-   * @return false if and only if  the program halted.
-   *
+   * @return false if and only if the program halted.
    * @throws VmException if the instruction caused a run-time fault in the VM.
    */
   public boolean executeInstruction() throws VmException {
     // Halt VM in case if an out-of-bounds instruction.
-    if (ip < 0 || ip >= curExecutable.text().size()) {
+    if (ip < 0 || ip >= curExecutable.getCodeCount()) {
       throw new VmException("Instruction pointer out-of-bounds");
     }
     instructions++;
-    Instruction ins = curExecutable.text().get(ip++);
-    checkState(ins.isExecutable());
-    if (ins instanceof Move mov) {
-      setM(mov.target(), getM(mov.source()));
-    } else if (ins instanceof Const cnst) {
-      setM(cnst.target(), cnst.value());
-    } else if (ins instanceof Add add) {
-      setM(add.target(), getM(add.op1()) + getM(add.op2()));
-    } else if (ins instanceof Sub sub) {
-      setM(sub.target(), getM(sub.op1()) - getM(sub.op2()));
-    } else if (ins instanceof Mul mul) {
-      setM(mul.target(), getM(mul.op1()) * getM(mul.op2()));
-    } else if (ins instanceof Div div) {
-      int denominator = getM(div.op2());
-      if (denominator == 0) {
-        throw new VmException("Division by zero");
-      }
-      setM(div.target(), getM(div.op1()) / denominator);
-    } else if (ins instanceof Mod mod) {
-      int denominator = getM(mod.op2());
-      if (denominator == 0) {
-        throw new VmException("Division by zero");
-      }
-      setM(mod.target(), getM(mod.op1()) % denominator);
-    } else if (ins instanceof LessThan lt) {
-      setM(lt.target(), getM(lt.op1()) < getM(lt.op2()) ? 1 : 0);
-    } else if (ins instanceof LessEquals leq) {
-      setM(leq.target(), getM(leq.op1()) <= getM(leq.op2()) ? 1 : 0);
-    } else if (ins instanceof Equals eq) {
-      setM(eq.target(), getM(eq.op1()) == getM(eq.op2()) ? 1 : 0);
-    } else if (ins instanceof NotEquals eq) {
-      setM(eq.target(), getM(eq.op1()) != getM(eq.op2()) ? 1 : 0);
-    } else if (ins instanceof BitOr eq) {
-      setM(eq.target(), getM(eq.op1()) | getM(eq.op2()));
-    } else if (ins instanceof BitAnd eq) {
-      setM(eq.target(), getM(eq.op1()) & getM(eq.op2()));
-    } else if (ins instanceof Jump jmp) {
-      if (getM(jmp.flag()) == 0) {
-        ip = jmp.addr();
-      }
-    } else if (ins instanceof JumpN jmp) {
-      if (getM(jmp.flag()) != 0) {
-        ip = jmp.addr();
-        System.out.println("JNZ jump to " + ip + " of " + curExecutable.text().size());
-      }
-    } else if (ins instanceof JumpAddress jmp) {
-      ip = getM(jmp.addr());
-    } else if (ins instanceof Extern ext) {
-      callExtern(ext.name());
-    } else if (ins instanceof Halt) {
-      return false;
-    } else {
-      throw new IllegalArgumentException("Invalid operation in VM: " + ins);
+    Instruction ins = curExecutable.getCode(ip++);
+    switch (ins.getInsCase()) {
+      case MOVE:
+        Move mov = ins.getMove();
+        setM(mov.getTarget(), getM(mov.getSource()));
+        break;
+      case ADD:
+        Add add = ins.getAdd();
+        setM(add.getTarget(), getM(add.getOp1()) + getM(add.getOp2()));
+        break;
+      case SUB:
+        Sub sub = ins.getSub();
+        setM(sub.getTarget(), getM(sub.getOp1()) - getM(sub.getOp2()));
+        break;
+      case MUL:
+        Mul mul = ins.getMul();
+        setM(mul.getTarget(), getM(mul.getOp1()) * getM(mul.getOp2()));
+        break;
+      case DIV:
+        Div div = ins.getDiv();
+        int denominator = getM(div.getOp2());
+        if (denominator == 0) {
+          throw new VmException("Division by zero");
+        }
+        setM(div.getTarget(), getM(div.getOp1()) / denominator);
+        break;
+      case MOD:
+        Mod mod = ins.getMod();
+        int modDenom = getM(mod.getOp2());
+        if (modDenom == 0) {
+          throw new VmException("Division by zero");
+        }
+        setM(mod.getTarget(), getM(mod.getOp1()) % modDenom);
+        break;
+      case LESS:
+        LessThan lt = ins.getLess();
+        setM(lt.getTarget(), getM(lt.getOp1()) < getM(lt.getOp2()) ? 1 : 0);
+        break;
+      case LEQ:
+        LessEquals leq = ins.getLeq();
+        setM(leq.getTarget(), getM(leq.getOp1()) <= getM(leq.getOp2()) ? 1 : 0);
+        break;
+      case EQ:
+        Equals eq = ins.getEq();
+        setM(eq.getTarget(), getM(eq.getOp1()) == getM(eq.getOp2()) ? 1 : 0);
+        break;
+      case NEQ:
+        NotEquals neq = ins.getNeq();
+        setM(neq.getTarget(), getM(neq.getOp1()) != getM(neq.getOp2()) ? 1 : 0);
+        break;
+      case OR:
+        BitOr or = ins.getOr();
+        setM(or.getTarget(), getM(or.getOp1()) | getM(or.getOp2()));
+        break;
+      case AND:
+        BitAnd and = ins.getAnd();
+        setM(and.getTarget(), getM(and.getOp1()) & getM(and.getOp2()));
+        break;
+      case JMP:
+        Jump jmp = ins.getJmp();
+        if ((getM(jmp.getFlag()) != 0) == jmp.getNonzero()) {
+          ip = getM(jmp.getAddr());
+        }
+        break;
+      case EXTERN:
+        Extern ext = ins.getExtern();
+        callExtern(ext.getName());
+        break;
+      case HALT:
+        return false;
+      default:
+        throw new IllegalArgumentException("Invalid operation in VM: " + ins);
     }
     return true;
   }
@@ -132,8 +149,8 @@ public final class SpookyVm {
       maxMemory = Math.max(pos, maxMemory);
       return memory[pos];
     }
-    if (-this.curExecutable.data().size() <= pos && pos < 0) {
-      return this.curExecutable.data().get(-(pos + 1));
+    if (-this.curExecutable.getDataCount() <= pos && pos < 0) {
+      return this.curExecutable.getData(-(pos + 1));
     }
     throw new VmException("Memory position " + pos + " is out of bounds");
   }
@@ -159,7 +176,7 @@ public final class SpookyVm {
   }
 
   private int resolveAddress(Address addr) throws VmException {
-    return getM(addr.baseAddr()) + addr.offset();
+    return getM(addr.getBase()) + addr.getOffset();
   }
 
   public PrintStream getStdOut() {

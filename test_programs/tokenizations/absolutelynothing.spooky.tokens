@@ -1,0 +1,161 @@
+tokens {
+  kind: EXTERN
+  position {
+    line: 1
+    col: 1
+  }
+  text: "extern"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 1
+    col: 8
+    offset: 7
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 1
+    col: 16
+    offset: 15
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 1
+    col: 17
+    offset: 16
+  }
+  text: "i"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 1
+    col: 18
+    offset: 17
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 1
+    col: 20
+    offset: 19
+  }
+  text: "Int"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 1
+    col: 23
+    offset: 22
+  }
+  text: ")"
+}
+tokens {
+  kind: FUNC
+  position {
+    line: 4
+    col: 1
+    offset: 26
+  }
+  text: "func"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 6
+    offset: 31
+  }
+  text: "main"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 4
+    col: 10
+    offset: 35
+  }
+  text: "("
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 4
+    col: 11
+    offset: 36
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 4
+    col: 13
+    offset: 38
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 5
+    col: 5
+    offset: 44
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 5
+    col: 13
+    offset: 52
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 5
+    col: 14
+    offset: 53
+  }
+  text: "42"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 5
+    col: 16
+    offset: 55
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 5
+    col: 17
+    offset: 56
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 6
+    col: 1
+    offset: 58
+  }
+  text: "}"
+}

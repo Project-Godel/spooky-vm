@@ -1,0 +1,108 @@
+functions {
+  decl {
+    name {
+      name: "main"
+      position {
+        line: 4
+        col: 6
+        offset: 31
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        expression {
+          call {
+            function {
+              name: "printInt"
+              position {
+                line: 5
+                col: 5
+                offset: 44
+              }
+            }
+            params {
+              value {
+                int_literal: 42
+                position {
+                  line: 5
+                  col: 14
+                  offset: 53
+                }
+              }
+              position {
+                line: 5
+                col: 14
+                offset: 53
+              }
+            }
+            position {
+              line: 5
+              col: 5
+              offset: 44
+            }
+          }
+          position {
+            line: 5
+            col: 5
+            offset: 44
+          }
+        }
+        position {
+          line: 5
+          col: 5
+          offset: 44
+        }
+      }
+      position {
+        line: 4
+        col: 13
+        offset: 38
+      }
+    }
+    position {
+      line: 4
+      col: 13
+      offset: 38
+    }
+  }
+  position {
+    line: 4
+    col: 1
+    offset: 26
+  }
+}
+externs {
+  name {
+    name: "printInt"
+    position {
+      line: 1
+      col: 8
+      offset: 7
+    }
+  }
+  params {
+    name {
+      name: "i"
+      position {
+        line: 1
+        col: 17
+        offset: 16
+      }
+    }
+    type {
+      name: "Int"
+      position {
+        line: 1
+        col: 20
+        offset: 19
+      }
+    }
+    position {
+      line: 1
+      col: 17
+      offset: 16
+    }
+  }
+}

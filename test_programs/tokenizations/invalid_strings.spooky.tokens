@@ -1,0 +1,62 @@
+tokens {
+  kind: UNTERMINATED_STRING_LIT
+  position {
+    line: 1
+    col: 1
+  }
+  text: "\"asdadasd\n"
+}
+tokens {
+  kind: UNTERMINATED_CHAR_LIT
+  position {
+    line: 2
+    col: 1
+    offset: 10
+  }
+  text: "\'aa\n"
+}
+tokens {
+  kind: CHAR_LIT
+  position {
+    line: 3
+    col: 1
+    offset: 14
+  }
+  text: "\'aa\'"
+}
+tokens {
+  kind: CHAR_LIT
+  position {
+    line: 4
+    col: 1
+    offset: 19
+  }
+  text: "\'\'"
+}
+tokens {
+  kind: UNTERMINATED_CHAR_LIT
+  position {
+    line: 5
+    col: 1
+    offset: 22
+  }
+  text: "\'\n"
+}
+tokens {
+  kind: UNTERMINATED_STRING_LIT
+  position {
+    line: 6
+    col: 1
+    offset: 24
+  }
+  text: "\"\n"
+}
+tokens {
+  kind: STRING_LIT
+  position {
+    line: 7
+    col: 1
+    offset: 26
+  }
+  text: "\"\\\"\""
+}

@@ -1,0 +1,28 @@
+java_library(
+    name = "common",
+    srcs = [
+        "Errors.java",
+        "Position.java",
+        "ValidationException.java",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//java/se/jsannemo/spooky/compiler/parser:ast_java_proto",
+        "//third_party/guava",
+    ],
+)
+
+java_library(
+    name = "compiler",
+    srcs = ["Compiler.java"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":common",
+        "//java/se/jsannemo/spooky/compiler/codegen",
+        "//java/se/jsannemo/spooky/compiler/ir",
+        "//java/se/jsannemo/spooky/compiler/ir:ir_java_proto",
+        "//java/se/jsannemo/spooky/compiler/parser",
+        "//java/se/jsannemo/spooky/compiler/parser:ast_java_proto",
+        "//java/se/jsannemo/spooky/vm:code_java_proto",
+    ],
+)

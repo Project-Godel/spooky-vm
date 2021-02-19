@@ -2,6 +2,23 @@ syntax = "proto3";
 
 option java_package = "se.jsannemo.spooky.compiler.ast";
 
+message ParseResult {
+  Program program = 1;
+  repeated ParseError errors = 2;
+}
+
+message Pos {
+  int32 line = 1;
+  int32 col = 2;
+  int32 offset = 3;
+}
+
+message ParseError {
+  int32 line = 1;
+  int32 col = 2;
+  string error = 3;
+}
+
 message Program {
   repeated VarDecl globals = 1;
   repeated Func functions = 2;
@@ -11,17 +28,20 @@ message Program {
 message Func {
   FuncDecl decl = 1;
   Statement body = 2;
+  Pos position = 3;
 }
 
 message FuncParam {
   Identifier name = 1;
   Type type = 2;
+  Pos position = 3;
 }
 
 message FuncDecl {
   Identifier name = 1;
   repeated FuncParam params = 2;
   Type returnType = 3;
+  Pos position = 4;
 }
 
 message Statement {
@@ -31,11 +51,14 @@ message Statement {
     Loop loop = 3;
     VarDecl decl = 4;
     Expr expression = 5;
+    ReturnValue returnValue = 6;
   }
+  Pos position = 7;
 }
 
 message Block {
   repeated Statement body = 1;
+  Pos position = 2;
 }
 
 message Loop {
@@ -43,17 +66,26 @@ message Loop {
   Expr condition = 2;
   Statement increment = 3;
   Statement body = 4;
+  Pos position = 5;
 }
 
 message Conditional {
   Expr condition = 1;
   Statement body = 2;
   Statement elseBody = 3;
+  Pos position = 4;
 }
 
 message VarDecl {
   Identifier name = 1;
-  Expr init = 2;
+  Type type = 2;
+  Expr init = 3;
+  Pos position = 4;
+}
+
+message ReturnValue {
+  Expr value = 1;
+  Pos position = 2;
 }
 
 message Expr {
@@ -63,19 +95,27 @@ message Expr {
     FuncCall call = 3;
     Identifier reference = 4;
     Ternary conditional = 5;
+    Assignment assignment = 6;
+    UnaryExpr unary = 7;
   }
+  Pos position = 8;
+}
+
+message Assignment {
+  Identifier variable = 1;
+  Expr value = 2;
+  Pos position = 3;
 }
 
 message Ternary {
   Expr cond = 1;
   Expr left = 2;
   Expr right = 3;
+  Pos position = 4;
 }
 
 enum BinaryOp {
   BINARY_OP_UNSPECIFIED = 0;
-  // Assign value of the right expression to the left reference.
-  ASSIGN = 1;
   // Check if left value is smaller than right value.
   LESS_THAN = 2;
   // Check if left value is greater than right value.
@@ -111,6 +151,20 @@ message BinaryExpr {
   Expr left = 1;
   Expr right = 2;
   BinaryOp operator = 3;
+  Pos position = 4;
+}
+
+enum UnaryOp {
+  UNARY_OP_UNSPECIFIED = 0;
+  NEGATE = 1;
+  NOT = 2;
+}
+
+/** An expression computed using a binary operator on two sub-expressions. */
+message UnaryExpr {
+  Expr expr = 1;
+  UnaryOp operator = 2;
+  Pos position = 3;
 }
 
 message Value {
@@ -118,19 +172,89 @@ message Value {
     bool bool_literal = 1;
     int32 int_literal = 2;
     string string_literal = 3;
+    int32 char_literal = 4;
   }
+  Pos position = 5;
 }
 
 message FuncCall {
-  Expr function = 1;
+  Identifier function = 1;
   repeated Expr params = 2;
+  Pos position = 3;
 }
 
 message Identifier {
   string name = 1;
+  Pos position = 2;
 }
 
 message Type {
   string name = 1;
   int32 dimension = 2;
+  Pos position = 3;
 }
+
+message Token {
+  Kind kind = 1;
+  Pos position = 2;
+  string text = 3;
+
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    // Operators etc.
+    ASSIGN = 1;
+    EQUALS = 2;
+    NOT_EQUALS = 3;
+    LESS = 4;
+    LESS_EQUALS = 5;
+    GREATER_EQUALS = 6;
+    GREATER = 7;
+    AND = 8;
+    OR = 9;
+    DOT = 10;
+    COMMA = 11;
+    EXCLAIM = 12;
+    QUESTION = 13;
+    PLUS = 14;
+    PLUS_EQUALS = 15;
+    MINUS = 16;
+    MINUS_EQUALS = 17;
+    ASTERISK = 18;
+    TIMES_EQUALS = 19;
+    SLASH = 20;
+    DIV_EQUALS = 21;
+    PERCENT = 22;
+    MOD_EQUALS = 49;
+    ARROW = 23;
+    LBRACKET = 24;
+    RBRACKET = 25;
+    LBRACE = 26;
+    RBRACE = 27;
+    LPAREN = 28;
+    RPAREN = 29;
+    COLON = 30;
+    SEMICOLON = 31;
+    // Keywords
+    ELSE = 32;
+    EXTERN = 33;
+    FALSE = 34;
+    FOR = 35;
+    FUNC = 36;
+    IF = 37;
+    RETURN = 38;
+    TRUE = 39;
+    WHILE = 40;
+    // Literals, identifiers
+    IDENTIFIER = 41;
+    INT_LIT = 42;
+    STRING_LIT = 43;
+    UNTERMINATED_STRING_LIT = 44;
+    CHAR_LIT = 45;
+    UNTERMINATED_CHAR_LIT = 46;
+    // Special
+    EOF = 47;
+    UNEXPECTED = 48;
+  }
+}
+
+

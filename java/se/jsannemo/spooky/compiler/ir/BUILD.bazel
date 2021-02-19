@@ -1,0 +1,30 @@
+java_library(
+    name = "ir",
+    srcs = [
+        "Conventions.java",
+        "IrAddrs.java",
+        "IrFunction.java",
+        "IrProgram.java",
+        "IrTypes.java",
+        "ToIr.java",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":ir_java_proto",
+        "//java/se/jsannemo/spooky/compiler:common",
+        "//java/se/jsannemo/spooky/compiler/parser:ast_java_proto",
+        "//third_party/guava",
+    ],
+)
+
+proto_library(
+    name = "ir_proto",
+    srcs = ["ir.proto"],
+    visibility = ["//visibility:public"],
+)
+
+java_proto_library(
+    name = "ir_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":ir_proto"],
+)

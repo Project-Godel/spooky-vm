@@ -1,171 +1,323 @@
 package se.jsannemo.spooky.compiler.codegen;
 
-import com.google.common.collect.ImmutableList;
 import se.jsannemo.spooky.compiler.ir.*;
-import se.jsannemo.spooky.compiler.ir.IrStatement.IrJmpAdr;
-import se.jsannemo.spooky.compiler.ir.IrStatement.IrJmpZero;
-import se.jsannemo.spooky.compiler.ir.IrStatement.IrLabel;
-import se.jsannemo.spooky.vm.code.Instructions;
-import se.jsannemo.spooky.vm.code.Instructions.Address;
-import se.jsannemo.spooky.vm.code.Instructions.Const;
-import se.jsannemo.spooky.vm.code.Instructions.Instruction;
-import se.jsannemo.spooky.vm.code.Instructions.Jump;
-import se.jsannemo.spooky.vm.code.Instructions.JumpN;
+import se.jsannemo.spooky.vm.Address;
+import se.jsannemo.spooky.vm.Executable;
+import se.jsannemo.spooky.vm.Instruction;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 public final class CodeGen {
 
-    private CodeGen() {}
+  private CodeGen() {}
 
-    /** Generates a list of Spooky VM instructionx executing {@code program}. */
-    public static List<Instructions.Instruction> codegen(String programName, IrProgram program) {
-        ArrayList<Instructions.Instruction> code = new ArrayList<>();
-        code.add(Instructions.BinDef.create(programName));
-        code.add(Instructions.Text.create());
+  /** Generates a list of Spooky VM instructionx executing {@code program}. */
+  public static Executable codegen(IrProgram program) {
+    Code code = new Code();
+    addPreamble(code);
 
-        // New list for instructions to ensure that in-function instruction addressing is correct.
-        // It is absolute within the text segment, not the entire binary.
-        ArrayList<Instructions.Instruction> ins  = new ArrayList<>();
-        addPreamble(ins);
-
-        HashMap<Integer, String> funcLabelFills = new HashMap<>();
-        HashMap<String, Integer> funcAddresses = new HashMap<>();
-        // __init__ must be exported first, then main, since execution starts from IP = 0.
-        program.functions.forEach((name, func) -> {
-            if (name.equals("__init__")) {
-                funcAddresses.put(name, ins.size());
-                function(func, ins, funcLabelFills);
-            }
+    HashMap<Integer, String> funcLabelFills = new HashMap<>();
+    HashMap<String, Integer> funcAddresses = new HashMap<>();
+    // __init__ must be exported first, then main, since execution starts from IP = 0.
+    program.functions.forEach(
+        (name, func) -> {
+          if (name.equals("__init__")) {
+            funcAddresses.put(name, code.size());
+            function(func, code, funcLabelFills);
+          }
         });
-        program.functions.forEach((name, func) -> {
-            if (name.equals("main")) {
-                funcAddresses.put(name, ins.size());
-                function(func, ins, funcLabelFills);
-            }
+    program.functions.forEach(
+        (name, func) -> {
+          if (name.equals("main")) {
+            funcAddresses.put(name, code.size());
+            function(func, code, funcLabelFills);
+          }
         });
-        program.functions.forEach((name, func) -> {
-            if (!name.equals("main") && !name.equals("__init__")) {
-                funcAddresses.put(name, ins.size());
-                function(func, ins, funcLabelFills);
-            }
+    program.functions.forEach(
+        (name, func) -> {
+          if (!name.equals("main") && !name.equals("__init__") && !func.extern) {
+            funcAddresses.put(name, code.size());
+            function(func, code, funcLabelFills);
+          }
         });
 
-        for (Entry<Integer, String> label : funcLabelFills.entrySet()) {
-            Instructions.Jump jum = (Jump) ins.get(label.getKey());
-            ins.set(label.getKey(), Instructions.Jump.create(jum.flag(), funcAddresses.get(label.getValue())));
-        }
+    for (Entry<Integer, String> label : funcLabelFills.entrySet()) {
+      Instruction.Builder jum = code.get(label.getKey());
+      jum.getJmpBuilder().setAddr(code.storeData(funcAddresses.get(label.getValue())));
+    }
+    return code.build();
+  }
 
-        code.addAll(ins);
-        code.add(Instructions.Data.create(ImmutableList.of(0)));
-        return code;
+  private static void addPreamble(Code code) {
+    // Reserve stack slot for the stack pointer.
+    code.storeData(0);
+    code.store(Conventions.NEXT_STACK.getAbsStack(), addressTo(Conventions.STACK_POINTER));
+  }
+
+  private static void function(
+      IrFunction func, Code code, HashMap<Integer, String> funcLabelFills) {
+    func.address = IrAddrs.absText(code.size());
+    HashMap<Ir.Label, Integer> labelAddresses = new HashMap<>();
+    HashMap<Integer, Ir.Label> labelFills = new HashMap<>();
+    HashMap<Integer, Ir.Label> labelDataFills = new HashMap<>();
+    for (Ir.Statement.Builder st : func.body) {
+      switch (st.getStatementCase()) {
+        case EXTERN:
+          Ir.Extern extern = st.getExtern();
+          // New stack pointer. Optimize changes for no-arg calls.
+          if (extern.getSpOffset() != 0) {
+            code.store(extern.getSpOffset(), addressTo(Conventions.REG_1));
+            code.add()
+                .getAddBuilder()
+                .setOp1(addressTo(Conventions.STACK_POINTER))
+                .setOp2(addressTo(Conventions.REG_1))
+                .setTarget(addressTo(Conventions.STACK_POINTER));
+          }
+          code.add().getExternBuilder().setName(extern.getName());
+          if (extern.getSpOffset() != 0) {
+            code.store(extern.getSpOffset(), addressTo(Conventions.REG_1));
+            code.add()
+                .getSubBuilder()
+                .setOp1(addressTo(Conventions.STACK_POINTER))
+                .setOp2(addressTo(Conventions.REG_1))
+                .setTarget(addressTo(Conventions.STACK_POINTER));
+          }
+          break;
+        case HALT:
+          code.add().getHaltBuilder();
+          break;
+        case STORE:
+          Ir.Store store = st.getStore();
+          code.store(store.getValue(), addressTo(store.getAddr()));
+          break;
+        case STORE_LABEL:
+          Ir.StoreLabel storeLabel = st.getStoreLabel();
+          int dataPos = code.dataPlaceholder();
+          labelDataFills.put(dataPos, storeLabel.getLabel());
+          code.add()
+              .getMoveBuilder()
+              .setSource(addressTo(IrAddrs.dataCell(dataPos)))
+              .setTarget(addressTo(storeLabel.getAddr()));
+          break;
+        case ADD:
+          Ir.Add add = st.getAdd();
+          code.add()
+              .getAddBuilder()
+              .setOp1(addressTo(add.getA()))
+              .setOp2(addressTo(add.getB()))
+              .setTarget(addressTo(add.getResult()));
+          break;
+        case SUB:
+          Ir.Sub sub = st.getSub();
+          code.add()
+              .getSubBuilder()
+              .setOp1(addressTo(sub.getA()))
+              .setOp2(addressTo(sub.getB()))
+              .setTarget(addressTo(sub.getResult()));
+          break;
+        case MUL:
+          Ir.Mul mul = st.getMul();
+          code.add()
+              .getMulBuilder()
+              .setOp1(addressTo(mul.getA()))
+              .setOp2(addressTo(mul.getB()))
+              .setTarget(addressTo(mul.getResult()));
+          break;
+        case DIV:
+          Ir.Div div = st.getDiv();
+          code.add()
+              .getDivBuilder()
+              .setOp1(addressTo(div.getA()))
+              .setOp2(addressTo(div.getB()))
+              .setTarget(addressTo(div.getResult()));
+          break;
+        case MOD:
+          Ir.Mod mod = st.getMod();
+          code.add()
+              .getModBuilder()
+              .setOp1(addressTo(mod.getA()))
+              .setOp2(addressTo(mod.getB()))
+              .setTarget(addressTo(mod.getResult()));
+          break;
+        case COPY:
+          Ir.Copy copy = st.getCopy();
+          code.add()
+              .getMoveBuilder()
+              .setSource(addressTo(copy.getFrom()))
+              .setTarget(addressTo(copy.getTo()));
+          break;
+        case JMP_ZERO:
+          Ir.JmpZero jmpZ = st.getJmpZero();
+          labelFills.put(code.size(), jmpZ.getLabel());
+          code.add().getJmpBuilder().setFlag(addressTo(jmpZ.getFlag()));
+          break;
+        case JMP_NZERO:
+          Ir.JmpNZero jmpNZ = st.getJmpNzero();
+          labelFills.put(code.size(), jmpNZ.getLabel());
+          code.add().getJmpBuilder().setFlag(addressTo(jmpNZ.getFlag())).setNonzero(true);
+          break;
+        case JMP:
+          Ir.Jmp jmp = st.getJmp();
+          labelFills.put(code.size(), jmp.getLabel());
+          code.add().getJmpBuilder().setFlag(addressTo(Conventions.CONST_ZERO));
+          break;
+        case JMP_ADDR:
+          Ir.JmpAdr jmpAdr = st.getJmpAddr();
+          code.add()
+              .getJmpBuilder()
+              .setFlag(addressTo(Conventions.CONST_ZERO))
+              .setAddr(addressTo(jmpAdr.getAddr()));
+          break;
+        case LABEL:
+          Ir.Label label = st.getLabel();
+          labelAddresses.put(label, code.size());
+          break;
+        case LESS_THAN:
+          Ir.LessThan lt = st.getLessThan();
+          code.add()
+              .getLessBuilder()
+              .setOp1(addressTo(lt.getA()))
+              .setOp2(addressTo(lt.getB()))
+              .setTarget(addressTo(lt.getResult()));
+          break;
+        case LESS_EQUALS:
+          Ir.LessEquals leq = st.getLessEquals();
+          code.add()
+              .getLeqBuilder()
+              .setOp1(addressTo(leq.getA()))
+              .setOp2(addressTo(leq.getB()))
+              .setTarget(addressTo(leq.getResult()));
+          break;
+        case EQUALS:
+          Ir.Equals eq = st.getEquals();
+          code.add()
+              .getEqBuilder()
+              .setOp1(addressTo(eq.getA()))
+              .setOp2(addressTo(eq.getB()))
+              .setTarget(addressTo(eq.getResult()));
+          break;
+        case NOT_EQUALS:
+          Ir.NotEquals neq = st.getNotEquals();
+          code.add()
+              .getNeqBuilder()
+              .setOp1(addressTo(neq.getA()))
+              .setOp2(addressTo(neq.getB()))
+              .setTarget(addressTo(neq.getResult()));
+          break;
+        case CALL:
+          Ir.Call call = st.getCall();
+          // New stack pointer. Optimize changes for no-arg calls.
+          if (call.getSpOffset() != 0) {
+            code.add()
+                .getAddBuilder()
+                .setOp1(addressTo(Conventions.STACK_POINTER))
+                .setOp2(code.storeData(call.getSpOffset()))
+                .setTarget(addressTo(Conventions.STACK_POINTER));
+          }
+          funcLabelFills.put(code.size(), call.getName());
+          // Placeholder address; the real address is filled in once all functions are laid out.
+          code.add().getJmpBuilder().setFlag(addressTo(Conventions.CONST_ZERO));
+          labelAddresses.put(call.getLabel(), code.size());
+          if (call.getSpOffset() != 0) {
+            code.add()
+                .getSubBuilder()
+                .setOp1(addressTo(Conventions.STACK_POINTER))
+                .setOp2(code.storeData(call.getSpOffset()))
+                .setTarget(addressTo(Conventions.STACK_POINTER));
+          }
+          break;
+        case BIT_AND:
+          Ir.BitAnd bitAnd = st.getBitAnd();
+          code.add()
+              .getAndBuilder()
+              .setOp1(addressTo(bitAnd.getA()))
+              .setOp2(addressTo(bitAnd.getB()))
+              .setTarget(addressTo(bitAnd.getResult()));
+          break;
+        case BIT_OR:
+          Ir.BitOr bitOr = st.getBitOr();
+          code.add()
+              .getAndBuilder()
+              .setOp1(addressTo(bitOr.getA()))
+              .setOp2(addressTo(bitOr.getB()))
+              .setTarget(addressTo(bitOr.getResult()));
+          break;
+        default:
+          throw new UnsupportedOperationException("Unhandled IR: " + st);
+      }
+    }
+    for (Entry<Integer, Ir.Label> label : labelFills.entrySet()) {
+      code.get(label.getKey())
+          .getJmpBuilder()
+          .setAddr(code.storeData(labelAddresses.get(label.getValue())));
+    }
+    for (Entry<Integer, Ir.Label> label : labelDataFills.entrySet()) {
+      code.exec.setData(label.getKey(), labelAddresses.get(label.getValue()));
+    }
+  }
+
+  private static Address addressTo(Ir.Addr addr) {
+    switch (addr.getAddrCase()) {
+      case RELSP:
+        return Address.newBuilder()
+            .setBase(Conventions.STACK_POINTER.getAbsStack())
+            .setOffset(addr.getRelSp())
+            .build();
+      case ABSDATA:
+        return Address.newBuilder()
+            .setBase(-Conventions.CONST_ZERO.getAbsData() - 1)
+            .setOffset(-addr.getAbsData() - 1)
+            .build();
+      case ABSSTACK:
+        return Address.newBuilder()
+            .setBase(-Conventions.CONST_ZERO.getAbsData() - 1)
+            .setOffset(addr.getAbsStack())
+            .build();
+      default:
+        throw new IllegalArgumentException();
+    }
+  }
+
+  static class Code {
+    Executable.Builder exec = Executable.newBuilder();
+    Map<Integer, Integer> dataPos = new HashMap<>();
+
+    Instruction.Builder add() {
+      return exec.addCodeBuilder();
     }
 
-    private static void addPreamble(ArrayList<Instructions.Instruction> code) {
-        // Reserve stack slot for the stack pointer.
-        code.add(Instructions.Const.create(Conventions.NEXT_STACK.absStack(), addressTo(Conventions.STACK_POINTER)));
+    public int size() {
+      return exec.getCodeCount();
     }
 
-    private static void function(IrFunction func, ArrayList<Instruction> code,
-        HashMap<Integer, String> funcLabelFills) {
-        func.address = IrIpAddr.absText(code.size());
-        HashMap<IrLabel, Integer> labelAddresses = new HashMap<>();
-        HashMap<Integer, IrLabel> labelFills = new HashMap<>();
-        for (IrStatement st : func.body) {
-            if (st instanceof IrStatement.IrHalt) {
-                code.add(Instructions.Halt.create());
-            } else if (st instanceof IrStatement.IrExtern extern) {
-                // New stack pointer. Optimize changes for no-arg calls.
-                if (extern.spOffset() != 0) {
-                    code.add(Instructions.Const.create(extern.spOffset(), addressTo(Conventions.REG_1)));
-                    code.add(Instructions.Add.create(addressTo(Conventions.STACK_POINTER), addressTo(Conventions.REG_1), addressTo(Conventions.STACK_POINTER)));
-                }
-                code.add(Instructions.Extern.create(extern.name()));
-                if (extern.spOffset() != 0) {
-                    code.add(Instructions.Const.create(extern.spOffset(), addressTo(Conventions.REG_1)));
-                    code.add(Instructions.Sub.create(addressTo(Conventions.STACK_POINTER), addressTo(Conventions.REG_1), addressTo(Conventions.STACK_POINTER)));
-                }
-            } else if (st instanceof IrStatement.IrStore store) {
-                code.add(Instructions.Const.create(store.value(), addressTo(store.addr())));
-            } else if (st instanceof IrStatement.IrStoreLabel store) {
-                labelFills.put(code.size(), store.label());
-                code.add(Instructions.Const.create(-1, addressTo(store.addr())));
-            } else if (st instanceof IrStatement.IrAdd add) {
-                code.add(Instructions.Add.create(addressTo(add.a()), addressTo(add.b()), addressTo(add.result())));
-            } else if (st instanceof IrStatement.IrSub sub) {
-                code.add(Instructions.Sub.create(addressTo(sub.a()), addressTo(sub.b()), addressTo(sub.result())));
-            } else if (st instanceof IrStatement.IrMul mul) {
-                code.add(Instructions.Mul.create(addressTo(mul.a()), addressTo(mul.b()), addressTo(mul.result())));
-            } else if (st instanceof IrStatement.IrDiv div) {
-                code.add(Instructions.Div.create(addressTo(div.a()), addressTo(div.b()), addressTo(div.result())));
-            } else if (st instanceof IrStatement.IrMod mod) {
-                code.add(Instructions.Mod.create(addressTo(mod.a()), addressTo(mod.b()), addressTo(mod.result())));
-            } else if (st instanceof IrStatement.IrCopy copy) {
-                code.add(Instructions.Move.create(addressTo(copy.from()), addressTo(copy.to())));
-            } else if (st instanceof IrJmpZero jmp) {
-                labelFills.put(code.size(), jmp.label());
-                code.add(Instructions.Jump.create(addressTo(jmp.flag()), -1));
-            } else if (st instanceof IrStatement.IrJmpNZero jmp) {
-                labelFills.put(code.size(), jmp.label());
-                code.add(Instructions.JumpN.create(addressTo(jmp.flag()), -1));
-            } else if (st instanceof IrStatement.IrJmp jmp) {
-                labelFills.put(code.size(), jmp.label());
-                code.add(Instructions.Jump.create(addressTo(Conventions.CONST_ZERO), -1));
-            } else if (st instanceof IrJmpAdr jmp) {
-                code.add(Instructions.JumpAddress.create(addressTo(jmp.addr())));
-            } else if (st instanceof IrStatement.IrLabel label) {
-                labelAddresses.put(label, code.size());
-            } else if (st instanceof IrStatement.IrLessThan lt) {
-                code.add(Instructions.LessThan.create(addressTo(lt.a()), addressTo(lt.b()), addressTo(lt.result())));
-            } else if (st instanceof IrStatement.IrLessEquals leq) {
-                code.add(Instructions.LessEquals.create(addressTo(leq.a()), addressTo(leq.b()), addressTo(leq.result())));
-            } else if (st instanceof IrStatement.IrEquals eq) {
-                code.add(Instructions.Equals.create(addressTo(eq.a()), addressTo(eq.b()), addressTo(eq.result())));
-            } else if (st instanceof IrStatement.IrNotEquals eq) {
-                code.add(Instructions.NotEquals.create(addressTo(eq.a()), addressTo(eq.b()), addressTo(eq.result())));
-            } else if (st instanceof IrStatement.IrCall call) {
-                // New stack pointer. Optimize changes for no-arg calls.
-                if (call.spOffset() != 0) {
-                    code.add(Instructions.Const.create(call.spOffset(), addressTo(Conventions.REG_1)));
-                    code.add(Instructions.Add.create(addressTo(Conventions.STACK_POINTER), addressTo(Conventions.REG_1), addressTo(Conventions.STACK_POINTER)));
-                }
-                funcLabelFills.put(code.size(), call.name());
-                // Placeholder address; the real address is filled in once all functions are laid out.
-                code.add(Instructions.Jump.create(addressTo(Conventions.CONST_ZERO), -1));
-                labelAddresses.put(call.jumpAfter(), code.size());
-                if (call.spOffset() != 0) {
-                    code.add(Instructions.Const.create(call.spOffset(), addressTo(Conventions.REG_1)));
-                    code.add(Instructions.Sub.create(addressTo(Conventions.STACK_POINTER), addressTo(Conventions.REG_1), addressTo(Conventions.STACK_POINTER)));
-                }
-            } else if (st instanceof IrStatement.IrBitAnd bitAnd) {
-                code.add(Instructions.BitAnd.create(addressTo(bitAnd.a()), addressTo(bitAnd.b()), addressTo(bitAnd.result())));
-            } else if (st instanceof IrStatement.IrBitOr bitOr) {
-                code.add(Instructions.BitOr.create(addressTo(bitOr.a()), addressTo(bitOr.b()), addressTo(bitOr.result())));
-            } else {
-                throw new UnsupportedOperationException("Unhandled IR: " + st);
-            }
-        }
-        for (Entry<Integer, IrLabel> label : labelFills.entrySet()) {
-            Instructions.Instruction ins = code.get(label.getKey());
-            if (ins instanceof Jump jum) {
-                code.set(label.getKey(), Instructions.Jump.create(jum.flag(), labelAddresses.get(label.getValue())));
-            } else if (ins instanceof JumpN jum) {
-                code.set(label.getKey(), Instructions.JumpN.create(jum.flag(), labelAddresses.get(label.getValue())));
-            } else if (ins instanceof Const cnst) {
-                code.set(label.getKey(), Instructions.Const.create(labelAddresses.get(label.getValue()), cnst.target()));
-            }
-        }
+    public Instruction.Builder get(int idx) {
+      return exec.getCodeBuilder(idx);
     }
 
-    private static Address addressTo(IrAddr addr) {
-        return switch (addr.kind()) {
-            case REL_SP -> Address.baseAndOffset(Conventions.STACK_POINTER.absStack(), addr.relSp());
-            case ABS_DATA -> Address.baseAndOffset(Conventions.CONST_ZERO.absData(), addr.absData());
-            case ABS_STACK -> Address.baseAndOffset(Conventions.CONST_ZERO.absData(), addr.absStack());
-        };
+    public Address storeData(int val) {
+      if (dataPos.containsKey(val)) {
+        return addressTo(IrAddrs.dataCell(dataPos.get(val)));
+      }
+      int nxpos = exec.getDataCount();
+      dataPos.put(val, nxpos);
+      exec.addData(val);
+      return addressTo(IrAddrs.dataCell(nxpos));
     }
 
+    public Executable build() {
+      return exec.build();
+    }
+
+    public void store(int val, Address pos) {
+      add().getMoveBuilder().setSource(storeData(val)).setTarget(pos);
+    }
+
+    public int dataPlaceholder() {
+      int pos = exec.getDataCount();
+      exec.addData(-1);
+      return pos;
+    }
+  }
 }

@@ -1,0 +1,18 @@
+extern printInt(i: Int)
+extern random() -> Int
+
+
+x: Int = 1;
+
+func xPlus(y: Int) -> Int {
+  return x + y;
+}
+
+func assignX() {
+  x = xPlus(2);
+}
+
+func main() {
+  assignX();
+  printInt(x);
+}

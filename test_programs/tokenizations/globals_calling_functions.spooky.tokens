@@ -1,0 +1,539 @@
+tokens {
+  kind: EXTERN
+  position {
+    line: 1
+    col: 1
+  }
+  text: "extern"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 1
+    col: 8
+    offset: 7
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 1
+    col: 16
+    offset: 15
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 1
+    col: 17
+    offset: 16
+  }
+  text: "i"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 1
+    col: 18
+    offset: 17
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 1
+    col: 20
+    offset: 19
+  }
+  text: "Int"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 1
+    col: 23
+    offset: 22
+  }
+  text: ")"
+}
+tokens {
+  kind: EXTERN
+  position {
+    line: 2
+    col: 1
+    offset: 24
+  }
+  text: "extern"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 2
+    col: 8
+    offset: 31
+  }
+  text: "echo"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 2
+    col: 12
+    offset: 35
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 2
+    col: 13
+    offset: 36
+  }
+  text: "i"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 2
+    col: 14
+    offset: 37
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 2
+    col: 16
+    offset: 39
+  }
+  text: "Int"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 2
+    col: 19
+    offset: 42
+  }
+  text: ")"
+}
+tokens {
+  kind: ARROW
+  position {
+    line: 2
+    col: 21
+    offset: 44
+  }
+  text: "->"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 2
+    col: 24
+    offset: 47
+  }
+  text: "Int"
+}
+tokens {
+  kind: FUNC
+  position {
+    line: 4
+    col: 1
+    offset: 52
+  }
+  text: "func"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 6
+    offset: 57
+  }
+  text: "getTwo"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 4
+    col: 12
+    offset: 63
+  }
+  text: "("
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 4
+    col: 13
+    offset: 64
+  }
+  text: ")"
+}
+tokens {
+  kind: ARROW
+  position {
+    line: 4
+    col: 15
+    offset: 66
+  }
+  text: "->"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 18
+    offset: 69
+  }
+  text: "Int"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 4
+    col: 22
+    offset: 73
+  }
+  text: "{"
+}
+tokens {
+  kind: RETURN
+  position {
+    line: 5
+    col: 3
+    offset: 77
+  }
+  text: "return"
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 5
+    col: 10
+    offset: 84
+  }
+  text: "2"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 5
+    col: 11
+    offset: 85
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 6
+    col: 1
+    offset: 87
+  }
+  text: "}"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 8
+    col: 1
+    offset: 90
+  }
+  text: "x"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 8
+    col: 2
+    offset: 91
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 8
+    col: 4
+    offset: 93
+  }
+  text: "Int"
+}
+tokens {
+  kind: ASSIGN
+  position {
+    line: 8
+    col: 8
+    offset: 97
+  }
+  text: "="
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 8
+    col: 10
+    offset: 99
+  }
+  text: "echo"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 8
+    col: 14
+    offset: 103
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 8
+    col: 15
+    offset: 104
+  }
+  text: "4"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 8
+    col: 16
+    offset: 105
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 8
+    col: 17
+    offset: 106
+  }
+  text: ";"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 9
+    col: 1
+    offset: 108
+  }
+  text: "y"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 9
+    col: 2
+    offset: 109
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 9
+    col: 4
+    offset: 111
+  }
+  text: "Int"
+}
+tokens {
+  kind: ASSIGN
+  position {
+    line: 9
+    col: 8
+    offset: 115
+  }
+  text: "="
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 9
+    col: 10
+    offset: 117
+  }
+  text: "getTwo"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 9
+    col: 16
+    offset: 123
+  }
+  text: "("
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 9
+    col: 17
+    offset: 124
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 9
+    col: 18
+    offset: 125
+  }
+  text: ";"
+}
+tokens {
+  kind: FUNC
+  position {
+    line: 11
+    col: 1
+    offset: 128
+  }
+  text: "func"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 11
+    col: 6
+    offset: 133
+  }
+  text: "main"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 11
+    col: 10
+    offset: 137
+  }
+  text: "("
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 11
+    col: 11
+    offset: 138
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 11
+    col: 13
+    offset: 140
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 12
+    col: 3
+    offset: 144
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 12
+    col: 11
+    offset: 152
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 12
+    col: 12
+    offset: 153
+  }
+  text: "x"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 12
+    col: 13
+    offset: 154
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 12
+    col: 14
+    offset: 155
+  }
+  text: ";"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 13
+    col: 3
+    offset: 159
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 13
+    col: 11
+    offset: 167
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 13
+    col: 12
+    offset: 168
+  }
+  text: "y"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 13
+    col: 13
+    offset: 169
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 13
+    col: 14
+    offset: 170
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 14
+    col: 1
+    offset: 172
+  }
+  text: "}"
+}

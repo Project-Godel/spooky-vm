@@ -1,0 +1,357 @@
+functions {
+  decl {
+    name {
+      name: "main"
+      position {
+        line: 3
+        col: 6
+        offset: 29
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        expression {
+          call {
+            function {
+              name: "test"
+              position {
+                line: 4
+                col: 3
+                offset: 40
+              }
+            }
+            position {
+              line: 4
+              col: 3
+              offset: 40
+            }
+          }
+          position {
+            line: 4
+            col: 3
+            offset: 40
+          }
+        }
+        position {
+          line: 4
+          col: 3
+          offset: 40
+        }
+      }
+      body {
+        expression {
+          call {
+            function {
+              name: "print"
+              position {
+                line: 5
+                col: 3
+                offset: 50
+              }
+            }
+            params {
+              value {
+                char_literal: 65
+              }
+              position {
+                line: 5
+                col: 9
+                offset: 56
+              }
+            }
+            position {
+              line: 5
+              col: 3
+              offset: 50
+            }
+          }
+          position {
+            line: 5
+            col: 3
+            offset: 50
+          }
+        }
+        position {
+          line: 5
+          col: 3
+          offset: 50
+        }
+      }
+      body {
+        expression {
+          call {
+            function {
+              name: "test2"
+              position {
+                line: 6
+                col: 3
+                offset: 64
+              }
+            }
+            position {
+              line: 6
+              col: 3
+              offset: 64
+            }
+          }
+          position {
+            line: 6
+            col: 3
+            offset: 64
+          }
+        }
+        position {
+          line: 6
+          col: 3
+          offset: 64
+        }
+      }
+      position {
+        line: 3
+        col: 13
+        offset: 36
+      }
+    }
+    position {
+      line: 3
+      col: 13
+      offset: 36
+    }
+  }
+  position {
+    line: 3
+    col: 1
+    offset: 24
+  }
+}
+functions {
+  decl {
+    name {
+      name: "test"
+      position {
+        line: 9
+        col: 6
+        offset: 81
+      }
+    }
+    params {
+      name {
+        name: "a"
+        position {
+          line: 9
+          col: 11
+          offset: 86
+        }
+      }
+      type {
+        name: "Int"
+        position {
+          line: 9
+          col: 14
+          offset: 89
+        }
+      }
+      position {
+        line: 9
+        col: 11
+        offset: 86
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        expression {
+          assignment {
+            variable {
+              name: "a"
+              position {
+                line: 9
+                col: 21
+                offset: 96
+              }
+            }
+            value {
+              value {
+                int_literal: 5
+                position {
+                  line: 9
+                  col: 25
+                  offset: 100
+                }
+              }
+              position {
+                line: 9
+                col: 25
+                offset: 100
+              }
+            }
+            position {
+              line: 9
+              col: 21
+              offset: 96
+            }
+          }
+          position {
+            line: 9
+            col: 21
+            offset: 96
+          }
+        }
+        position {
+          line: 9
+          col: 21
+          offset: 96
+        }
+      }
+      position {
+        line: 9
+        col: 19
+        offset: 94
+      }
+    }
+    position {
+      line: 9
+      col: 19
+      offset: 94
+    }
+  }
+  position {
+    line: 9
+    col: 1
+    offset: 76
+  }
+}
+functions {
+  decl {
+    name {
+      name: "test2"
+      position {
+        line: 10
+        col: 6
+        offset: 110
+      }
+    }
+    params {
+      name {
+        name: "a"
+        position {
+          line: 10
+          col: 12
+          offset: 116
+        }
+      }
+      type {
+        name: "Int"
+        position {
+          line: 10
+          col: 15
+          offset: 119
+        }
+      }
+      position {
+        line: 10
+        col: 12
+        offset: 116
+      }
+    }
+  }
+  body {
+    block {
+      body {
+        expression {
+          assignment {
+            variable {
+              name: "a"
+              position {
+                line: 10
+                col: 22
+                offset: 126
+              }
+            }
+            value {
+              value {
+                int_literal: 5
+                position {
+                  line: 10
+                  col: 26
+                  offset: 130
+                }
+              }
+              position {
+                line: 10
+                col: 26
+                offset: 130
+              }
+            }
+            position {
+              line: 10
+              col: 22
+              offset: 126
+            }
+          }
+          position {
+            line: 10
+            col: 22
+            offset: 126
+          }
+        }
+        position {
+          line: 10
+          col: 22
+          offset: 126
+        }
+      }
+      position {
+        line: 10
+        col: 20
+        offset: 124
+      }
+    }
+    position {
+      line: 10
+      col: 20
+      offset: 124
+    }
+  }
+  position {
+    line: 10
+    col: 1
+    offset: 105
+  }
+}
+externs {
+  name {
+    name: "print"
+    position {
+      line: 1
+      col: 8
+      offset: 7
+    }
+  }
+  params {
+    name {
+      name: "ch"
+      position {
+        line: 1
+        col: 14
+        offset: 13
+      }
+    }
+    type {
+      name: "Char"
+      position {
+        line: 1
+        col: 18
+        offset: 17
+      }
+    }
+    position {
+      line: 1
+      col: 14
+      offset: 13
+    }
+  }
+}

@@ -1,0 +1,142 @@
+syntax = "proto3";
+
+option java_package = "se.jsannemo.spooky.vm";
+option java_multiple_files = true;
+
+message Executable {
+  repeated Instruction code = 1;
+  repeated int32 data = 2;
+}
+
+message Address {
+  int32 base = 1;
+  int32 offset = 2;
+}
+
+message Instruction {
+  oneof ins {
+    Move move = 1;
+    Add add = 2;
+    Sub sub = 3;
+    Mul mul = 4;
+    Div div = 5;
+    Mod mod = 6;
+    LessThan less = 7;
+    LessEquals leq = 8;
+    Equals eq = 9;
+    NotEquals neq = 10;
+    BitAnd and = 11;
+    BitOr or = 12;
+    Jump jmp = 13;
+    Extern extern = 14;
+    Halt halt = 15;
+  }
+}
+
+// Copies the value from the memory cell point to by `addr` into the memory cell pointed to
+// by `target`. Essentially, it performs `mem[target] = mem[source]`.
+message Move {
+  Address source = 1;
+  Address target = 2;
+}
+
+// Adds the values at addresses `op1` and `op2` and stores the result at address `target`.
+message Add {
+  Address op1 = 1;
+  Address op2 = 2;
+  Address target = 3;
+}
+
+// Subtracts the values at addresses `op1` and `op2` and stores the result at address `target`.
+message Sub {
+  Address op1 = 1;
+  Address op2 = 2;
+  Address target = 3;
+}
+
+// Multiplies the values at addresses `op1` and `op2` and stores the result at address `target`.
+message Mul {
+  Address op1 = 1;
+  Address op2 = 2;
+  Address target = 3;
+}
+
+// Divides the values at addresses `op1` and `op2` and stores the result at address `target`.
+message Div {
+  Address op1 = 1;
+  Address op2 = 2;
+  Address target = 3;
+}
+
+// Computes the remainder of the value at address `op1` when divided by the with the value
+// at address `op2` and stores the result at address `target`.
+//
+// Throws an exception when dividing by 0.
+message Mod {
+  Address op1 = 1;
+  Address op2 = 2;
+  Address target = 3;
+}
+
+// Compares the values at addresses `op1` and `op2` and stores 1 at `target` if `op1` is less than `op2` and 0 otherwise.
+message LessThan {
+  Address op1 = 1;
+  Address op2 = 2;
+  Address target = 3;
+}
+
+// Compares the values at addresses `op1` and `op2` and stores 1 at `target` if `op1` is less than or equal to
+// `op2` and 0 otherwise.
+message LessEquals {
+  Address op1 = 1;
+  Address op2 = 2;
+  Address target = 3;
+}
+
+// Compares the values at addresses `op1` and `op2` and stores 1 at `target` if `op1` is equal to `op2` and 0 otherwise.
+message Equals {
+  Address op1 = 1;
+  Address op2 = 2;
+  Address target = 3;
+}
+
+// Compares the values at addresses `op1` and `op2` and stores 1 at `target` if `op1` is not equal to
+// `op2` and 0 otherwise.
+message NotEquals {
+  Address op1 = 1;
+  Address op2 = 2;
+  Address target = 3;
+}
+
+// Computes the bitwise and of the value at address `op1` and the value at address `op2` and stores
+// the result at address `target`.
+message BitAnd {
+  Address op1 = 1;
+  Address op2 = 2;
+  Address target = 3;
+}
+
+// Computes the bitwise or of the value at address `op1` and the value at address `op2` and stores
+// the result at address `target`.
+message BitOr {
+  Address op1 = 1;
+  Address op2 = 2;
+  Address target = 3;
+}
+
+// Jumps to the instruction at `addr` (indexed by 0 starting at the first instruction in the text segment)
+// if the value stored at `flag` is 0, i.e `if (mem[flag] == 0) ip = mem[addr]`.
+//
+// If nonzero is set, the jump is instead performed if the flag is non-zero.
+message Jump {
+  Address flag = 1;
+  Address addr = 2;
+  bool nonzero = 3;
+}
+
+message Extern {
+  string name = 1;
+}
+
+message Halt {
+}

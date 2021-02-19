@@ -1,0 +1,1169 @@
+tokens {
+  kind: EXTERN
+  position {
+    line: 1
+    col: 1
+  }
+  text: "extern"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 1
+    col: 8
+    offset: 7
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 1
+    col: 16
+    offset: 15
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 1
+    col: 17
+    offset: 16
+  }
+  text: "i"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 1
+    col: 18
+    offset: 17
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 1
+    col: 20
+    offset: 19
+  }
+  text: "Int"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 1
+    col: 23
+    offset: 22
+  }
+  text: ")"
+}
+tokens {
+  kind: EXTERN
+  position {
+    line: 2
+    col: 1
+    offset: 25
+  }
+  text: "extern"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 2
+    col: 8
+    offset: 32
+  }
+  text: "print"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 2
+    col: 13
+    offset: 37
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 2
+    col: 14
+    offset: 38
+  }
+  text: "ch"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 2
+    col: 16
+    offset: 40
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 2
+    col: 18
+    offset: 42
+  }
+  text: "Char"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 2
+    col: 22
+    offset: 46
+  }
+  text: ")"
+}
+tokens {
+  kind: FUNC
+  position {
+    line: 4
+    col: 1
+    offset: 51
+  }
+  text: "func"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 6
+    offset: 56
+  }
+  text: "isPrime"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 4
+    col: 13
+    offset: 63
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 14
+    offset: 64
+  }
+  text: "n"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 4
+    col: 15
+    offset: 65
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 17
+    offset: 67
+  }
+  text: "Int"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 4
+    col: 20
+    offset: 70
+  }
+  text: ")"
+}
+tokens {
+  kind: ARROW
+  position {
+    line: 4
+    col: 22
+    offset: 72
+  }
+  text: "->"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 4
+    col: 25
+    offset: 75
+  }
+  text: "Boolean"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 4
+    col: 33
+    offset: 83
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 5
+    col: 3
+    offset: 88
+  }
+  text: "p"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 5
+    col: 4
+    offset: 89
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 5
+    col: 6
+    offset: 91
+  }
+  text: "Int"
+}
+tokens {
+  kind: ASSIGN
+  position {
+    line: 5
+    col: 10
+    offset: 95
+  }
+  text: "="
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 5
+    col: 12
+    offset: 97
+  }
+  text: "1"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 5
+    col: 13
+    offset: 98
+  }
+  text: ";"
+}
+tokens {
+  kind: FOR
+  position {
+    line: 6
+    col: 3
+    offset: 103
+  }
+  text: "for"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 6
+    col: 7
+    offset: 107
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 6
+    col: 8
+    offset: 108
+  }
+  text: "i"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 6
+    col: 9
+    offset: 109
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 6
+    col: 11
+    offset: 111
+  }
+  text: "Int"
+}
+tokens {
+  kind: ASSIGN
+  position {
+    line: 6
+    col: 15
+    offset: 115
+  }
+  text: "="
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 6
+    col: 17
+    offset: 117
+  }
+  text: "2"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 6
+    col: 18
+    offset: 118
+  }
+  text: ";"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 6
+    col: 20
+    offset: 120
+  }
+  text: "i"
+}
+tokens {
+  kind: ASTERISK
+  position {
+    line: 6
+    col: 22
+    offset: 122
+  }
+  text: "*"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 6
+    col: 24
+    offset: 124
+  }
+  text: "i"
+}
+tokens {
+  kind: LESS_EQUALS
+  position {
+    line: 6
+    col: 26
+    offset: 126
+  }
+  text: "<="
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 6
+    col: 29
+    offset: 129
+  }
+  text: "n"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 6
+    col: 30
+    offset: 130
+  }
+  text: ";"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 6
+    col: 32
+    offset: 132
+  }
+  text: "i"
+}
+tokens {
+  kind: PLUS_EQUALS
+  position {
+    line: 6
+    col: 34
+    offset: 134
+  }
+  text: "+="
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 6
+    col: 37
+    offset: 137
+  }
+  text: "1"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 6
+    col: 38
+    offset: 138
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 6
+    col: 40
+    offset: 140
+  }
+  text: "{"
+}
+tokens {
+  kind: IF
+  position {
+    line: 7
+    col: 5
+    offset: 147
+  }
+  text: "if"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 7
+    col: 8
+    offset: 150
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 7
+    col: 9
+    offset: 151
+  }
+  text: "n"
+}
+tokens {
+  kind: PERCENT
+  position {
+    line: 7
+    col: 11
+    offset: 153
+  }
+  text: "%"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 7
+    col: 13
+    offset: 155
+  }
+  text: "i"
+}
+tokens {
+  kind: EQUALS
+  position {
+    line: 7
+    col: 15
+    offset: 157
+  }
+  text: "=="
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 7
+    col: 18
+    offset: 160
+  }
+  text: "0"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 7
+    col: 19
+    offset: 161
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 7
+    col: 21
+    offset: 163
+  }
+  text: "{"
+}
+tokens {
+  kind: RETURN
+  position {
+    line: 8
+    col: 7
+    offset: 172
+  }
+  text: "return"
+}
+tokens {
+  kind: FALSE
+  position {
+    line: 8
+    col: 14
+    offset: 179
+  }
+  text: "false"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 8
+    col: 19
+    offset: 184
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 9
+    col: 5
+    offset: 191
+  }
+  text: "}"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 10
+    col: 3
+    offset: 196
+  }
+  text: "}"
+}
+tokens {
+  kind: RETURN
+  position {
+    line: 11
+    col: 3
+    offset: 201
+  }
+  text: "return"
+}
+tokens {
+  kind: TRUE
+  position {
+    line: 11
+    col: 10
+    offset: 208
+  }
+  text: "true"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 11
+    col: 14
+    offset: 212
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 12
+    col: 1
+    offset: 215
+  }
+  text: "}"
+}
+tokens {
+  kind: FUNC
+  position {
+    line: 14
+    col: 1
+    offset: 220
+  }
+  text: "func"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 14
+    col: 6
+    offset: 225
+  }
+  text: "main"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 14
+    col: 10
+    offset: 229
+  }
+  text: "("
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 14
+    col: 11
+    offset: 230
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 14
+    col: 13
+    offset: 232
+  }
+  text: "{"
+}
+tokens {
+  kind: FOR
+  position {
+    line: 15
+    col: 3
+    offset: 237
+  }
+  text: "for"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 15
+    col: 7
+    offset: 241
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 15
+    col: 8
+    offset: 242
+  }
+  text: "n"
+}
+tokens {
+  kind: COLON
+  position {
+    line: 15
+    col: 9
+    offset: 243
+  }
+  text: ":"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 15
+    col: 11
+    offset: 245
+  }
+  text: "Int"
+}
+tokens {
+  kind: ASSIGN
+  position {
+    line: 15
+    col: 15
+    offset: 249
+  }
+  text: "="
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 15
+    col: 17
+    offset: 251
+  }
+  text: "90"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 15
+    col: 19
+    offset: 253
+  }
+  text: ";"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 15
+    col: 21
+    offset: 255
+  }
+  text: "n"
+}
+tokens {
+  kind: LESS
+  position {
+    line: 15
+    col: 23
+    offset: 257
+  }
+  text: "<"
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 15
+    col: 25
+    offset: 259
+  }
+  text: "100"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 15
+    col: 28
+    offset: 262
+  }
+  text: ";"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 15
+    col: 30
+    offset: 264
+  }
+  text: "n"
+}
+tokens {
+  kind: ASSIGN
+  position {
+    line: 15
+    col: 32
+    offset: 266
+  }
+  text: "="
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 15
+    col: 34
+    offset: 268
+  }
+  text: "n"
+}
+tokens {
+  kind: PLUS
+  position {
+    line: 15
+    col: 36
+    offset: 270
+  }
+  text: "+"
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 15
+    col: 38
+    offset: 272
+  }
+  text: "1"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 15
+    col: 39
+    offset: 273
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 15
+    col: 41
+    offset: 275
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 16
+    col: 5
+    offset: 282
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 16
+    col: 13
+    offset: 290
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 16
+    col: 14
+    offset: 291
+  }
+  text: "n"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 16
+    col: 15
+    offset: 292
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 16
+    col: 16
+    offset: 293
+  }
+  text: ";"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 17
+    col: 5
+    offset: 300
+  }
+  text: "print"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 17
+    col: 10
+    offset: 305
+  }
+  text: "("
+}
+tokens {
+  kind: CHAR_LIT
+  position {
+    line: 17
+    col: 11
+    offset: 306
+  }
+  text: "\' \'"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 17
+    col: 14
+    offset: 309
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 17
+    col: 15
+    offset: 310
+  }
+  text: ";"
+}
+tokens {
+  kind: IF
+  position {
+    line: 18
+    col: 5
+    offset: 317
+  }
+  text: "if"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 18
+    col: 8
+    offset: 320
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 18
+    col: 9
+    offset: 321
+  }
+  text: "isPrime"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 18
+    col: 16
+    offset: 328
+  }
+  text: "("
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 18
+    col: 17
+    offset: 329
+  }
+  text: "n"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 18
+    col: 18
+    offset: 330
+  }
+  text: ")"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 18
+    col: 19
+    offset: 331
+  }
+  text: ")"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 18
+    col: 21
+    offset: 333
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 19
+    col: 9
+    offset: 344
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 19
+    col: 17
+    offset: 352
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 19
+    col: 18
+    offset: 353
+  }
+  text: "1"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 19
+    col: 19
+    offset: 354
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 19
+    col: 20
+    offset: 355
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 20
+    col: 5
+    offset: 362
+  }
+  text: "}"
+}
+tokens {
+  kind: ELSE
+  position {
+    line: 20
+    col: 7
+    offset: 364
+  }
+  text: "else"
+}
+tokens {
+  kind: LBRACE
+  position {
+    line: 20
+    col: 12
+    offset: 369
+  }
+  text: "{"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 21
+    col: 9
+    offset: 380
+  }
+  text: "printInt"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 21
+    col: 17
+    offset: 388
+  }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 21
+    col: 18
+    offset: 389
+  }
+  text: "0"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 21
+    col: 19
+    offset: 390
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 21
+    col: 20
+    offset: 391
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 22
+    col: 5
+    offset: 398
+  }
+  text: "}"
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 23
+    col: 5
+    offset: 405
+  }
+  text: "print"
+}
+tokens {
+  kind: LPAREN
+  position {
+    line: 23
+    col: 10
+    offset: 410
+  }
+  text: "("
+}
+tokens {
+  kind: CHAR_LIT
+  position {
+    line: 23
+    col: 11
+    offset: 411
+  }
+  text: "\'\\n\'"
+}
+tokens {
+  kind: RPAREN
+  position {
+    line: 23
+    col: 15
+    offset: 415
+  }
+  text: ")"
+}
+tokens {
+  kind: SEMICOLON
+  position {
+    line: 23
+    col: 16
+    offset: 416
+  }
+  text: ";"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 24
+    col: 3
+    offset: 421
+  }
+  text: "}"
+}
+tokens {
+  kind: RBRACE
+  position {
+    line: 25
+    col: 1
+    offset: 424
+  }
+  text: "}"
+}
