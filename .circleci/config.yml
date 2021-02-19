@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  all_tests:
+  build:
     docker:
       - image: gcr.io/cloud-builders/bazel
     working_directory: ~/repo
