@@ -339,11 +339,21 @@ public final class ToIr {
 
     private static Ir.Type binary(Ast.BinaryExpr binary, IrContext ctx) throws ValidationException {
         switch (binary.getOperator()) {
-            case ADD, SUBTRACT, MULTIPLY, DIVIDE, MODULO:
+            case ADD:
+            case SUBTRACT:
+            case MULTIPLY:
+            case DIVIDE:
+            case MODULO:
                 return arithmetic(binary.getOperator(), binary.getLeft(), binary.getRight(), ctx);
-            case LESS_THAN, GREATER_THAN, LESS_EQUALS, GREATER_EQUALS, EQUALS, NOT_EQUALS:
+            case LESS_THAN:
+            case GREATER_THAN:
+            case LESS_EQUALS:
+            case GREATER_EQUALS:
+            case EQUALS:
+            case NOT_EQUALS:
                 return comparison(binary.getOperator(), binary.getLeft(), binary.getRight(), ctx);
-            case OR, AND:
+            case OR:
+            case AND:
                 return logical(binary.getOperator(), binary.getLeft(), binary.getRight(), ctx);
             case ARRAY_ACCESS:
                 throw new UnsupportedOperationException("Unimplemented");
