@@ -42,6 +42,7 @@ http_archive(
     name = "com_google_j2cl",
     strip_prefix = "j2cl-master",
     url = "https://github.com/google/j2cl/archive/master.zip",
+    sha256 = "a2b94444abe4bfe34f5ad8db691afa1da4580df46aca20bf4f3f02903fe64623",
 )
 
 load("@com_google_j2cl//build_defs:repository.bzl", "load_j2cl_repo_deps")

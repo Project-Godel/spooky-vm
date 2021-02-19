@@ -3,14 +3,25 @@ syntax = "proto3";
 option java_package = "se.jsannemo.spooky.vm";
 option java_multiple_files = true;
 
+// A deserialized Spooky executable.
 message Executable {
+  // The VM instructions of the executable. These are laid out in execution order.
   repeated Instruction code = 1;
+
+  // The read-only data segment of the executable. Addressed from -1 to -data.length.
   repeated int32 data = 2;
 }
 
+
+// An address pointing to the value mem[mem[a (+sp)?] + w * mem[b (+sp)] + c].
+// This is chosen so that one can select a field of a struct in an array to which a pointer is located on the stack.
 message Address {
-  int32 base = 1;
-  int32 offset = 2;
+  int32 a = 1;
+  bool a_sp = 5;
+  int32 w = 2;
+  int32 b = 3;
+  bool b_sp = 6;
+  int32 c = 4;
 }
 
 message Instruction {
@@ -134,9 +145,11 @@ message Jump {
   bool nonzero = 3;
 }
 
+// Calls the extern function with the given name.
 message Extern {
   string name = 1;
 }
 
+// Halts the virtual machine.
 message Halt {
 }
