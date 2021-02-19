@@ -2,18 +2,20 @@
 
 Spooky is a simple programming language with an accompanying compiler and virtual machine.
 
+Current build: ![last build status](https://circleci.com/gh/Project-Godel/spooky-vm.svg?style=shield)
+
 ## Requirements
-To run the compiler, you need to have Java 14 installed.
+To run the compiler, you need to have Java 11 or later installed.
 
 ## Usage
 To compile the source `source.spooky` into the compiled file `exec.spook`, run
 ```
-java --enable-preview -jar spooky.jar compile source.spooky exec.spook
+java -jar spooky.jar compile source.spooky exec.spook
 ```
 
 To execute the program, run
 ```
-java --enable-preview -jar spooky.jar run exec.spook
+java -jar spooky.jar run exec.spook
 ```
 
 ## Language features
@@ -35,11 +37,11 @@ These are declared as `extern` functions in your source and provided by the exec
 ## Example programs
 ```scala
 extern printInt(i: Int)
-extern print(ch: Int)
+extern print(ch: Char)
 
 func isPrime(n: Int) -> Boolean {
   p: Int = 1;
-  for (i: Int = 2; i * i <= n; i = i + 1) {
+  for (i: Int = 2; i * i <= n; i += 1) {
     if (n % i == 0) {
       return false;
     }
@@ -48,11 +50,15 @@ func isPrime(n: Int) -> Boolean {
 }
 
 func main() {
-  for (n: Int = 90; n < 100; n = n + 1) {
+  for (n: Int = 90; n < 100; n += 1) {
     printInt(n);
-    print(32);
-    printInt(isPrime(n));
-    print(10);
+    print(' ');
+    if (isPrime(n)) {
+        printInt(1);
+    } else {
+        printInt(0);
+    }
+    print('\n');
   }
 }
 ```
