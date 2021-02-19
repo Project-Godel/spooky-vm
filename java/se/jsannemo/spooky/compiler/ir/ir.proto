@@ -153,8 +153,7 @@ message Copy {
 message Addr {
   oneof addr {
     int32 relSp = 1;
-    int32 absData = 2;
-    int32 absStack = 3;
+    int32 abs = 2;
   }
 }
 

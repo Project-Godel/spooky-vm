@@ -53,7 +53,7 @@ public final class CodeGen {
   private static void addPreamble(Code code) {
     // Reserve stack slot for the stack pointer.
     code.storeData(0);
-    code.store(Conventions.NEXT_STACK.getAbsStack(), addressTo(Conventions.STACK_POINTER));
+    code.store(Conventions.NEXT_STACK.getAbs(), addressTo(Conventions.STACK_POINTER));
   }
 
   private static void function(
@@ -68,20 +68,18 @@ public final class CodeGen {
           Ir.Extern extern = st.getExtern();
           // New stack pointer. Optimize changes for no-arg calls.
           if (extern.getSpOffset() != 0) {
-            code.store(extern.getSpOffset(), addressTo(Conventions.REG_1));
             code.add()
                 .getAddBuilder()
                 .setOp1(addressTo(Conventions.STACK_POINTER))
-                .setOp2(addressTo(Conventions.REG_1))
+                .setOp2(code.storeData(extern.getSpOffset()))
                 .setTarget(addressTo(Conventions.STACK_POINTER));
           }
           code.add().getExternBuilder().setName(extern.getName());
           if (extern.getSpOffset() != 0) {
-            code.store(extern.getSpOffset(), addressTo(Conventions.REG_1));
             code.add()
                 .getSubBuilder()
                 .setOp1(addressTo(Conventions.STACK_POINTER))
-                .setOp2(addressTo(Conventions.REG_1))
+                .setOp2(code.storeData(extern.getSpOffset()))
                 .setTarget(addressTo(Conventions.STACK_POINTER));
           }
           break;
@@ -262,18 +260,13 @@ public final class CodeGen {
     switch (addr.getAddrCase()) {
       case RELSP:
         return Address.newBuilder()
-            .setBase(Conventions.STACK_POINTER.getAbsStack())
-            .setOffset(addr.getRelSp())
+            .setA(Conventions.STACK_POINTER.getAbs())
+            .setC(addr.getRelSp())
             .build();
-      case ABSDATA:
+      case ABS:
         return Address.newBuilder()
-            .setBase(-Conventions.CONST_ZERO.getAbsData() - 1)
-            .setOffset(-addr.getAbsData() - 1)
-            .build();
-      case ABSSTACK:
-        return Address.newBuilder()
-            .setBase(-Conventions.CONST_ZERO.getAbsData() - 1)
-            .setOffset(addr.getAbsStack())
+            .setA(Conventions.CONST_ZERO.getAbs())
+            .setC(addr.getAbs())
             .build();
       default:
         throw new IllegalArgumentException();

@@ -38,7 +38,7 @@ public final class Main {
       return;
     }
     Executable exec = Executable.parseFrom(new FileInputStream(args[1]));
-    SpookyVm vm = SpookyVm.newBuilder(exec).addStdLib().setMemorySize(1000).build();
+    SpookyVm vm = SpookyVm.newBuilder(exec).addStdLib(System.out).setMemorySize(1000).build();
     while (vm.executeInstruction())
       ;
   }

@@ -3,6 +3,7 @@ package se.jsannemo.spooky.vm;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.PrintStream;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * A virtual machine, executing parsed Spooky code.
@@ -22,20 +23,15 @@ public final class SpookyVm {
    */
   private int ip;
 
-  private PrintStream stdOut;
   private int instructions = 0;
   private int maxMemory = -1;
 
   private SpookyVm(
-      Executable executable,
-      ImmutableMap<String, ExternCall> externs,
-      int memoryCells,
-      PrintStream stdOut) {
+      Executable executable, ImmutableMap<String, ExternCall> externs, int memoryCells) {
     this.externs = externs;
     this.curExecutable = executable;
     this.ip = 0;
     this.memory = new int[memoryCells];
-    this.stdOut = stdOut;
   }
 
   /**
@@ -176,11 +172,12 @@ public final class SpookyVm {
   }
 
   private int resolveAddress(Address addr) throws VmException {
-    return getM(addr.getBase()) + addr.getOffset();
-  }
-
-  public PrintStream getStdOut() {
-    return stdOut;
+    int sp = getM(0);
+    int a = getM(addr.getA() + (addr.getASp() ? sp : 0));
+    int b = addr.getW() * getM(addr.getB() + (addr.getBSp() ? sp : 0));
+    int c = addr.getC();
+    System.out.println("Resolve " + addr + " to " + (a + b + c));
+    return a + b + c;
   }
 
   /** Returns a new builder for {@link SpookyVm} instances. */
@@ -203,12 +200,10 @@ public final class SpookyVm {
     private final Executable executable;
     private final ImmutableMap.Builder<String, ExternCall> externBuilder = ImmutableMap.builder();
     private int memoryCells;
-    private PrintStream stdOut;
 
     private Builder(Executable executable) {
       this.executable = executable;
       memoryCells = 0;
-      stdOut = System.out;
     }
 
     /** Make available an external call named {@code name} invoking {@code callback} when called. */
@@ -218,10 +213,10 @@ public final class SpookyVm {
     }
 
     /** Add the external calls that the standard library provides. */
-    public Builder addStdLib() {
-      externBuilder.put("random", StdLib::random);
-      externBuilder.put("print", StdLib::printChar);
-      externBuilder.put("printInt", StdLib::printInt);
+    public Builder addStdLib(PrintStream stdOut) {
+      externBuilder.put("random", Calls.retInt(() -> ThreadLocalRandom.current().nextInt()));
+      externBuilder.put("print", Calls.getInt(ch -> stdOut.print((char) (int) ch)));
+      externBuilder.put("printInt", Calls.getInt(stdOut::print));
       return this;
     }
 
@@ -232,12 +227,7 @@ public final class SpookyVm {
     }
 
     public SpookyVm build() {
-      return new SpookyVm(executable, externBuilder.build(), memoryCells, stdOut);
-    }
-
-    public Builder setStdOut(PrintStream writer) {
-      this.stdOut = writer;
-      return this;
+      return new SpookyVm(executable, externBuilder.build(), memoryCells);
     }
   }
 }

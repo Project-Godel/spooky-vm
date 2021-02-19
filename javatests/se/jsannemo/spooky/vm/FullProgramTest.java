@@ -21,6 +21,7 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.function.Function;
 
 public class FullProgramTest {
 
@@ -49,10 +50,9 @@ public class FullProgramTest {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         SpookyVm vm =
             SpookyVm.newBuilder(exec)
-                .addStdLib()
+                .addStdLib(new PrintStream(bos))
                 .setMemorySize(1000)
-                .setStdOut(new PrintStream(bos))
-                .addExtern("echo", vm1 -> StdLib.setReturn(vm1, 1, StdLib.getArg(vm1, 0)))
+                .addExtern("echo", Calls.intToInt(Function.identity()))
                 .build();
         for (int i = 0; i < 10000 && vm.executeInstruction(); i++)
           ;

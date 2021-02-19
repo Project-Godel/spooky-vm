@@ -154,7 +154,7 @@ public final class ToIr {
 
         Ir.Type type = IrTypes.fromAst(varDecl.getType());
         // Globals are not relative current stack-pointer, but start of stack.
-        Ir.Addr varAddr = isGlobal ? IrAddrs.absStack(cur.spOffset + Conventions.NEXT_STACK.getAbsStack()) : IrAddrs.relSp(cur.spOffset);
+        Ir.Addr varAddr = isGlobal ? IrAddrs.absStack(cur.spOffset + Conventions.NEXT_STACK.getAbs()) : IrAddrs.relSp(cur.spOffset);
         Ir.Value var = Ir.Value.newBuilder().setType(type).setAddress(varAddr).build();
         cur.addVal(varName, var);
         Ir.Type valueType = expr(varDecl.getInit(), ctx);
