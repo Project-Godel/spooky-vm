@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: gcr.io/cloud-builders/bazel
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+      - run: bazel build ... 
+      - run: bazel test ...
