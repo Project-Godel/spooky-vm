@@ -29,8 +29,7 @@ public class ParserTest {
           Parser.create(
               Tokenizer.create(
                   Files.readString(
-                      Paths.get("test_programs/sources/" + tc.getName()), StandardCharsets.UTF_8),
-                  new Errors()),
+                      Paths.get("test_programs/sources/" + tc.getName()), StandardCharsets.UTF_8)),
               parseErr);
 
       Ast.Program parsed = parser.parse();
@@ -45,7 +44,7 @@ public class ParserTest {
         Truth.assertWithMessage(tc.getName() + " parsing errors")
             .that(parseErr.errors())
             .isNotEmpty();
-      } else if (tc.getFailure() != FailureMode.TOKENIZATION) {
+      } else {
         Truth.assertWithMessage(tc.getName() + " parsing errors").that(parseErr.errors()).isEmpty();
       }
     }

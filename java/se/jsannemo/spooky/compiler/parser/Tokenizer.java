@@ -1,7 +1,6 @@
 package se.jsannemo.spooky.compiler.parser;
 
 import com.google.common.collect.ImmutableMap;
-import se.jsannemo.spooky.compiler.Errors;
 import se.jsannemo.spooky.compiler.ast.Ast;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -27,10 +26,10 @@ public final class Tokenizer {
           .put("if", Ast.Token.Kind.IF)
           .put("return", Ast.Token.Kind.RETURN)
           .put("while", Ast.Token.Kind.WHILE)
+          .put("struct", Ast.Token.Kind.STRUCT)
           .build();
 
   private final char[] input;
-  private final Errors err;
 
   // Positioning data of the *current character for consumption*, i.e. the one returned by peak()
   // and eat()
@@ -41,11 +40,9 @@ public final class Tokenizer {
   private Ast.Pos tokPos;
   private StringBuilder tokText;
 
-  private Tokenizer(String input, Errors err) {
+  private Tokenizer(String input) {
     checkArgument(input != null);
-    checkArgument(err != null);
     this.input = input.toCharArray();
-    this.err = err;
   }
 
   /**
@@ -161,7 +158,7 @@ public final class Tokenizer {
   }
 
   private Ast.Token idOrKeyword() {
-    while (isAlpha(peek()) || isDigit(peek())) {
+    while (isAlpha(peek()) || isDigit(peek()) || peek() == '_') {
       eat();
     }
     Ast.Token.Kind keyword = KEYWORDS.get(tokText.toString());
@@ -310,8 +307,8 @@ public final class Tokenizer {
         .build();
   }
 
-  public static Tokenizer create(String input, Errors err) {
-    return new Tokenizer(input, err);
+  public static Tokenizer create(String input) {
+    return new Tokenizer(input);
   }
 
   private static boolean isAlpha(int nx) {

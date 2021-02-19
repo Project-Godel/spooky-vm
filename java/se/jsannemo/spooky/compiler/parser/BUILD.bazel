@@ -1,6 +1,5 @@
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library")
 load("@com_google_j2cl//build_defs:rules.bzl", "j2cl_library")
-load("@rules_antlr//antlr:antlr4.bzl", "antlr")
 
 proto_library(
     name = "ast_proto",

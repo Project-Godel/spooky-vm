@@ -22,8 +22,7 @@ public final class RegenParseTrees {
           Parser.create(
               Tokenizer.create(
                   Files.readString(
-                      Paths.get("test_programs/sources/" + tc.getName()), StandardCharsets.UTF_8),
-                  new Errors()),
+                      Paths.get("test_programs/sources/" + tc.getName()), StandardCharsets.UTF_8)),
               new Errors());
       String textProto = TextFormat.printer().printToString(parser.parse());
       Files.writeString(

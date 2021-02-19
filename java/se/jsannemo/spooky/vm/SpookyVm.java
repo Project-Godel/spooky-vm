@@ -23,6 +23,7 @@ public final class SpookyVm {
    */
   private int ip;
 
+  // Performance bookkeeping.
   private int instructions = 0;
   private int maxMemory = -1;
 
@@ -176,7 +177,6 @@ public final class SpookyVm {
     int a = getM(addr.getA() + (addr.getASp() ? sp : 0));
     int b = addr.getW() * getM(addr.getB() + (addr.getBSp() ? sp : 0));
     int c = addr.getC();
-    System.out.println("Resolve " + addr + " to " + (a + b + c));
     return a + b + c;
   }
 

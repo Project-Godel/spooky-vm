@@ -346,14 +346,14 @@ tokens {
     col: 3
     offset: 139
   }
-  text: "v1"
+  text: "v_1"
 }
 tokens {
   kind: COLON
   position {
     line: 10
-    col: 5
-    offset: 141
+    col: 6
+    offset: 142
   }
   text: ":"
 }
@@ -361,8 +361,8 @@ tokens {
   kind: IDENTIFIER
   position {
     line: 10
-    col: 7
-    offset: 143
+    col: 8
+    offset: 144
   }
   text: "Boolean"
 }
@@ -370,8 +370,8 @@ tokens {
   kind: ASSIGN
   position {
     line: 10
-    col: 15
-    offset: 151
+    col: 16
+    offset: 152
   }
   text: "="
 }
@@ -379,8 +379,8 @@ tokens {
   kind: FALSE
   position {
     line: 10
-    col: 17
-    offset: 153
+    col: 18
+    offset: 154
   }
   text: "false"
 }
@@ -388,8 +388,8 @@ tokens {
   kind: AND
   position {
     line: 10
-    col: 23
-    offset: 159
+    col: 24
+    offset: 160
   }
   text: "&&"
 }
@@ -397,35 +397,35 @@ tokens {
   kind: IDENTIFIER
   position {
     line: 10
-    col: 26
-    offset: 162
+    col: 27
+    offset: 163
   }
   text: "printS"
 }
 tokens {
   kind: LPAREN
-  position {
-    line: 10
-    col: 32
-    offset: 168
-  }
-  text: "("
-}
-tokens {
-  kind: INT_LIT
   position {
     line: 10
     col: 33
     offset: 169
   }
+  text: "("
+}
+tokens {
+  kind: INT_LIT
+  position {
+    line: 10
+    col: 34
+    offset: 170
+  }
   text: "1"
 }
 tokens {
   kind: RPAREN
   position {
     line: 10
-    col: 34
-    offset: 170
+    col: 35
+    offset: 171
   }
   text: ")"
 }
@@ -433,8 +433,8 @@ tokens {
   kind: SEMICOLON
   position {
     line: 10
-    col: 35
-    offset: 171
+    col: 36
+    offset: 172
   }
   text: ";"
 }
@@ -443,16 +443,16 @@ tokens {
   position {
     line: 11
     col: 3
-    offset: 176
+    offset: 177
   }
-  text: "v2"
+  text: "_v2"
 }
 tokens {
   kind: COLON
   position {
     line: 11
-    col: 5
-    offset: 178
+    col: 6
+    offset: 180
   }
   text: ":"
 }
@@ -460,8 +460,8 @@ tokens {
   kind: IDENTIFIER
   position {
     line: 11
-    col: 7
-    offset: 180
+    col: 8
+    offset: 182
   }
   text: "Boolean"
 }
@@ -469,8 +469,8 @@ tokens {
   kind: ASSIGN
   position {
     line: 11
-    col: 15
-    offset: 188
+    col: 16
+    offset: 190
   }
   text: "="
 }
@@ -478,8 +478,8 @@ tokens {
   kind: TRUE
   position {
     line: 11
-    col: 17
-    offset: 190
+    col: 18
+    offset: 192
   }
   text: "true"
 }
@@ -487,8 +487,8 @@ tokens {
   kind: OR
   position {
     line: 11
-    col: 22
-    offset: 195
+    col: 23
+    offset: 197
   }
   text: "||"
 }
@@ -496,8 +496,8 @@ tokens {
   kind: IDENTIFIER
   position {
     line: 11
-    col: 25
-    offset: 198
+    col: 26
+    offset: 200
   }
   text: "printS"
 }
@@ -505,8 +505,8 @@ tokens {
   kind: LPAREN
   position {
     line: 11
-    col: 31
-    offset: 204
+    col: 32
+    offset: 206
   }
   text: "("
 }
@@ -514,8 +514,8 @@ tokens {
   kind: INT_LIT
   position {
     line: 11
-    col: 32
-    offset: 205
+    col: 33
+    offset: 207
   }
   text: "2"
 }
@@ -523,8 +523,8 @@ tokens {
   kind: RPAREN
   position {
     line: 11
-    col: 33
-    offset: 206
+    col: 34
+    offset: 208
   }
   text: ")"
 }
@@ -532,8 +532,8 @@ tokens {
   kind: SEMICOLON
   position {
     line: 11
-    col: 34
-    offset: 207
+    col: 35
+    offset: 209
   }
   text: ";"
 }
@@ -542,7 +542,7 @@ tokens {
   position {
     line: 12
     col: 3
-    offset: 212
+    offset: 214
   }
   text: "v3"
 }
@@ -551,7 +551,7 @@ tokens {
   position {
     line: 12
     col: 5
-    offset: 214
+    offset: 216
   }
   text: ":"
 }
@@ -560,7 +560,7 @@ tokens {
   position {
     line: 12
     col: 7
-    offset: 216
+    offset: 218
   }
   text: "Boolean"
 }
@@ -569,7 +569,7 @@ tokens {
   position {
     line: 12
     col: 15
-    offset: 224
+    offset: 226
   }
   text: "="
 }
@@ -578,7 +578,7 @@ tokens {
   position {
     line: 12
     col: 17
-    offset: 226
+    offset: 228
   }
   text: "true"
 }
@@ -587,7 +587,7 @@ tokens {
   position {
     line: 12
     col: 22
-    offset: 231
+    offset: 233
   }
   text: "&&"
 }
@@ -596,7 +596,7 @@ tokens {
   position {
     line: 12
     col: 25
-    offset: 234
+    offset: 236
   }
   text: "printS"
 }
@@ -605,7 +605,7 @@ tokens {
   position {
     line: 12
     col: 31
-    offset: 240
+    offset: 242
   }
   text: "("
 }
@@ -614,7 +614,7 @@ tokens {
   position {
     line: 12
     col: 32
-    offset: 241
+    offset: 243
   }
   text: "3"
 }
@@ -623,7 +623,7 @@ tokens {
   position {
     line: 12
     col: 33
-    offset: 242
+    offset: 244
   }
   text: ")"
 }
@@ -632,7 +632,7 @@ tokens {
   position {
     line: 12
     col: 34
-    offset: 243
+    offset: 245
   }
   text: ";"
 }
@@ -641,7 +641,7 @@ tokens {
   position {
     line: 13
     col: 3
-    offset: 248
+    offset: 250
   }
   text: "v4"
 }
@@ -650,7 +650,7 @@ tokens {
   position {
     line: 13
     col: 5
-    offset: 250
+    offset: 252
   }
   text: ":"
 }
@@ -659,7 +659,7 @@ tokens {
   position {
     line: 13
     col: 7
-    offset: 252
+    offset: 254
   }
   text: "Boolean"
 }
@@ -668,7 +668,7 @@ tokens {
   position {
     line: 13
     col: 15
-    offset: 260
+    offset: 262
   }
   text: "="
 }
@@ -677,7 +677,7 @@ tokens {
   position {
     line: 13
     col: 17
-    offset: 262
+    offset: 264
   }
   text: "false"
 }
@@ -686,7 +686,7 @@ tokens {
   position {
     line: 13
     col: 23
-    offset: 268
+    offset: 270
   }
   text: "||"
 }
@@ -695,7 +695,7 @@ tokens {
   position {
     line: 13
     col: 26
-    offset: 271
+    offset: 273
   }
   text: "printS"
 }
@@ -704,7 +704,7 @@ tokens {
   position {
     line: 13
     col: 32
-    offset: 277
+    offset: 279
   }
   text: "("
 }
@@ -713,7 +713,7 @@ tokens {
   position {
     line: 13
     col: 33
-    offset: 278
+    offset: 280
   }
   text: "4"
 }
@@ -722,7 +722,7 @@ tokens {
   position {
     line: 13
     col: 34
-    offset: 279
+    offset: 281
   }
   text: ")"
 }
@@ -731,7 +731,7 @@ tokens {
   position {
     line: 13
     col: 35
-    offset: 280
+    offset: 282
   }
   text: ";"
 }
@@ -740,7 +740,7 @@ tokens {
   position {
     line: 15
     col: 3
-    offset: 287
+    offset: 289
   }
   text: "if"
 }
@@ -749,7 +749,7 @@ tokens {
   position {
     line: 15
     col: 6
-    offset: 290
+    offset: 292
   }
   text: "("
 }
@@ -758,16 +758,16 @@ tokens {
   position {
     line: 15
     col: 7
-    offset: 291
+    offset: 293
   }
-  text: "v1"
+  text: "v_1"
 }
 tokens {
   kind: RPAREN
   position {
     line: 15
-    col: 9
-    offset: 293
+    col: 10
+    offset: 296
   }
   text: ")"
 }
@@ -775,8 +775,8 @@ tokens {
   kind: LBRACE
   position {
     line: 15
-    col: 11
-    offset: 295
+    col: 12
+    offset: 298
   }
   text: "{"
 }
@@ -784,8 +784,8 @@ tokens {
   kind: IDENTIFIER
   position {
     line: 15
-    col: 13
-    offset: 297
+    col: 14
+    offset: 300
   }
   text: "printS"
 }
@@ -793,8 +793,8 @@ tokens {
   kind: LPAREN
   position {
     line: 15
-    col: 19
-    offset: 303
+    col: 20
+    offset: 306
   }
   text: "("
 }
@@ -802,8 +802,8 @@ tokens {
   kind: INT_LIT
   position {
     line: 15
-    col: 20
-    offset: 304
+    col: 21
+    offset: 307
   }
   text: "1"
 }
@@ -811,8 +811,8 @@ tokens {
   kind: RPAREN
   position {
     line: 15
-    col: 21
-    offset: 305
+    col: 22
+    offset: 308
   }
   text: ")"
 }
@@ -820,8 +820,8 @@ tokens {
   kind: SEMICOLON
   position {
     line: 15
-    col: 22
-    offset: 306
+    col: 23
+    offset: 309
   }
   text: ";"
 }
@@ -829,8 +829,8 @@ tokens {
   kind: RBRACE
   position {
     line: 15
-    col: 24
-    offset: 308
+    col: 25
+    offset: 311
   }
   text: "}"
 }
@@ -839,7 +839,7 @@ tokens {
   position {
     line: 16
     col: 3
-    offset: 313
+    offset: 316
   }
   text: "if"
 }
@@ -848,7 +848,7 @@ tokens {
   position {
     line: 16
     col: 6
-    offset: 316
+    offset: 319
   }
   text: "("
 }
@@ -857,16 +857,16 @@ tokens {
   position {
     line: 16
     col: 7
-    offset: 317
+    offset: 320
   }
-  text: "v2"
+  text: "_v2"
 }
 tokens {
   kind: RPAREN
   position {
     line: 16
-    col: 9
-    offset: 319
+    col: 10
+    offset: 323
   }
   text: ")"
 }
@@ -874,8 +874,8 @@ tokens {
   kind: LBRACE
   position {
     line: 16
-    col: 11
-    offset: 321
+    col: 12
+    offset: 325
   }
   text: "{"
 }
@@ -883,8 +883,8 @@ tokens {
   kind: IDENTIFIER
   position {
     line: 16
-    col: 13
-    offset: 323
+    col: 14
+    offset: 327
   }
   text: "printS"
 }
@@ -892,8 +892,8 @@ tokens {
   kind: LPAREN
   position {
     line: 16
-    col: 19
-    offset: 329
+    col: 20
+    offset: 333
   }
   text: "("
 }
@@ -901,8 +901,8 @@ tokens {
   kind: INT_LIT
   position {
     line: 16
-    col: 20
-    offset: 330
+    col: 21
+    offset: 334
   }
   text: "2"
 }
@@ -910,8 +910,8 @@ tokens {
   kind: RPAREN
   position {
     line: 16
-    col: 21
-    offset: 331
+    col: 22
+    offset: 335
   }
   text: ")"
 }
@@ -919,8 +919,8 @@ tokens {
   kind: SEMICOLON
   position {
     line: 16
-    col: 22
-    offset: 332
+    col: 23
+    offset: 336
   }
   text: ";"
 }
@@ -928,8 +928,8 @@ tokens {
   kind: RBRACE
   position {
     line: 16
-    col: 24
-    offset: 334
+    col: 25
+    offset: 338
   }
   text: "}"
 }
@@ -938,7 +938,7 @@ tokens {
   position {
     line: 17
     col: 3
-    offset: 339
+    offset: 343
   }
   text: "if"
 }
@@ -947,7 +947,7 @@ tokens {
   position {
     line: 17
     col: 6
-    offset: 342
+    offset: 346
   }
   text: "("
 }
@@ -956,7 +956,7 @@ tokens {
   position {
     line: 17
     col: 7
-    offset: 343
+    offset: 347
   }
   text: "v3"
 }
@@ -965,7 +965,7 @@ tokens {
   position {
     line: 17
     col: 9
-    offset: 345
+    offset: 349
   }
   text: ")"
 }
@@ -974,7 +974,7 @@ tokens {
   position {
     line: 17
     col: 11
-    offset: 347
+    offset: 351
   }
   text: "{"
 }
@@ -983,7 +983,7 @@ tokens {
   position {
     line: 17
     col: 13
-    offset: 349
+    offset: 353
   }
   text: "printS"
 }
@@ -992,7 +992,7 @@ tokens {
   position {
     line: 17
     col: 19
-    offset: 355
+    offset: 359
   }
   text: "("
 }
@@ -1001,7 +1001,7 @@ tokens {
   position {
     line: 17
     col: 20
-    offset: 356
+    offset: 360
   }
   text: "3"
 }
@@ -1010,7 +1010,7 @@ tokens {
   position {
     line: 17
     col: 21
-    offset: 357
+    offset: 361
   }
   text: ")"
 }
@@ -1019,7 +1019,7 @@ tokens {
   position {
     line: 17
     col: 22
-    offset: 358
+    offset: 362
   }
   text: ";"
 }
@@ -1028,7 +1028,7 @@ tokens {
   position {
     line: 17
     col: 24
-    offset: 360
+    offset: 364
   }
   text: "}"
 }
@@ -1037,7 +1037,7 @@ tokens {
   position {
     line: 18
     col: 3
-    offset: 365
+    offset: 369
   }
   text: "if"
 }
@@ -1046,7 +1046,7 @@ tokens {
   position {
     line: 18
     col: 6
-    offset: 368
+    offset: 372
   }
   text: "("
 }
@@ -1055,7 +1055,7 @@ tokens {
   position {
     line: 18
     col: 7
-    offset: 369
+    offset: 373
   }
   text: "v4"
 }
@@ -1064,7 +1064,7 @@ tokens {
   position {
     line: 18
     col: 9
-    offset: 371
+    offset: 375
   }
   text: ")"
 }
@@ -1073,7 +1073,7 @@ tokens {
   position {
     line: 18
     col: 11
-    offset: 373
+    offset: 377
   }
   text: "{"
 }
@@ -1082,7 +1082,7 @@ tokens {
   position {
     line: 18
     col: 13
-    offset: 375
+    offset: 379
   }
   text: "printS"
 }
@@ -1091,7 +1091,7 @@ tokens {
   position {
     line: 18
     col: 19
-    offset: 381
+    offset: 385
   }
   text: "("
 }
@@ -1100,7 +1100,7 @@ tokens {
   position {
     line: 18
     col: 20
-    offset: 382
+    offset: 386
   }
   text: "4"
 }
@@ -1109,7 +1109,7 @@ tokens {
   position {
     line: 18
     col: 21
-    offset: 383
+    offset: 387
   }
   text: ")"
 }
@@ -1118,7 +1118,7 @@ tokens {
   position {
     line: 18
     col: 22
-    offset: 384
+    offset: 388
   }
   text: ";"
 }
@@ -1127,7 +1127,7 @@ tokens {
   position {
     line: 18
     col: 24
-    offset: 386
+    offset: 390
   }
   text: "}"
 }
@@ -1136,7 +1136,7 @@ tokens {
   position {
     line: 19
     col: 1
-    offset: 389
+    offset: 393
   }
   text: "}"
 }

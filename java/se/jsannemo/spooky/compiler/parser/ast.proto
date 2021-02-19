@@ -244,6 +244,7 @@ message Token {
     RETURN = 38;
     TRUE = 39;
     WHILE = 40;
+    STRUCT = 50;
     // Literals, identifiers
     IDENTIFIER = 41;
     INT_LIT = 42;
@@ -254,6 +255,7 @@ message Token {
     // Special
     EOF = 47;
     UNEXPECTED = 48;
+    // Next: 51
   }
 }
 

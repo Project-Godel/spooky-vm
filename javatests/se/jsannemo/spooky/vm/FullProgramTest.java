@@ -37,8 +37,7 @@ public class FullProgramTest {
           Parser.create(
               Tokenizer.create(
                   Files.readString(
-                      Paths.get("test_programs/sources/" + tc.getName()), StandardCharsets.UTF_8),
-                  parseErr),
+                      Paths.get("test_programs/sources/" + tc.getName()), StandardCharsets.UTF_8)),
               parseErr);
 
       Ast.Program parsed = parser.parse();

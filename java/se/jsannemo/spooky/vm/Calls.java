@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+/** Wrappers for external calls that do not need any specific VM access aside from parameters. */
 public final class Calls {
 
   public static ExternCall retInt(Supplier<Integer> is) {

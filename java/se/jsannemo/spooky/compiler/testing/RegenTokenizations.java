@@ -1,7 +1,6 @@
 package se.jsannemo.spooky.compiler.testing;
 
 import com.google.protobuf.TextFormat;
-import se.jsannemo.spooky.compiler.Errors;
 import se.jsannemo.spooky.compiler.parser.Tokenizer;
 
 import java.io.IOException;
@@ -20,8 +19,7 @@ public final class RegenTokenizations {
       Tokenizer tokenizer =
           Tokenizer.create(
               Files.readString(
-                  Paths.get("test_programs/sources/" + tc.getName()), StandardCharsets.UTF_8),
-              new Errors());
+                  Paths.get("test_programs/sources/" + tc.getName()), StandardCharsets.UTF_8));
       String textProto = TextFormat.printer().printToString(TokenUtils.serialize(tokenizer));
       Files.writeString(
           Paths.get("test_programs/tokenizations/" + tc.getName() + ".tokens"),
