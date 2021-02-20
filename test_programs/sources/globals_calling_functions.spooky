@@ -1,7 +1,7 @@
 extern printInt(i: Int)
 extern echo(i: Int) -> Int
 
-func getTwo() -> Int {
+func getTwo -> Int {
   return 2;
 }
 

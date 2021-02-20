@@ -65,7 +65,7 @@ tokens {
   position {
     line: 3
     col: 1
-    offset: 25
+    offset: 23
   }
   text: "func"
 }
@@ -74,7 +74,7 @@ tokens {
   position {
     line: 3
     col: 6
-    offset: 30
+    offset: 28
   }
   text: "printBinary"
 }
@@ -83,7 +83,7 @@ tokens {
   position {
     line: 3
     col: 17
-    offset: 41
+    offset: 39
   }
   text: "("
 }
@@ -92,7 +92,7 @@ tokens {
   position {
     line: 3
     col: 18
-    offset: 42
+    offset: 40
   }
   text: "n"
 }
@@ -101,7 +101,7 @@ tokens {
   position {
     line: 3
     col: 19
-    offset: 43
+    offset: 41
   }
   text: ":"
 }
@@ -110,7 +110,7 @@ tokens {
   position {
     line: 3
     col: 21
-    offset: 45
+    offset: 43
   }
   text: "Int"
 }
@@ -119,7 +119,7 @@ tokens {
   position {
     line: 3
     col: 24
-    offset: 48
+    offset: 46
   }
   text: ")"
 }
@@ -128,7 +128,7 @@ tokens {
   position {
     line: 3
     col: 26
-    offset: 50
+    offset: 48
   }
   text: "{"
 }
@@ -137,7 +137,7 @@ tokens {
   position {
     line: 4
     col: 5
-    offset: 57
+    offset: 54
   }
   text: "while"
 }
@@ -146,7 +146,7 @@ tokens {
   position {
     line: 4
     col: 11
-    offset: 63
+    offset: 60
   }
   text: "("
 }
@@ -155,7 +155,7 @@ tokens {
   position {
     line: 4
     col: 12
-    offset: 64
+    offset: 61
   }
   text: "n"
 }
@@ -164,7 +164,7 @@ tokens {
   position {
     line: 4
     col: 14
-    offset: 66
+    offset: 63
   }
   text: "!="
 }
@@ -173,7 +173,7 @@ tokens {
   position {
     line: 4
     col: 17
-    offset: 69
+    offset: 66
   }
   text: "0"
 }
@@ -182,7 +182,7 @@ tokens {
   position {
     line: 4
     col: 18
-    offset: 70
+    offset: 67
   }
   text: ")"
 }
@@ -191,7 +191,7 @@ tokens {
   position {
     line: 4
     col: 20
-    offset: 72
+    offset: 69
   }
   text: "{"
 }
@@ -200,7 +200,7 @@ tokens {
   position {
     line: 5
     col: 9
-    offset: 83
+    offset: 79
   }
   text: "print"
 }
@@ -209,7 +209,7 @@ tokens {
   position {
     line: 5
     col: 14
-    offset: 88
+    offset: 84
   }
   text: "("
 }
@@ -218,7 +218,7 @@ tokens {
   position {
     line: 5
     col: 15
-    offset: 89
+    offset: 85
   }
   text: "48"
 }
@@ -227,7 +227,7 @@ tokens {
   position {
     line: 5
     col: 18
-    offset: 92
+    offset: 88
   }
   text: "+"
 }
@@ -236,7 +236,7 @@ tokens {
   position {
     line: 5
     col: 20
-    offset: 94
+    offset: 90
   }
   text: "n"
 }
@@ -245,7 +245,7 @@ tokens {
   position {
     line: 5
     col: 22
-    offset: 96
+    offset: 92
   }
   text: "%"
 }
@@ -254,7 +254,7 @@ tokens {
   position {
     line: 5
     col: 24
-    offset: 98
+    offset: 94
   }
   text: "2"
 }
@@ -263,7 +263,7 @@ tokens {
   position {
     line: 5
     col: 25
-    offset: 99
+    offset: 95
   }
   text: ")"
 }
@@ -272,7 +272,7 @@ tokens {
   position {
     line: 5
     col: 26
-    offset: 100
+    offset: 96
   }
   text: ";"
 }
@@ -281,7 +281,7 @@ tokens {
   position {
     line: 6
     col: 9
-    offset: 111
+    offset: 106
   }
   text: "n"
 }
@@ -290,7 +290,7 @@ tokens {
   position {
     line: 6
     col: 11
-    offset: 113
+    offset: 108
   }
   text: "="
 }
@@ -299,7 +299,7 @@ tokens {
   position {
     line: 6
     col: 13
-    offset: 115
+    offset: 110
   }
   text: "n"
 }
@@ -308,7 +308,7 @@ tokens {
   position {
     line: 6
     col: 15
-    offset: 117
+    offset: 112
   }
   text: "/"
 }
@@ -317,7 +317,7 @@ tokens {
   position {
     line: 6
     col: 17
-    offset: 119
+    offset: 114
   }
   text: "2"
 }
@@ -326,7 +326,7 @@ tokens {
   position {
     line: 6
     col: 18
-    offset: 120
+    offset: 115
   }
   text: ";"
 }
@@ -335,7 +335,7 @@ tokens {
   position {
     line: 7
     col: 5
-    offset: 127
+    offset: 121
   }
   text: "}"
 }
@@ -344,7 +344,7 @@ tokens {
   position {
     line: 8
     col: 5
-    offset: 134
+    offset: 127
   }
   text: "print"
 }
@@ -353,7 +353,7 @@ tokens {
   position {
     line: 8
     col: 10
-    offset: 139
+    offset: 132
   }
   text: "("
 }
@@ -362,7 +362,7 @@ tokens {
   position {
     line: 8
     col: 11
-    offset: 140
+    offset: 133
   }
   text: "10"
 }
@@ -371,7 +371,7 @@ tokens {
   position {
     line: 8
     col: 13
-    offset: 142
+    offset: 135
   }
   text: ")"
 }
@@ -380,7 +380,7 @@ tokens {
   position {
     line: 8
     col: 14
-    offset: 143
+    offset: 136
   }
   text: ";"
 }
@@ -389,7 +389,7 @@ tokens {
   position {
     line: 9
     col: 1
-    offset: 146
+    offset: 138
   }
   text: "}"
 }
@@ -398,7 +398,7 @@ tokens {
   position {
     line: 11
     col: 1
-    offset: 151
+    offset: 141
   }
   text: "func"
 }
@@ -407,7 +407,7 @@ tokens {
   position {
     line: 11
     col: 6
-    offset: 156
+    offset: 146
   }
   text: "main"
 }
@@ -416,7 +416,7 @@ tokens {
   position {
     line: 11
     col: 10
-    offset: 160
+    offset: 150
   }
   text: "("
 }
@@ -425,7 +425,7 @@ tokens {
   position {
     line: 11
     col: 11
-    offset: 161
+    offset: 151
   }
   text: ")"
 }
@@ -434,7 +434,7 @@ tokens {
   position {
     line: 11
     col: 13
-    offset: 163
+    offset: 153
   }
   text: "{"
 }
@@ -443,7 +443,7 @@ tokens {
   position {
     line: 12
     col: 5
-    offset: 170
+    offset: 159
   }
   text: "printBinary"
 }
@@ -452,7 +452,7 @@ tokens {
   position {
     line: 12
     col: 16
-    offset: 181
+    offset: 170
   }
   text: "("
 }
@@ -461,7 +461,7 @@ tokens {
   position {
     line: 12
     col: 17
-    offset: 182
+    offset: 171
   }
   text: "1"
 }
@@ -470,7 +470,7 @@ tokens {
   position {
     line: 12
     col: 18
-    offset: 183
+    offset: 172
   }
   text: ")"
 }
@@ -479,7 +479,7 @@ tokens {
   position {
     line: 12
     col: 19
-    offset: 184
+    offset: 173
   }
   text: ";"
 }
@@ -488,7 +488,7 @@ tokens {
   position {
     line: 13
     col: 5
-    offset: 191
+    offset: 179
   }
   text: "printBinary"
 }
@@ -497,7 +497,7 @@ tokens {
   position {
     line: 13
     col: 16
-    offset: 202
+    offset: 190
   }
   text: "("
 }
@@ -506,7 +506,7 @@ tokens {
   position {
     line: 13
     col: 17
-    offset: 203
+    offset: 191
   }
   text: "7"
 }
@@ -515,7 +515,7 @@ tokens {
   position {
     line: 13
     col: 18
-    offset: 204
+    offset: 192
   }
   text: ")"
 }
@@ -524,7 +524,7 @@ tokens {
   position {
     line: 13
     col: 19
-    offset: 205
+    offset: 193
   }
   text: ";"
 }
@@ -533,7 +533,7 @@ tokens {
   position {
     line: 14
     col: 5
-    offset: 212
+    offset: 199
   }
   text: "printBinary"
 }
@@ -542,7 +542,7 @@ tokens {
   position {
     line: 14
     col: 16
-    offset: 223
+    offset: 210
   }
   text: "("
 }
@@ -551,7 +551,7 @@ tokens {
   position {
     line: 14
     col: 17
-    offset: 224
+    offset: 211
   }
   text: "10"
 }
@@ -560,7 +560,7 @@ tokens {
   position {
     line: 14
     col: 19
-    offset: 226
+    offset: 213
   }
   text: ")"
 }
@@ -569,7 +569,7 @@ tokens {
   position {
     line: 14
     col: 20
-    offset: 227
+    offset: 214
   }
   text: ";"
 }
@@ -578,7 +578,7 @@ tokens {
   position {
     line: 15
     col: 1
-    offset: 230
+    offset: 216
   }
   text: "}"
 }

@@ -1,0 +1,30 @@
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library")
+load("@com_google_j2cl//build_defs:rules.bzl", "j2cl_library")
+
+proto_library(
+    name = "checked_proto",
+    srcs = ["checked.proto"],
+    visibility = ["//visibility:public"],
+)
+
+java_proto_library(
+    name = "checked_java_proto",
+    visibility = ["//visibility:public"],
+    deps = [":checked_proto"],
+)
+
+java_library(
+    name = "typecheck",
+    srcs = [
+        "TypeChecker.java",
+        "Types.java",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":checked_java_proto",
+        "//java/se/jsannemo/spooky/compiler:common",
+        "//java/se/jsannemo/spooky/compiler/parser:ast_java_proto",
+        "//third_party/errorprone",
+        "//third_party/guava",
+    ],
+)

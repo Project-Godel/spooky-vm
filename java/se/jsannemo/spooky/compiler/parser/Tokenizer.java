@@ -176,6 +176,9 @@ public final class Tokenizer {
   }
 
   private Ast.Token plus() {
+    if (peek() == '+') {
+      return token(Ast.Token.Kind.INCREMENT);
+    }
     if (peek() == '=') {
       eat();
       return token(Ast.Token.Kind.PLUS_EQUALS);
@@ -184,6 +187,10 @@ public final class Tokenizer {
   }
 
   private Ast.Token minus() {
+    int x = 1;
+    if (peek() == '-') {
+      return token(Ast.Token.Kind.DECREMENT);
+    }
     if (peek() == '=') {
       eat();
       return token(Ast.Token.Kind.MINUS_EQUALS);

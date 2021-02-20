@@ -1,0 +1,7 @@
+java_library(
+    name = "errorprone",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)

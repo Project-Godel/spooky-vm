@@ -2,21 +2,10 @@ syntax = "proto3";
 
 option java_package = "se.jsannemo.spooky.compiler.ast";
 
-message ParseResult {
-  Program program = 1;
-  repeated ParseError errors = 2;
-}
-
 message Pos {
   int32 line = 1;
   int32 col = 2;
   int32 offset = 3;
-}
-
-message ParseError {
-  int32 line = 1;
-  int32 col = 2;
-  string error = 3;
 }
 
 message Program {
@@ -234,6 +223,8 @@ message Token {
     RPAREN = 29;
     COLON = 30;
     SEMICOLON = 31;
+    INCREMENT = 51;
+    DECREMENT = 52;
     // Keywords
     ELSE = 32;
     EXTERN = 33;
@@ -255,7 +246,7 @@ message Token {
     // Special
     EOF = 47;
     UNEXPECTED = 48;
-    // Next: 51
+    // Next: 53
   }
 }
 

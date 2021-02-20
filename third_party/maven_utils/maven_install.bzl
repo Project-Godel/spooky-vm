@@ -1,3 +1,4 @@
+load("//third_party/errorprone:errorprone.bzl", "errorprone_maven")
 load("//third_party/flogger:flogger.bzl", "flogger_maven")
 load("//third_party/guava:guava.bzl", "guava_maven")
 load("//third_party/junit:junit.bzl", "junit_maven")
@@ -17,6 +18,7 @@ def install_maven_jars(artifacts):
 
 def install_maven():
     maven_deps = []
+    maven_deps += errorprone_maven()
     maven_deps += flogger_maven()
     maven_deps += guava_maven()
     maven_deps += junit_maven()

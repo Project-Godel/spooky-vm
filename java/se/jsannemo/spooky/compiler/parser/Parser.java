@@ -12,10 +12,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 public final class Parser {
 
-  public static final Ast.Identifier INVALID_IDENT =
-      Ast.Identifier.newBuilder().setName("<invalid>").build();
-  public static final Ast.Type INVALID_TYPE = Ast.Type.newBuilder().setName("<invalid>").build();
-
   private final Tokenizer toks;
   private final Errors err;
   private final Lookahead<Ast.Token> lookahead = new Lookahead<>();
@@ -53,6 +49,7 @@ public final class Parser {
           continue;
         }
       }
+      // We only want to error out for the first invalid top-level token.
       if (!errored) {
         errPeek("Expected func, extern or variable declaration.");
         errored = true;
@@ -64,7 +61,7 @@ public final class Parser {
   private Optional<Ast.FuncDecl> decl() {
     Ast.FuncDecl.Builder builder = Ast.FuncDecl.newBuilder();
     Optional<Ast.Identifier> name = identifier("Expected function name");
-    name.ifPresentOrElse(builder::setName, () -> builder.setName(INVALID_IDENT));
+    name.ifPresent(builder::setName);
     if (peek().getKind() == Ast.Token.Kind.LPAREN) {
       eat();
       parameterList(builder);
@@ -72,7 +69,7 @@ public final class Parser {
     }
     if (peek().getKind() == Ast.Token.Kind.ARROW) {
       eat();
-      type().ifPresentOrElse(builder::setReturnType, () -> builder.setReturnType(INVALID_TYPE));
+      type().ifPresent(builder::setReturnType);
     }
     return Optional.of(builder.build());
   }
