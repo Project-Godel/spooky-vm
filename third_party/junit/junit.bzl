@@ -1,6 +1,6 @@
 load("//third_party/maven_utils:maven.bzl", "maven_jar")
 
-VERSION = "4.12"
+VERSION = "4.13"
 
 def junit_maven():
     return [

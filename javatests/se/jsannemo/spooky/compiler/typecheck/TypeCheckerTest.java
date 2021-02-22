@@ -1,14 +1,15 @@
-package se.jsannemo.spooky.compiler.parser;
+package se.jsannemo.spooky.compiler.typecheck;
 
 import com.google.common.truth.Truth;
 import com.google.protobuf.TextFormat;
 import org.junit.Test;
 import se.jsannemo.spooky.compiler.Errors;
 import se.jsannemo.spooky.compiler.ast.Ast;
+import se.jsannemo.spooky.compiler.parser.Parser;
+import se.jsannemo.spooky.compiler.parser.Tokenizer;
 import se.jsannemo.spooky.compiler.testing.FailureMode;
 import se.jsannemo.spooky.compiler.testing.TestCase;
 import se.jsannemo.spooky.compiler.testing.TestCases;
-import se.jsannemo.spooky.compiler.typecheck.TypeChecker;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -25,13 +26,12 @@ public class TypeCheckerTest {
             TestCases.class);
     for (TestCase tc : cases.getTestCaseList()) {
       Errors parseErr = new Errors();
-      Parser parser =
-          Parser.create(
+      Ast.Program parsed =
+          Parser.parse(
               Tokenizer.create(
                   Files.readString(
                       Paths.get("test_programs/sources/" + tc.getName()), StandardCharsets.UTF_8)),
               parseErr);
-      Ast.Program parsed = parser.parse();
       if (!parseErr.errors().isEmpty()) {
         Truth.assertThat(tc.getFailure()).isNotEqualTo(FailureMode.VALIDATION);
         continue;
@@ -42,7 +42,9 @@ public class TypeCheckerTest {
             .that(parseErr.errors())
             .isNotEmpty();
       } else {
-        Truth.assertWithMessage(tc.getName() + " validation errors").that(parseErr.errors()).isEmpty();
+        Truth.assertWithMessage(tc.getName() + " validation errors")
+            .that(parseErr.errors())
+            .isEmpty();
       }
     }
   }

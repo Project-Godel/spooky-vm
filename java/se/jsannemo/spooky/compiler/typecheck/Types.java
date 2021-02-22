@@ -1,6 +1,6 @@
 package se.jsannemo.spooky.compiler.typecheck;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableBiMap;
 import se.jsannemo.spooky.compiler.Prog;
 import se.jsannemo.spooky.compiler.ast.Ast;
 
@@ -20,8 +20,8 @@ public final class Types {
   public static final Prog.Type CHAR =
       Prog.Type.newBuilder().setBuiltin(Prog.Type.Builtin.CHAR).build();
 
-  private static final ImmutableMap<String, Prog.Type.Builtin> TYPE_NAMES =
-      ImmutableMap.of(
+  private static final ImmutableBiMap<String, Prog.Type.Builtin> TYPE_NAMES =
+      ImmutableBiMap.of(
           "Int", Prog.Type.Builtin.INT,
           "Boolean", Prog.Type.Builtin.BOOLEAN,
           "Char", Prog.Type.Builtin.CHAR,
@@ -32,14 +32,42 @@ public final class Types {
     if (builtin == null) {
       return Optional.empty();
     }
-    Prog.Type t = Prog.Type.newBuilder().setBuiltin(builtin).build();
-    for (int i = 0; i < type.getDimension(); i++) {
-      t = Prog.Type.newBuilder().setArray(t).build();
-    }
-    return Optional.of(t);
+    return Optional.of(
+        arrayify(Prog.Type.newBuilder().setBuiltin(builtin).build(), type.getDimension()));
   }
 
-  public static String toString(Prog.Type type) {
-    return type.toString();
+  private static Prog.Type arrayify(Prog.Type type, int dim) {
+    for (int i = 0; i < dim; i++) {
+      type = Prog.Type.newBuilder().setArray(type).build();
+    }
+    return type;
+  }
+
+  public static Prog.Type resolve(Ast.Type type, TypeChecker tc) {
+    Optional<Prog.Type> builtin = builtin(type);
+    if (builtin.isPresent()) {
+      return builtin.get();
+    }
+    if (tc.structs.containsKey(type.getName())) {
+      return arrayify(tc.structs.get(type.getName()).type, type.getDimension());
+    }
+    return ERROR;
+  }
+
+  public static Prog.Type struct(int index) {
+    return Prog.Type.newBuilder().setStruct(index).build();
+  }
+
+  public static String asString(Prog.Type type, TypeChecker tc) {
+    switch (type.getTypeCase()) {
+      case BUILTIN:
+        return TYPE_NAMES.inverse().get(type.getBuiltin());
+      case STRUCT:
+        return tc.structNames.get(type.getStruct());
+      case ARRAY:
+        return asString(type.getArray(), tc) + "[]";
+      default:
+        return "<error>";
+    }
   }
 }

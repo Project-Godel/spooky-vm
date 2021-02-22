@@ -16,6 +16,7 @@ java_proto_library(
 java_library(
     name = "typecheck",
     srcs = [
+        "Structs.java",
         "TypeChecker.java",
         "Types.java",
     ],

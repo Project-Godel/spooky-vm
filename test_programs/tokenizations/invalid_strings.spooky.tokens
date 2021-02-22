@@ -3,6 +3,9 @@ tokens {
   position {
     line: 1
     col: 1
+    end_line: 1
+    end_col: 10
+    end_offset: 9
   }
   text: "\"asdadasd\n"
 }
@@ -12,6 +15,9 @@ tokens {
     line: 2
     col: 1
     offset: 10
+    end_line: 2
+    end_col: 4
+    end_offset: 13
   }
   text: "\'aa\n"
 }
@@ -21,6 +27,9 @@ tokens {
     line: 3
     col: 1
     offset: 14
+    end_line: 3
+    end_col: 4
+    end_offset: 17
   }
   text: "\'aa\'"
 }
@@ -30,6 +39,9 @@ tokens {
     line: 4
     col: 1
     offset: 19
+    end_line: 4
+    end_col: 2
+    end_offset: 20
   }
   text: "\'\'"
 }
@@ -39,6 +51,9 @@ tokens {
     line: 5
     col: 1
     offset: 22
+    end_line: 5
+    end_col: 2
+    end_offset: 23
   }
   text: "\'\n"
 }
@@ -48,6 +63,9 @@ tokens {
     line: 6
     col: 1
     offset: 24
+    end_line: 6
+    end_col: 2
+    end_offset: 25
   }
   text: "\"\n"
 }
@@ -57,6 +75,9 @@ tokens {
     line: 7
     col: 1
     offset: 26
+    end_line: 7
+    end_col: 4
+    end_offset: 29
   }
   text: "\"\\\"\""
 }

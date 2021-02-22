@@ -2,16 +2,31 @@ syntax = "proto3";
 
 option java_package = "se.jsannemo.spooky.compiler.ast";
 
+import "google/protobuf/empty.proto";
+
+// A character range in a source file. Lines and columns are 1-indexed, while the offset
+// is a zero-indexed byte offset in the entire file. Since Spooky only supports ASCII, this is the same
+// as the zero-indexed character offset.
 message Pos {
+  // The position of the first character in the range.
   int32 line = 1;
   int32 col = 2;
   int32 offset = 3;
+
+  // The position of the last character in the range.
+  int32 end_line = 4;
+  int32 end_col = 5;
+  int32 end_offset = 6;
 }
 
 message Program {
   repeated VarDecl globals = 1;
   repeated Func functions = 2;
   repeated FuncDecl externs = 3;
+  repeated StructDecl structs = 4;
+  // Whether the program is syntactically valid. This can be used to make downstream tools more permissive in allowing
+  // e.g. missing required fields in the AST.
+  bool valid = 5;
 }
 
 message Func {
@@ -20,17 +35,29 @@ message Func {
   Pos position = 3;
 }
 
+message FuncDecl {
+  Identifier name = 1;
+  repeated FuncParam params = 2;
+  Type returnType = 3;
+  Pos position = 4;
+}
+
 message FuncParam {
   Identifier name = 1;
   Type type = 2;
   Pos position = 3;
 }
 
-message FuncDecl {
+message StructDecl {
   Identifier name = 1;
-  repeated FuncParam params = 2;
-  Type returnType = 3;
-  Pos position = 4;
+  repeated StructField fields = 2;
+  Pos position = 3;
+}
+
+message StructField {
+  Identifier name = 1;
+  Type type = 2;
+  Pos position = 3;
 }
 
 message Statement {
@@ -86,14 +113,60 @@ message Expr {
     Ternary conditional = 5;
     Assignment assignment = 6;
     UnaryExpr unary = 7;
+    // Field selection in structures.
+    Select select = 9;
+    // Only used as initializations value for structs.
+    StructLit struct = 10;
+    // Used to mark that a struct or array should be default initialized.
+    DefaultInit default_init = 11;
+    // Only used as initializations value for arrays.
+    ArrayLit array = 12;
   }
   Pos position = 8;
+}
+
+message StructLit {
+  repeated FieldInit values = 1;
+  Pos position = 2;
+}
+
+message ArrayLit {
+  // Expressions evaluating to the dimensions the array.
+  repeated Dimension dimensions = 1;
+  // A prefix of the values that should be set for the first dimension.
+  repeated Expr values = 2;
+  // The value that the array should be padded with if the first is not exhaustive.
+  // If unset, the values will not be initialized.
+  Expr fill = 3;
+  // Used in the AST to mark if explicit fill was requested. This is used to differentiate between a requested fill
+  // with a given value and an uninitialized fill (array literal values must explicitly span their entire range).
+  bool should_fill = 4;
+  Pos position = 5;
+
+  message Dimension {
+    oneof dimension {
+      Expr expression = 1;
+      google.protobuf.Empty inferred = 2;
+    }
+    Pos position = 3;
+  }
+}
+
+message DefaultInit {
+  Pos position = 1;
+}
+
+message FieldInit {
+  Identifier field = 1;
+  Expr value = 2;
+  Pos pos = 3;
 }
 
 message Assignment {
   Identifier variable = 1;
   Expr value = 2;
   Pos position = 3;
+  BinaryOp compound = 4;
 }
 
 message Ternary {
@@ -145,8 +218,18 @@ message BinaryExpr {
 
 enum UnaryOp {
   UNARY_OP_UNSPECIFIED = 0;
+  // Negation of integers.
   NEGATE = 1;
+  // Logical negation of booleans.
   NOT = 2;
+  // Increment a reference and return the reference itself.
+  PREFIX_INCREMENT = 3;
+  // Decrement a reference and return the reference itself.
+  PREFIX_DECREMENT = 4;
+  // Increment a reference and return the value before incrementing.
+  POSTFIX_INCREMENT = 5;
+  // Decrement a reference and return the value before incrementing.
+  POSTFIX_DECREMENT = 6;
 }
 
 /** An expression computed using a binary operator on two sub-expressions. */
@@ -168,7 +251,14 @@ message Value {
 
 message FuncCall {
   Identifier function = 1;
-  repeated Expr params = 2;
+  Expr called_on = 2;
+  repeated Expr params = 3;
+  Pos position = 4;
+}
+
+message Select {
+  Expr called_on = 1;
+  Identifier field = 2;
   Pos position = 3;
 }
 
@@ -225,6 +315,7 @@ message Token {
     SEMICOLON = 31;
     INCREMENT = 51;
     DECREMENT = 52;
+    ELLIPSIS = 54;
     // Keywords
     ELSE = 32;
     EXTERN = 33;
@@ -236,6 +327,7 @@ message Token {
     TRUE = 39;
     WHILE = 40;
     STRUCT = 50;
+    DEFAULT = 53;
     // Literals, identifiers
     IDENTIFIER = 41;
     INT_LIT = 42;
@@ -246,7 +338,7 @@ message Token {
     // Special
     EOF = 47;
     UNEXPECTED = 48;
-    // Next: 53
+    // Next: 55
   }
 }
 

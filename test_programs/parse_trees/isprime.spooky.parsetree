@@ -6,6 +6,9 @@ functions {
         line: 4
         col: 6
         offset: 53
+        end_line: 4
+        end_col: 12
+        end_offset: 59
       }
     }
     params {
@@ -15,6 +18,9 @@ functions {
           line: 4
           col: 14
           offset: 61
+          end_line: 4
+          end_col: 14
+          end_offset: 61
         }
       }
       type {
@@ -23,12 +29,18 @@ functions {
           line: 4
           col: 17
           offset: 64
+          end_line: 4
+          end_col: 19
+          end_offset: 66
         }
       }
       position {
         line: 4
         col: 14
         offset: 61
+        end_line: 4
+        end_col: 19
+        end_offset: 66
       }
     }
     returnType {
@@ -37,7 +49,18 @@ functions {
         line: 4
         col: 25
         offset: 72
+        end_line: 4
+        end_col: 31
+        end_offset: 78
       }
+    }
+    position {
+      line: 4
+      col: 1
+      offset: 48
+      end_line: 4
+      end_col: 31
+      end_offset: 78
     }
   }
   body {
@@ -50,6 +73,9 @@ functions {
               line: 5
               col: 3
               offset: 84
+              end_line: 5
+              end_col: 3
+              end_offset: 84
             }
           }
           type {
@@ -58,6 +84,9 @@ functions {
               line: 5
               col: 6
               offset: 87
+              end_line: 5
+              end_col: 8
+              end_offset: 89
             }
           }
           init {
@@ -67,24 +96,36 @@ functions {
                 line: 5
                 col: 12
                 offset: 93
+                end_line: 5
+                end_col: 12
+                end_offset: 93
               }
             }
             position {
               line: 5
               col: 12
               offset: 93
+              end_line: 5
+              end_col: 12
+              end_offset: 93
             }
           }
           position {
             line: 5
             col: 3
             offset: 84
+            end_line: 5
+            end_col: 12
+            end_offset: 93
           }
         }
         position {
           line: 5
           col: 3
           offset: 84
+          end_line: 5
+          end_col: 12
+          end_offset: 93
         }
       }
       body {
@@ -97,6 +138,9 @@ functions {
                   line: 6
                   col: 8
                   offset: 103
+                  end_line: 6
+                  end_col: 8
+                  end_offset: 103
                 }
               }
               type {
@@ -105,6 +149,9 @@ functions {
                   line: 6
                   col: 11
                   offset: 106
+                  end_line: 6
+                  end_col: 13
+                  end_offset: 108
                 }
               }
               init {
@@ -114,24 +161,36 @@ functions {
                     line: 6
                     col: 17
                     offset: 112
+                    end_line: 6
+                    end_col: 17
+                    end_offset: 112
                   }
                 }
                 position {
                   line: 6
                   col: 17
                   offset: 112
+                  end_line: 6
+                  end_col: 17
+                  end_offset: 112
                 }
               }
               position {
                 line: 6
                 col: 8
                 offset: 103
+                end_line: 6
+                end_col: 17
+                end_offset: 112
               }
             }
             position {
               line: 6
               col: 8
               offset: 103
+              end_line: 6
+              end_col: 17
+              end_offset: 112
             }
           }
           condition {
@@ -145,12 +204,18 @@ functions {
                         line: 6
                         col: 20
                         offset: 115
+                        end_line: 6
+                        end_col: 20
+                        end_offset: 115
                       }
                     }
                     position {
                       line: 6
                       col: 20
                       offset: 115
+                      end_line: 6
+                      end_col: 20
+                      end_offset: 115
                     }
                   }
                   right {
@@ -160,12 +225,18 @@ functions {
                         line: 6
                         col: 24
                         offset: 119
+                        end_line: 6
+                        end_col: 24
+                        end_offset: 119
                       }
                     }
                     position {
                       line: 6
                       col: 24
                       offset: 119
+                      end_line: 6
+                      end_col: 24
+                      end_offset: 119
                     }
                   }
                   operator: MULTIPLY
@@ -173,12 +244,18 @@ functions {
                     line: 6
                     col: 20
                     offset: 115
+                    end_line: 6
+                    end_col: 24
+                    end_offset: 119
                   }
                 }
                 position {
                   line: 6
                   col: 20
                   offset: 115
+                  end_line: 6
+                  end_col: 24
+                  end_offset: 119
                 }
               }
               right {
@@ -188,12 +265,18 @@ functions {
                     line: 6
                     col: 29
                     offset: 124
+                    end_line: 6
+                    end_col: 29
+                    end_offset: 124
                   }
                 }
                 position {
                   line: 6
                   col: 29
                   offset: 124
+                  end_line: 6
+                  end_col: 29
+                  end_offset: 124
                 }
               }
               operator: LESS_EQUALS
@@ -201,12 +284,18 @@ functions {
                 line: 6
                 col: 20
                 offset: 115
+                end_line: 6
+                end_col: 29
+                end_offset: 124
               }
             }
             position {
               line: 6
               col: 20
               offset: 115
+              end_line: 6
+              end_col: 29
+              end_offset: 124
             }
           }
           increment {
@@ -218,6 +307,9 @@ functions {
                     line: 6
                     col: 32
                     offset: 127
+                    end_line: 6
+                    end_col: 32
+                    end_offset: 127
                   }
                 }
                 value {
@@ -227,14 +319,20 @@ functions {
                         name: "i"
                         position {
                           line: 6
-                          col: 32
-                          offset: 127
+                          col: 36
+                          offset: 131
+                          end_line: 6
+                          end_col: 36
+                          end_offset: 131
                         }
                       }
                       position {
                         line: 6
-                        col: 32
-                        offset: 127
+                        col: 36
+                        offset: 131
+                        end_line: 6
+                        end_col: 36
+                        end_offset: 131
                       }
                     }
                     right {
@@ -242,45 +340,52 @@ functions {
                         int_literal: 1
                         position {
                           line: 6
-                          col: 37
-                          offset: 132
+                          col: 40
+                          offset: 135
+                          end_line: 6
+                          end_col: 40
+                          end_offset: 135
                         }
                       }
                       position {
                         line: 6
-                        col: 37
-                        offset: 132
+                        col: 40
+                        offset: 135
+                        end_line: 6
+                        end_col: 40
+                        end_offset: 135
                       }
                     }
                     operator: ADD
                     position {
                       line: 6
-                      col: 32
-                      offset: 127
+                      col: 36
+                      offset: 131
+                      end_line: 6
+                      end_col: 40
+                      end_offset: 135
                     }
                   }
                   position {
                     line: 6
-                    col: 32
-                    offset: 127
+                    col: 36
+                    offset: 131
+                    end_line: 6
+                    end_col: 40
+                    end_offset: 135
                   }
                 }
                 position {
                   line: 6
                   col: 32
                   offset: 127
+                  end_line: 6
+                  end_col: 40
+                  end_offset: 135
                 }
-              }
-              position {
-                line: 6
-                col: 32
-                offset: 127
               }
             }
             position {
-              line: 6
-              col: 32
-              offset: 127
             }
           }
           body {
@@ -297,13 +402,19 @@ functions {
                               position {
                                 line: 7
                                 col: 9
-                                offset: 145
+                                offset: 148
+                                end_line: 7
+                                end_col: 9
+                                end_offset: 148
                               }
                             }
                             position {
                               line: 7
                               col: 9
-                              offset: 145
+                              offset: 148
+                              end_line: 7
+                              end_col: 9
+                              end_offset: 148
                             }
                           }
                           right {
@@ -312,26 +423,38 @@ functions {
                               position {
                                 line: 7
                                 col: 13
-                                offset: 149
+                                offset: 152
+                                end_line: 7
+                                end_col: 13
+                                end_offset: 152
                               }
                             }
                             position {
                               line: 7
                               col: 13
-                              offset: 149
+                              offset: 152
+                              end_line: 7
+                              end_col: 13
+                              end_offset: 152
                             }
                           }
                           operator: MODULO
                           position {
                             line: 7
                             col: 9
-                            offset: 145
+                            offset: 148
+                            end_line: 7
+                            end_col: 13
+                            end_offset: 152
                           }
                         }
                         position {
                           line: 7
                           col: 9
-                          offset: 145
+                          offset: 148
+                          end_line: 7
+                          end_col: 13
+                          end_offset: 152
                         }
                       }
                       right {
@@ -340,26 +463,38 @@ functions {
                           position {
                             line: 7
                             col: 18
-                            offset: 154
+                            offset: 157
+                            end_line: 7
+                            end_col: 18
+                            end_offset: 157
                           }
                         }
                         position {
                           line: 7
                           col: 18
-                          offset: 154
+                          offset: 157
+                          end_line: 7
+                          end_col: 18
+                          end_offset: 157
                         }
                       }
                       operator: EQUALS
                       position {
                         line: 7
                         col: 9
-                        offset: 145
+                        offset: 148
+                        end_line: 7
+                        end_col: 18
+                        end_offset: 157
                       }
                     }
                     position {
                       line: 7
                       col: 9
-                      offset: 145
+                      offset: 148
+                      end_line: 7
+                      end_col: 18
+                      end_offset: 157
                     }
                   }
                   body {
@@ -372,73 +507,93 @@ functions {
                               position {
                                 line: 8
                                 col: 14
-                                offset: 172
+                                offset: 175
+                                end_line: 8
+                                end_col: 18
+                                end_offset: 179
                               }
                             }
                             position {
                               line: 8
                               col: 14
-                              offset: 172
+                              offset: 175
+                              end_line: 8
+                              end_col: 18
+                              end_offset: 179
                             }
                           }
                           position {
                             line: 8
                             col: 7
-                            offset: 165
+                            offset: 168
+                            end_line: 8
+                            end_col: 18
+                            end_offset: 179
                           }
                         }
                         position {
                           line: 8
                           col: 7
-                          offset: 165
+                          offset: 168
+                          end_line: 8
+                          end_col: 18
+                          end_offset: 179
                         }
                       }
                       position {
                         line: 7
                         col: 21
-                        offset: 157
+                        offset: 160
+                        end_line: 9
+                        end_col: 5
+                        end_offset: 186
                       }
                     }
                     position {
                       line: 7
                       col: 21
-                      offset: 157
+                      offset: 160
+                      end_line: 9
+                      end_col: 5
+                      end_offset: 186
                     }
                   }
                   position {
                     line: 7
                     col: 5
-                    offset: 141
+                    offset: 144
+                    end_line: 9
+                    end_col: 5
+                    end_offset: 186
                   }
-                }
-                position {
-                  line: 7
-                  col: 5
-                  offset: 141
                 }
               }
               position {
                 line: 6
-                col: 40
-                offset: 135
+                col: 43
+                offset: 138
+                end_line: 10
+                end_col: 3
+                end_offset: 190
               }
             }
             position {
               line: 6
-              col: 40
-              offset: 135
+              col: 43
+              offset: 138
+              end_line: 10
+              end_col: 3
+              end_offset: 190
             }
           }
           position {
             line: 6
             col: 3
             offset: 98
+            end_line: 10
+            end_col: 3
+            end_offset: 190
           }
-        }
-        position {
-          line: 6
-          col: 3
-          offset: 98
         }
       }
       body {
@@ -449,43 +604,64 @@ functions {
               position {
                 line: 11
                 col: 10
-                offset: 198
+                offset: 201
+                end_line: 11
+                end_col: 13
+                end_offset: 204
               }
             }
             position {
               line: 11
               col: 10
-              offset: 198
+              offset: 201
+              end_line: 11
+              end_col: 13
+              end_offset: 204
             }
           }
           position {
             line: 11
             col: 3
-            offset: 191
+            offset: 194
+            end_line: 11
+            end_col: 13
+            end_offset: 204
           }
         }
         position {
           line: 11
           col: 3
-          offset: 191
+          offset: 194
+          end_line: 11
+          end_col: 13
+          end_offset: 204
         }
       }
       position {
         line: 4
         col: 33
         offset: 80
+        end_line: 12
+        end_col: 1
+        end_offset: 207
       }
     }
     position {
       line: 4
       col: 33
       offset: 80
+      end_line: 12
+      end_col: 1
+      end_offset: 207
     }
   }
   position {
     line: 4
     col: 1
     offset: 48
+    end_line: 12
+    end_col: 1
+    end_offset: 207
   }
 }
 functions {
@@ -495,8 +671,19 @@ functions {
       position {
         line: 14
         col: 6
-        offset: 212
+        offset: 215
+        end_line: 14
+        end_col: 9
+        end_offset: 218
       }
+    }
+    position {
+      line: 14
+      col: 1
+      offset: 210
+      end_line: 14
+      end_col: 9
+      end_offset: 218
     }
   }
   body {
@@ -510,7 +697,10 @@ functions {
                 position {
                   line: 15
                   col: 8
-                  offset: 226
+                  offset: 229
+                  end_line: 15
+                  end_col: 8
+                  end_offset: 229
                 }
               }
               type {
@@ -518,7 +708,10 @@ functions {
                 position {
                   line: 15
                   col: 11
-                  offset: 229
+                  offset: 232
+                  end_line: 15
+                  end_col: 13
+                  end_offset: 234
                 }
               }
               init {
@@ -527,25 +720,37 @@ functions {
                   position {
                     line: 15
                     col: 17
-                    offset: 235
+                    offset: 238
+                    end_line: 15
+                    end_col: 18
+                    end_offset: 239
                   }
                 }
                 position {
                   line: 15
                   col: 17
-                  offset: 235
+                  offset: 238
+                  end_line: 15
+                  end_col: 18
+                  end_offset: 239
                 }
               }
               position {
                 line: 15
                 col: 8
-                offset: 226
+                offset: 229
+                end_line: 15
+                end_col: 18
+                end_offset: 239
               }
             }
             position {
               line: 15
               col: 8
-              offset: 226
+              offset: 229
+              end_line: 15
+              end_col: 18
+              end_offset: 239
             }
           }
           condition {
@@ -556,13 +761,19 @@ functions {
                   position {
                     line: 15
                     col: 21
-                    offset: 239
+                    offset: 242
+                    end_line: 15
+                    end_col: 21
+                    end_offset: 242
                   }
                 }
                 position {
                   line: 15
                   col: 21
-                  offset: 239
+                  offset: 242
+                  end_line: 15
+                  end_col: 21
+                  end_offset: 242
                 }
               }
               right {
@@ -571,26 +782,38 @@ functions {
                   position {
                     line: 15
                     col: 25
-                    offset: 243
+                    offset: 246
+                    end_line: 15
+                    end_col: 27
+                    end_offset: 248
                   }
                 }
                 position {
                   line: 15
                   col: 25
-                  offset: 243
+                  offset: 246
+                  end_line: 15
+                  end_col: 27
+                  end_offset: 248
                 }
               }
               operator: LESS_THAN
               position {
                 line: 15
                 col: 21
-                offset: 239
+                offset: 242
+                end_line: 15
+                end_col: 27
+                end_offset: 248
               }
             }
             position {
               line: 15
               col: 21
-              offset: 239
+              offset: 242
+              end_line: 15
+              end_col: 27
+              end_offset: 248
             }
           }
           increment {
@@ -601,7 +824,10 @@ functions {
                   position {
                     line: 15
                     col: 30
-                    offset: 248
+                    offset: 251
+                    end_line: 15
+                    end_col: 30
+                    end_offset: 251
                   }
                 }
                 value {
@@ -612,13 +838,19 @@ functions {
                         position {
                           line: 15
                           col: 34
-                          offset: 252
+                          offset: 255
+                          end_line: 15
+                          end_col: 34
+                          end_offset: 255
                         }
                       }
                       position {
                         line: 15
                         col: 34
-                        offset: 252
+                        offset: 255
+                        end_line: 15
+                        end_col: 34
+                        end_offset: 255
                       }
                     }
                     right {
@@ -627,44 +859,51 @@ functions {
                         position {
                           line: 15
                           col: 38
-                          offset: 256
+                          offset: 259
+                          end_line: 15
+                          end_col: 38
+                          end_offset: 259
                         }
                       }
                       position {
                         line: 15
                         col: 38
-                        offset: 256
+                        offset: 259
+                        end_line: 15
+                        end_col: 38
+                        end_offset: 259
                       }
                     }
                     operator: ADD
                     position {
                       line: 15
                       col: 34
-                      offset: 252
+                      offset: 255
+                      end_line: 15
+                      end_col: 38
+                      end_offset: 259
                     }
                   }
                   position {
                     line: 15
                     col: 34
-                    offset: 252
+                    offset: 255
+                    end_line: 15
+                    end_col: 38
+                    end_offset: 259
                   }
                 }
                 position {
                   line: 15
                   col: 30
-                  offset: 248
+                  offset: 251
+                  end_line: 15
+                  end_col: 38
+                  end_offset: 259
                 }
-              }
-              position {
-                line: 15
-                col: 30
-                offset: 248
               }
             }
             position {
-              line: 15
-              col: 30
-              offset: 248
             }
           }
           body {
@@ -677,7 +916,10 @@ functions {
                       position {
                         line: 16
                         col: 5
-                        offset: 265
+                        offset: 268
+                        end_line: 16
+                        end_col: 12
+                        end_offset: 275
                       }
                     }
                     params {
@@ -686,31 +928,46 @@ functions {
                         position {
                           line: 16
                           col: 14
-                          offset: 274
+                          offset: 277
+                          end_line: 16
+                          end_col: 14
+                          end_offset: 277
                         }
                       }
                       position {
                         line: 16
                         col: 14
-                        offset: 274
+                        offset: 277
+                        end_line: 16
+                        end_col: 14
+                        end_offset: 277
                       }
                     }
                     position {
                       line: 16
                       col: 5
-                      offset: 265
+                      offset: 268
+                      end_line: 16
+                      end_col: 15
+                      end_offset: 278
                     }
                   }
                   position {
                     line: 16
                     col: 5
-                    offset: 265
+                    offset: 268
+                    end_line: 16
+                    end_col: 15
+                    end_offset: 278
                   }
                 }
                 position {
                   line: 16
                   col: 5
-                  offset: 265
+                  offset: 268
+                  end_line: 16
+                  end_col: 15
+                  end_offset: 278
                 }
               }
               body {
@@ -721,35 +978,58 @@ functions {
                       position {
                         line: 17
                         col: 5
-                        offset: 282
+                        offset: 285
+                        end_line: 17
+                        end_col: 9
+                        end_offset: 289
                       }
                     }
                     params {
                       value {
                         char_literal: 32
+                        position {
+                          line: 17
+                          col: 11
+                          offset: 291
+                          end_line: 17
+                          end_col: 13
+                          end_offset: 293
+                        }
                       }
                       position {
                         line: 17
                         col: 11
-                        offset: 288
+                        offset: 291
+                        end_line: 17
+                        end_col: 13
+                        end_offset: 293
                       }
                     }
                     position {
                       line: 17
                       col: 5
-                      offset: 282
+                      offset: 285
+                      end_line: 17
+                      end_col: 14
+                      end_offset: 294
                     }
                   }
                   position {
                     line: 17
                     col: 5
-                    offset: 282
+                    offset: 285
+                    end_line: 17
+                    end_col: 14
+                    end_offset: 294
                   }
                 }
                 position {
                   line: 17
                   col: 5
-                  offset: 282
+                  offset: 285
+                  end_line: 17
+                  end_col: 14
+                  end_offset: 294
                 }
               }
               body {
@@ -761,7 +1041,10 @@ functions {
                         position {
                           line: 18
                           col: 9
-                          offset: 302
+                          offset: 305
+                          end_line: 18
+                          end_col: 15
+                          end_offset: 311
                         }
                       }
                       params {
@@ -770,25 +1053,37 @@ functions {
                           position {
                             line: 18
                             col: 17
-                            offset: 310
+                            offset: 313
+                            end_line: 18
+                            end_col: 17
+                            end_offset: 313
                           }
                         }
                         position {
                           line: 18
                           col: 17
-                          offset: 310
+                          offset: 313
+                          end_line: 18
+                          end_col: 17
+                          end_offset: 313
                         }
                       }
                       position {
                         line: 18
                         col: 9
-                        offset: 302
+                        offset: 305
+                        end_line: 18
+                        end_col: 18
+                        end_offset: 314
                       }
                     }
                     position {
                       line: 18
                       col: 9
-                      offset: 302
+                      offset: 305
+                      end_line: 18
+                      end_col: 18
+                      end_offset: 314
                     }
                   }
                   body {
@@ -801,7 +1096,10 @@ functions {
                               position {
                                 line: 19
                                 col: 9
-                                offset: 324
+                                offset: 327
+                                end_line: 19
+                                end_col: 16
+                                end_offset: 334
                               }
                             }
                             params {
@@ -810,43 +1108,64 @@ functions {
                                 position {
                                   line: 19
                                   col: 18
-                                  offset: 333
+                                  offset: 336
+                                  end_line: 19
+                                  end_col: 18
+                                  end_offset: 336
                                 }
                               }
                               position {
                                 line: 19
                                 col: 18
-                                offset: 333
+                                offset: 336
+                                end_line: 19
+                                end_col: 18
+                                end_offset: 336
                               }
                             }
                             position {
                               line: 19
                               col: 9
-                              offset: 324
+                              offset: 327
+                              end_line: 19
+                              end_col: 19
+                              end_offset: 337
                             }
                           }
                           position {
                             line: 19
                             col: 9
-                            offset: 324
+                            offset: 327
+                            end_line: 19
+                            end_col: 19
+                            end_offset: 337
                           }
                         }
                         position {
                           line: 19
                           col: 9
-                          offset: 324
+                          offset: 327
+                          end_line: 19
+                          end_col: 19
+                          end_offset: 337
                         }
                       }
                       position {
                         line: 18
                         col: 21
-                        offset: 314
+                        offset: 317
+                        end_line: 20
+                        end_col: 5
+                        end_offset: 344
                       }
                     }
                     position {
                       line: 18
                       col: 21
-                      offset: 314
+                      offset: 317
+                      end_line: 20
+                      end_col: 5
+                      end_offset: 344
                     }
                   }
                   elseBody {
@@ -859,7 +1178,10 @@ functions {
                               position {
                                 line: 21
                                 col: 9
-                                offset: 358
+                                offset: 361
+                                end_line: 21
+                                end_col: 16
+                                end_offset: 368
                               }
                             }
                             params {
@@ -868,55 +1190,74 @@ functions {
                                 position {
                                   line: 21
                                   col: 18
-                                  offset: 367
+                                  offset: 370
+                                  end_line: 21
+                                  end_col: 18
+                                  end_offset: 370
                                 }
                               }
                               position {
                                 line: 21
                                 col: 18
-                                offset: 367
+                                offset: 370
+                                end_line: 21
+                                end_col: 18
+                                end_offset: 370
                               }
                             }
                             position {
                               line: 21
                               col: 9
-                              offset: 358
+                              offset: 361
+                              end_line: 21
+                              end_col: 19
+                              end_offset: 371
                             }
                           }
                           position {
                             line: 21
                             col: 9
-                            offset: 358
+                            offset: 361
+                            end_line: 21
+                            end_col: 19
+                            end_offset: 371
                           }
                         }
                         position {
                           line: 21
                           col: 9
-                          offset: 358
+                          offset: 361
+                          end_line: 21
+                          end_col: 19
+                          end_offset: 371
                         }
                       }
                       position {
                         line: 20
                         col: 12
-                        offset: 348
+                        offset: 351
+                        end_line: 22
+                        end_col: 5
+                        end_offset: 378
                       }
                     }
                     position {
                       line: 20
                       col: 12
-                      offset: 348
+                      offset: 351
+                      end_line: 22
+                      end_col: 5
+                      end_offset: 378
                     }
                   }
                   position {
                     line: 18
                     col: 5
-                    offset: 298
+                    offset: 301
+                    end_line: 22
+                    end_col: 5
+                    end_offset: 378
                   }
-                }
-                position {
-                  line: 18
-                  col: 5
-                  offset: 298
                 }
               }
               body {
@@ -927,77 +1268,113 @@ functions {
                       position {
                         line: 23
                         col: 5
-                        offset: 381
+                        offset: 384
+                        end_line: 23
+                        end_col: 9
+                        end_offset: 388
                       }
                     }
                     params {
                       value {
                         char_literal: 10
+                        position {
+                          line: 23
+                          col: 11
+                          offset: 390
+                          end_line: 23
+                          end_col: 14
+                          end_offset: 393
+                        }
                       }
                       position {
                         line: 23
                         col: 11
-                        offset: 387
+                        offset: 390
+                        end_line: 23
+                        end_col: 14
+                        end_offset: 393
                       }
                     }
                     position {
                       line: 23
                       col: 5
-                      offset: 381
+                      offset: 384
+                      end_line: 23
+                      end_col: 15
+                      end_offset: 394
                     }
                   }
                   position {
                     line: 23
                     col: 5
-                    offset: 381
+                    offset: 384
+                    end_line: 23
+                    end_col: 15
+                    end_offset: 394
                   }
                 }
                 position {
                   line: 23
                   col: 5
-                  offset: 381
+                  offset: 384
+                  end_line: 23
+                  end_col: 15
+                  end_offset: 394
                 }
               }
               position {
                 line: 15
                 col: 41
-                offset: 259
+                offset: 262
+                end_line: 24
+                end_col: 3
+                end_offset: 399
               }
             }
             position {
               line: 15
               col: 41
-              offset: 259
+              offset: 262
+              end_line: 24
+              end_col: 3
+              end_offset: 399
             }
           }
           position {
             line: 15
             col: 3
-            offset: 221
+            offset: 224
+            end_line: 24
+            end_col: 3
+            end_offset: 399
           }
-        }
-        position {
-          line: 15
-          col: 3
-          offset: 221
         }
       }
       position {
         line: 14
         col: 11
-        offset: 217
+        offset: 220
+        end_line: 25
+        end_col: 1
+        end_offset: 401
       }
     }
     position {
       line: 14
       col: 11
-      offset: 217
+      offset: 220
+      end_line: 25
+      end_col: 1
+      end_offset: 401
     }
   }
   position {
     line: 14
     col: 1
-    offset: 207
+    offset: 210
+    end_line: 25
+    end_col: 1
+    end_offset: 401
   }
 }
 externs {
@@ -1007,6 +1384,9 @@ externs {
       line: 1
       col: 8
       offset: 7
+      end_line: 1
+      end_col: 15
+      end_offset: 14
     }
   }
   params {
@@ -1016,6 +1396,9 @@ externs {
         line: 1
         col: 17
         offset: 16
+        end_line: 1
+        end_col: 17
+        end_offset: 16
       }
     }
     type {
@@ -1024,13 +1407,26 @@ externs {
         line: 1
         col: 20
         offset: 19
+        end_line: 1
+        end_col: 22
+        end_offset: 21
       }
     }
     position {
       line: 1
       col: 17
       offset: 16
+      end_line: 1
+      end_col: 22
+      end_offset: 21
     }
+  }
+  position {
+    line: 1
+    col: 1
+    end_line: 1
+    end_col: 23
+    end_offset: 22
   }
 }
 externs {
@@ -1040,6 +1436,9 @@ externs {
       line: 2
       col: 8
       offset: 31
+      end_line: 2
+      end_col: 12
+      end_offset: 35
     }
   }
   params {
@@ -1049,6 +1448,9 @@ externs {
         line: 2
         col: 14
         offset: 37
+        end_line: 2
+        end_col: 15
+        end_offset: 38
       }
     }
     type {
@@ -1057,12 +1459,26 @@ externs {
         line: 2
         col: 18
         offset: 41
+        end_line: 2
+        end_col: 21
+        end_offset: 44
       }
     }
     position {
       line: 2
       col: 14
       offset: 37
+      end_line: 2
+      end_col: 21
+      end_offset: 44
     }
+  }
+  position {
+    line: 2
+    col: 1
+    offset: 24
+    end_line: 2
+    end_col: 22
+    end_offset: 45
   }
 }

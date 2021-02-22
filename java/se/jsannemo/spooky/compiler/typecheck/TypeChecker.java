@@ -1,5 +1,6 @@
 package se.jsannemo.spooky.compiler.typecheck;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CheckReturnValue;
 import se.jsannemo.spooky.compiler.Errors;
@@ -13,36 +14,139 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+/** A type-checker for Spooky {@link se.jsannemo.spooky.compiler.ast.Ast.Program}s. */
 public final class TypeChecker {
 
+  private final boolean permissive;
   private final Errors err;
+
   private final HashMap<String, FuncData> externs = new HashMap<>();
-  private final HashMap<String, Integer> funcs = new HashMap<>();
+  final HashMap<String, StructData> structs = new HashMap<>();
+  final HashMap<Integer, String> structNames = new HashMap<>();
+  // Functions do not need any extra information regarding typechecking, so we only keep the index
+  // of the function in the programBuilder.functions list.
+  private final HashMap<String, Integer> funcIdx = new HashMap<>();
   private final Prog.Program.Builder programBuilder = Prog.Program.newBuilder();
   private Scope scope = Scope.root();
 
-  private TypeChecker(Errors err) {
+  /**
+   * Initializes a new type-checker.
+   *
+   * @param permissive whether the type checker should do a best-effort type check on a broken AST.
+   *     Otherwise, an {@link IllegalArgumentException} will be thrown for syntactically invalid
+   *     syntax trees.
+   */
+  private TypeChecker(boolean permissive, Errors err) {
+    this.permissive = permissive;
     this.err = err;
   }
 
   private Prog.Program checkProgram(Ast.Program program) {
-    // Possible references to functions must be registered first, since global variables may
-    // reference them during initialization.
+    // Structs must be registered first, since function parameters and return types may refer to
+    // them.
+    registerStructs(programBuilder, program.getStructsList());
+
+    // Next, functions must be registered first, since global variables may reference them during
+    // initialization.
     program.getExternsList().forEach(this::registerExtern);
     registerFunctions(programBuilder, program.getFunctionsList());
 
-    // To simplify implementation, we extract initialization of globals into a separate init
-    // function.
+    // Next, globals must be registered since function expressions can reference them.
     createGlobalInit(programBuilder, program.getGlobalsList());
 
+    // Only after
     checkFunctions(programBuilder, program.getFunctionsList());
     return programBuilder.build();
+  }
+
+  private void registerStructs(
+      Prog.Program.Builder programBuilder, List<Ast.StructDecl> structsList) {
+    ImmutableList.Builder<Ast.StructDecl> dedupBuilder = ImmutableList.builder();
+    // First register all structs to be able to find them when checking fields.
+    for (Ast.StructDecl struct : structsList) {
+      if (syntaxError(struct.getName().getName().isEmpty())) {
+        continue;
+      }
+      String name = struct.getName().getName();
+      if (structs.containsKey(name)) {
+        err.error(struct.getPosition(), "Struct already declared");
+      } else {
+        structs.put(name, new StructData());
+        dedupBuilder.add(struct);
+      }
+    }
+    ImmutableList<Ast.StructDecl> deduplicated = dedupBuilder.build();
+    Optional<List<Ast.StructDecl>> maybeOrdering = Structs.topologicalOrder(deduplicated, err);
+    // If we could not find a topological ordering, fall-back to random ordering; this is only used
+    // as a guarantee for code generation if the program is valid.
+    List<Ast.StructDecl> ordering = maybeOrdering.orElse(deduplicated);
+    for (Ast.StructDecl decl : ordering) {
+      String name = decl.getName().getName();
+      StructData data = structs.get(name);
+      data.type = Types.struct(data.index);
+      data.index = programBuilder.getStructsCount();
+      data.name = name;
+      structNames.put(data.index, name);
+      Prog.Struct.Builder struct = programBuilder.addStructsBuilder();
+      for (Ast.StructField field : decl.getFieldsList()) {
+        if (syntaxError(field.getType().getName().isEmpty())) {
+          continue;
+        }
+        Prog.Type t = Types.resolve(field.getType(), this);
+        if (t == Types.ERROR) {
+          err.error(field.getType().getPosition(), "Unknown type");
+        }
+        data.fields.put(field.getName().getName(), struct.getFieldsCount());
+        struct.addFields(t);
+      }
+    }
+  }
+
+  private void registerExtern(Ast.FuncDecl decl) {
+    String name = decl.getName().getName();
+    if (syntaxError(name.isEmpty())) {
+      return;
+    }
+    if (externs.containsKey(name) || funcIdx.containsKey(name)) {
+      err.error(decl.getPosition(), "A function with this name is already defined");
+      return;
+    }
+    Prog.Type returnType = decl.hasReturnType() ? resolveType(decl.getReturnType()) : Types.VOID;
+    List<Prog.Type> params =
+        decl.getParamsList().stream()
+            .map(p -> resolveType(p.getType()))
+            .collect(Collectors.toUnmodifiableList());
+    externs.put(name, new FuncData(returnType, params));
+  }
+
+  private List<Ast.Func> registerFunctions(Prog.Program.Builder builder, List<Ast.Func> decls) {
+    ImmutableList.Builder<Ast.Func> funcsToCheck = ImmutableList.builder();
+    for (Ast.Func func : decls) {
+      Ast.FuncDecl decl = func.getDecl();
+      String name = decl.getName().getName();
+      if (syntaxError(name.isEmpty())) {
+        continue;
+      }
+      if (externs.containsKey(name) || funcIdx.containsKey(name)) {
+        err.error(decl.getPosition(), "Function with this name is already declared.");
+        continue;
+      }
+      funcIdx.put(name, builder.getFunctionsCount());
+      Prog.Type type = decl.hasReturnType() ? resolveType(decl.getReturnType()) : Types.VOID;
+      List<Prog.Type> params =
+          decl.getParamsList().stream()
+              .map(p -> resolveType(p.getType()))
+              .collect(Collectors.toUnmodifiableList());
+      builder.addFunctionsBuilder().setReturnType(type).addAllParams(params);
+      funcsToCheck.add(func);
+    }
+    return funcsToCheck.build();
   }
 
   private void checkFunctions(Prog.Program.Builder builder, List<Ast.Func> functions) {
     for (Ast.Func func : functions) {
       Prog.Func.Builder funcBuilder =
-          builder.getFunctionsBuilder(funcs.get(func.getDecl().getName().getName()));
+          builder.getFunctionsBuilder(funcIdx.get(func.getDecl().getName().getName()));
       checkFunction(funcBuilder, func);
     }
   }
@@ -53,7 +157,7 @@ public final class TypeChecker {
     // Register function parameters
     for (int i = 0; i < params.size(); i++) {
       Ast.FuncParam p = params.get(i);
-      checkArgument(p.hasName() && p.hasType());
+      syntaxError(p.getName().getName().isEmpty() || p.getType().getName().isEmpty());
       scope.put(p.getName().getName(), Prog.VarRef.newBuilder().setFunctionParam(i).build());
       // Note: types have already been added to the Func.Builder during registration.
     }
@@ -212,7 +316,7 @@ public final class TypeChecker {
       if (!expectType(value.getType(), type, decl.getInit().getPosition())) {
         err.error(
             decl.getInit().getPosition(),
-            "Expression has mismatched type " + Types.toString(value.getType()));
+            "Expression has mismatched type " + Types.asString(value.getType(), this));
         continue;
       }
       body.addBodyBuilder()
@@ -333,8 +437,8 @@ public final class TypeChecker {
         call.getParamsList().stream().map(this::expr).collect(Collectors.toUnmodifiableList());
     if (externs.containsKey(name)) {
       return checkExtern(call, externs.get(name), paramVals);
-    } else if (funcs.containsKey(name)) {
-      return checkFunc(call, funcs.get(name), paramVals);
+    } else if (funcIdx.containsKey(name)) {
+      return checkFunc(call, funcIdx.get(name), paramVals);
     } else {
       return Prog.Expr.newBuilder().setType(Types.ERROR).build();
     }
@@ -487,40 +591,6 @@ public final class TypeChecker {
     return e.build();
   }
 
-  private void registerFunctions(Prog.Program.Builder builder, List<Ast.Func> decls) {
-    for (Ast.Func func : decls) {
-      Ast.FuncDecl decl = func.getDecl();
-      checkArgument(decl.hasName(), "Function must have name");
-      String name = decl.getName().getName();
-      if (externs.containsKey(name) || funcs.containsKey(name)) {
-        err.error(decl.getPosition(), "Function with this name is already declared.");
-        continue;
-      }
-      funcs.put(name, builder.getFunctionsCount());
-      Prog.Type type = decl.hasReturnType() ? resolveType(decl.getReturnType()) : Types.VOID;
-      List<Prog.Type> params =
-          decl.getParamsList().stream()
-              .map(p -> this.resolveType(p.getType()))
-              .collect(Collectors.toUnmodifiableList());
-      builder.addFunctionsBuilder().setReturnType(type).addAllParams(params);
-    }
-  }
-
-  private void registerExtern(Ast.FuncDecl decl) {
-    checkArgument(decl.hasName(), "Extern must have a name.");
-    String name = decl.getName().getName();
-    if (externs.containsKey(name) || funcs.containsKey(name)) {
-      err.error(decl.getPosition(), "A function with this name is already defined");
-      return;
-    }
-    Prog.Type type = decl.hasReturnType() ? resolveType(decl.getReturnType()) : Types.VOID;
-    List<Prog.Type> params =
-        decl.getParamsList().stream()
-            .map(p -> this.resolveType(p.getType()))
-            .collect(Collectors.toUnmodifiableList());
-    externs.put(name, new FuncData(type, params));
-  }
-
   private Prog.Type resolveType(Ast.Type type) {
     Optional<Prog.Type> builtin = Types.builtin(type);
     if (builtin.isPresent()) {
@@ -538,14 +608,25 @@ public final class TypeChecker {
     }
     if (!has.equals(expected)) {
       err.error(
-          pos, "Expected type " + Types.toString(expected) + " but was " + Types.toString(has));
+          pos,
+          "Expected type "
+              + Types.asString(expected, this)
+              + " but was "
+              + Types.asString(has, this));
       return false;
     }
     return true;
   }
 
+  private boolean syntaxError(boolean isError) {
+    if (!permissive && isError) {
+      throw new IllegalArgumentException();
+    }
+    return isError;
+  }
+
   public static Prog.Program typeCheck(Ast.Program program, Errors err) {
-    return new TypeChecker(err).checkProgram(program);
+    return new TypeChecker(!program.getValid(), err).checkProgram(program);
   }
 
   private static class Scope {
@@ -608,5 +689,12 @@ public final class TypeChecker {
       this.returnType = returnType;
       this.argTypes = argTypes;
     }
+  }
+
+  static class StructData {
+    HashMap<String, Integer> fields = new HashMap<>(); // The indices of the field in programBuilder
+    int index; // The index of this struct in the programBuilder
+    String name;
+    Prog.Type type;
   }
 }

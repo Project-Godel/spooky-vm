@@ -14,8 +14,7 @@ public final class Compiler {
 
   public static byte[] compile(String source) throws ValidationException {
     Errors err = new Errors();
-    Parser parser = Parser.create(Tokenizer.create(source), err);
-    Ast.Program parse = parser.parse();
+    Ast.Program parse = Parser.parse(Tokenizer.create(source), err);
     if (!err.errors().isEmpty()) {
       throw new ValidationException(err.errors().get(0).msg, err.errors().get(0).position);
     }

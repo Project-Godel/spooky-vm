@@ -10,6 +10,7 @@ java_binary(
         ":testing",
         "//java/se/jsannemo/spooky/compiler:common",
         "//java/se/jsannemo/spooky/compiler/parser",
+        "//java/se/jsannemo/spooky/compiler/parser:ast_java_proto",
         "@com_google_protobuf//:protobuf_java",
     ],
 )

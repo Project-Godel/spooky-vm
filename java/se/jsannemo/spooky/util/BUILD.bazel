@@ -1,0 +1,10 @@
+java_library(
+    name = "util",
+    srcs = [
+        "CircularQueue.java",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//third_party/guava",
+    ],
+)

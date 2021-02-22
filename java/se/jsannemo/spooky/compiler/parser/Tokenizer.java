@@ -27,16 +27,20 @@ public final class Tokenizer {
           .put("return", Ast.Token.Kind.RETURN)
           .put("while", Ast.Token.Kind.WHILE)
           .put("struct", Ast.Token.Kind.STRUCT)
+          .put("default", Ast.Token.Kind.DEFAULT)
           .build();
 
   private final char[] input;
 
-  // Positioning data of the *current character for consumption*, i.e. the one returned by peak()
-  // and eat()
+  // Positioning data of the *current character for consumption*, i.e. the one returned by peak().
   private int pos = 0;
   private int line = 1;
   private int col = 1;
-  // Position and text of the current token being constructed
+  // Positioning data of the *last consumed character*, i.e. the one last returned by eat().
+  private int eatPos = 0;
+  private int eatLine = 1;
+  private int eatCol = 1;
+  // Position and text of the current token being constructed.
   private Ast.Pos tokPos;
   private StringBuilder tokText;
 
@@ -50,7 +54,7 @@ public final class Tokenizer {
    * se.jsannemo.spooky.compiler.ast.Ast.Token.Kind#EOF} tokens will be returned.
    */
   public Ast.Token next() {
-    prepare();
+    ignoreBefore();
     tokPos = Ast.Pos.newBuilder().setLine(line).setCol(col).setOffset(pos).build();
     tokText = new StringBuilder();
     if (end()) {
@@ -94,7 +98,7 @@ public final class Tokenizer {
       case '\'':
         return charLit();
       case '.':
-        return token(Ast.Token.Kind.DOT);
+        return dot();
       case ',':
         return token(Ast.Token.Kind.COMMA);
       case ';':
@@ -123,6 +127,15 @@ public final class Tokenizer {
       return idOrKeyword();
     }
     return token(Ast.Token.Kind.UNEXPECTED);
+  }
+
+  private Ast.Token dot() {
+    if (peek(0) != '.' || peek(1) != '.') {
+      return token(Ast.Token.Kind.DOT);
+    }
+    eat();
+    eat();
+    return token(Ast.Token.Kind.ELLIPSIS);
   }
 
   private Ast.Token stringLiteral() {
@@ -177,6 +190,7 @@ public final class Tokenizer {
 
   private Ast.Token plus() {
     if (peek() == '+') {
+      eat();
       return token(Ast.Token.Kind.INCREMENT);
     }
     if (peek() == '=') {
@@ -187,8 +201,8 @@ public final class Tokenizer {
   }
 
   private Ast.Token minus() {
-    int x = 1;
     if (peek() == '-') {
+      eat();
       return token(Ast.Token.Kind.DECREMENT);
     }
     if (peek() == '=') {
@@ -258,7 +272,8 @@ public final class Tokenizer {
     return token(Ast.Token.Kind.ASSIGN);
   }
 
-  private void prepare() {
+  // Eats any characters that should be ignored between tokens.
+  private void ignoreBefore() {
     while (true) {
       // Ignore whitespace
       while (Character.isWhitespace(peek())) {
@@ -280,6 +295,9 @@ public final class Tokenizer {
   }
 
   private char eat() {
+    eatPos = pos;
+    eatLine = line;
+    eatCol = col;
     char ch = input[pos++];
     if (ch > 127) {
       throw new IllegalArgumentException("Only ASCII source is supported.");
@@ -309,13 +327,9 @@ public final class Tokenizer {
   private Ast.Token token(Ast.Token.Kind kind) {
     return Ast.Token.newBuilder()
         .setKind(kind)
-        .setPosition(tokPos)
+        .setPosition(tokPos.toBuilder().setEndCol(eatCol).setEndLine(eatLine).setEndOffset(eatPos))
         .setText(tokText.toString())
         .build();
-  }
-
-  public static Tokenizer create(String input) {
-    return new Tokenizer(input);
   }
 
   private static boolean isAlpha(int nx) {
@@ -324,5 +338,9 @@ public final class Tokenizer {
 
   private static boolean isDigit(int nx) {
     return ('0' <= nx && nx <= '9');
+  }
+
+  public static Tokenizer create(String input) {
+    return new Tokenizer(input);
   }
 }

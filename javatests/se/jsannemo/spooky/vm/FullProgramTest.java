@@ -33,14 +33,14 @@ public class FullProgramTest {
             TestCases.class);
     for (TestCase tc : cases.getTestCaseList()) {
       Errors parseErr = new Errors();
-      Parser parser =
-          Parser.create(
+      Ast.Program parsed =
+          Parser.parse(
               Tokenizer.create(
                   Files.readString(
                       Paths.get("test_programs/sources/" + tc.getName()), StandardCharsets.UTF_8)),
               parseErr);
-
-      Ast.Program parsed = parser.parse();
+      System.err.println(tc.getName());
+      System.err.println(parsed);
       if (tc.getFailure() == FailureMode.RUNTIME
           || tc.getFailure() == FailureMode.FAILURE_MODE_UNSPECIFIED) {
         Truth.assertWithMessage(tc.getName() + " parsing errors").that(parseErr.errors()).isEmpty();

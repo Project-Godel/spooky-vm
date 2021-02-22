@@ -6,6 +6,11 @@ option java_outer_classname = "Prog";
 message Program {
   repeated Type globals = 1;
   repeated Func functions = 2;
+  repeated Struct structs = 3;
+}
+
+message Struct {
+  repeated Type fields = 1;
 }
 
 message Func {
@@ -160,7 +165,7 @@ message ExternCall {
 message Type {
   oneof type {
     Builtin builtin = 1;
-    Struct struct = 2;
+    int32 struct = 2;
     Type array = 3;
   }
 
@@ -172,9 +177,5 @@ message Type {
     STRING = 4;
     VOID = 5;
     ERROR = 6;
-  }
-
-  message Struct {
-    repeated Type fields = 1;
   }
 }

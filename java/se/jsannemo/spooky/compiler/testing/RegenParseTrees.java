@@ -2,6 +2,7 @@ package se.jsannemo.spooky.compiler.testing;
 
 import com.google.protobuf.TextFormat;
 import se.jsannemo.spooky.compiler.Errors;
+import se.jsannemo.spooky.compiler.ast.Ast;
 import se.jsannemo.spooky.compiler.parser.Parser;
 import se.jsannemo.spooky.compiler.parser.Tokenizer;
 
@@ -18,13 +19,13 @@ public final class RegenParseTrees {
             Files.readString(Paths.get("test_programs/tests.textproto"), StandardCharsets.UTF_8),
             TestCases.class);
     for (TestCase tc : cases.getTestCaseList()) {
-      Parser parser =
-          Parser.create(
+      Ast.Program parsed =
+              Parser.parse(
               Tokenizer.create(
                   Files.readString(
                       Paths.get("test_programs/sources/" + tc.getName()), StandardCharsets.UTF_8)),
               new Errors());
-      String textProto = TextFormat.printer().printToString(parser.parse());
+      String textProto = TextFormat.printer().printToString(parsed);
       Files.writeString(
           Paths.get("test_programs/parse_trees/" + tc.getName() + ".parsetree"),
           textProto,

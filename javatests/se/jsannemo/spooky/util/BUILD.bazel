@@ -1,0 +1,14 @@
+load("//:rules.bzl", "junit_tests")
+
+junit_tests(
+    name = "tests",
+    srcs = [
+        "CircularQueueTest.java",
+    ],
+    deps = [
+        "//java/se/jsannemo/spooky/util",
+        "//third_party/junit",
+        "//third_party/truth",
+        "@com_google_protobuf//:protobuf_java",
+    ],
+)

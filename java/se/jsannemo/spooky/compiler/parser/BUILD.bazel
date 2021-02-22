@@ -5,12 +5,17 @@ proto_library(
     name = "ast_proto",
     srcs = ["ast.proto"],
     visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_protobuf//:empty_proto",
+    ],
 )
 
 java_proto_library(
     name = "ast_java_proto",
     visibility = ["//visibility:public"],
-    deps = [":ast_proto"],
+    deps = [
+        ":ast_proto",
+    ],
 )
 
 java_library(
@@ -23,6 +28,8 @@ java_library(
     deps = [
         ":ast_java_proto",
         "//java/se/jsannemo/spooky/compiler:common",
+        "//java/se/jsannemo/spooky/util",
         "//third_party/guava",
+        "//third_party/protobuf:java",
     ],
 )

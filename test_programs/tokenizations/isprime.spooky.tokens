@@ -3,6 +3,9 @@ tokens {
   position {
     line: 1
     col: 1
+    end_line: 1
+    end_col: 6
+    end_offset: 5
   }
   text: "extern"
 }
@@ -12,6 +15,9 @@ tokens {
     line: 1
     col: 8
     offset: 7
+    end_line: 1
+    end_col: 15
+    end_offset: 14
   }
   text: "printInt"
 }
@@ -21,6 +27,9 @@ tokens {
     line: 1
     col: 16
     offset: 15
+    end_line: 1
+    end_col: 16
+    end_offset: 15
   }
   text: "("
 }
@@ -30,6 +39,9 @@ tokens {
     line: 1
     col: 17
     offset: 16
+    end_line: 1
+    end_col: 17
+    end_offset: 16
   }
   text: "i"
 }
@@ -39,6 +51,9 @@ tokens {
     line: 1
     col: 18
     offset: 17
+    end_line: 1
+    end_col: 18
+    end_offset: 17
   }
   text: ":"
 }
@@ -48,6 +63,9 @@ tokens {
     line: 1
     col: 20
     offset: 19
+    end_line: 1
+    end_col: 22
+    end_offset: 21
   }
   text: "Int"
 }
@@ -57,6 +75,9 @@ tokens {
     line: 1
     col: 23
     offset: 22
+    end_line: 1
+    end_col: 23
+    end_offset: 22
   }
   text: ")"
 }
@@ -66,6 +87,9 @@ tokens {
     line: 2
     col: 1
     offset: 24
+    end_line: 2
+    end_col: 6
+    end_offset: 29
   }
   text: "extern"
 }
@@ -75,6 +99,9 @@ tokens {
     line: 2
     col: 8
     offset: 31
+    end_line: 2
+    end_col: 12
+    end_offset: 35
   }
   text: "print"
 }
@@ -84,6 +111,9 @@ tokens {
     line: 2
     col: 13
     offset: 36
+    end_line: 2
+    end_col: 13
+    end_offset: 36
   }
   text: "("
 }
@@ -93,6 +123,9 @@ tokens {
     line: 2
     col: 14
     offset: 37
+    end_line: 2
+    end_col: 15
+    end_offset: 38
   }
   text: "ch"
 }
@@ -102,6 +135,9 @@ tokens {
     line: 2
     col: 16
     offset: 39
+    end_line: 2
+    end_col: 16
+    end_offset: 39
   }
   text: ":"
 }
@@ -111,6 +147,9 @@ tokens {
     line: 2
     col: 18
     offset: 41
+    end_line: 2
+    end_col: 21
+    end_offset: 44
   }
   text: "Char"
 }
@@ -120,6 +159,9 @@ tokens {
     line: 2
     col: 22
     offset: 45
+    end_line: 2
+    end_col: 22
+    end_offset: 45
   }
   text: ")"
 }
@@ -129,6 +171,9 @@ tokens {
     line: 4
     col: 1
     offset: 48
+    end_line: 4
+    end_col: 4
+    end_offset: 51
   }
   text: "func"
 }
@@ -138,6 +183,9 @@ tokens {
     line: 4
     col: 6
     offset: 53
+    end_line: 4
+    end_col: 12
+    end_offset: 59
   }
   text: "isPrime"
 }
@@ -147,6 +195,9 @@ tokens {
     line: 4
     col: 13
     offset: 60
+    end_line: 4
+    end_col: 13
+    end_offset: 60
   }
   text: "("
 }
@@ -156,6 +207,9 @@ tokens {
     line: 4
     col: 14
     offset: 61
+    end_line: 4
+    end_col: 14
+    end_offset: 61
   }
   text: "n"
 }
@@ -165,6 +219,9 @@ tokens {
     line: 4
     col: 15
     offset: 62
+    end_line: 4
+    end_col: 15
+    end_offset: 62
   }
   text: ":"
 }
@@ -174,6 +231,9 @@ tokens {
     line: 4
     col: 17
     offset: 64
+    end_line: 4
+    end_col: 19
+    end_offset: 66
   }
   text: "Int"
 }
@@ -183,6 +243,9 @@ tokens {
     line: 4
     col: 20
     offset: 67
+    end_line: 4
+    end_col: 20
+    end_offset: 67
   }
   text: ")"
 }
@@ -192,6 +255,9 @@ tokens {
     line: 4
     col: 22
     offset: 69
+    end_line: 4
+    end_col: 23
+    end_offset: 70
   }
   text: "->"
 }
@@ -201,6 +267,9 @@ tokens {
     line: 4
     col: 25
     offset: 72
+    end_line: 4
+    end_col: 31
+    end_offset: 78
   }
   text: "Boolean"
 }
@@ -210,6 +279,9 @@ tokens {
     line: 4
     col: 33
     offset: 80
+    end_line: 4
+    end_col: 33
+    end_offset: 80
   }
   text: "{"
 }
@@ -219,6 +291,9 @@ tokens {
     line: 5
     col: 3
     offset: 84
+    end_line: 5
+    end_col: 3
+    end_offset: 84
   }
   text: "p"
 }
@@ -228,6 +303,9 @@ tokens {
     line: 5
     col: 4
     offset: 85
+    end_line: 5
+    end_col: 4
+    end_offset: 85
   }
   text: ":"
 }
@@ -237,6 +315,9 @@ tokens {
     line: 5
     col: 6
     offset: 87
+    end_line: 5
+    end_col: 8
+    end_offset: 89
   }
   text: "Int"
 }
@@ -246,6 +327,9 @@ tokens {
     line: 5
     col: 10
     offset: 91
+    end_line: 5
+    end_col: 10
+    end_offset: 91
   }
   text: "="
 }
@@ -255,6 +339,9 @@ tokens {
     line: 5
     col: 12
     offset: 93
+    end_line: 5
+    end_col: 12
+    end_offset: 93
   }
   text: "1"
 }
@@ -264,6 +351,9 @@ tokens {
     line: 5
     col: 13
     offset: 94
+    end_line: 5
+    end_col: 13
+    end_offset: 94
   }
   text: ";"
 }
@@ -273,6 +363,9 @@ tokens {
     line: 6
     col: 3
     offset: 98
+    end_line: 6
+    end_col: 5
+    end_offset: 100
   }
   text: "for"
 }
@@ -282,6 +375,9 @@ tokens {
     line: 6
     col: 7
     offset: 102
+    end_line: 6
+    end_col: 7
+    end_offset: 102
   }
   text: "("
 }
@@ -291,6 +387,9 @@ tokens {
     line: 6
     col: 8
     offset: 103
+    end_line: 6
+    end_col: 8
+    end_offset: 103
   }
   text: "i"
 }
@@ -300,6 +399,9 @@ tokens {
     line: 6
     col: 9
     offset: 104
+    end_line: 6
+    end_col: 9
+    end_offset: 104
   }
   text: ":"
 }
@@ -309,6 +411,9 @@ tokens {
     line: 6
     col: 11
     offset: 106
+    end_line: 6
+    end_col: 13
+    end_offset: 108
   }
   text: "Int"
 }
@@ -318,6 +423,9 @@ tokens {
     line: 6
     col: 15
     offset: 110
+    end_line: 6
+    end_col: 15
+    end_offset: 110
   }
   text: "="
 }
@@ -327,6 +435,9 @@ tokens {
     line: 6
     col: 17
     offset: 112
+    end_line: 6
+    end_col: 17
+    end_offset: 112
   }
   text: "2"
 }
@@ -336,6 +447,9 @@ tokens {
     line: 6
     col: 18
     offset: 113
+    end_line: 6
+    end_col: 18
+    end_offset: 113
   }
   text: ";"
 }
@@ -345,6 +459,9 @@ tokens {
     line: 6
     col: 20
     offset: 115
+    end_line: 6
+    end_col: 20
+    end_offset: 115
   }
   text: "i"
 }
@@ -354,6 +471,9 @@ tokens {
     line: 6
     col: 22
     offset: 117
+    end_line: 6
+    end_col: 22
+    end_offset: 117
   }
   text: "*"
 }
@@ -363,6 +483,9 @@ tokens {
     line: 6
     col: 24
     offset: 119
+    end_line: 6
+    end_col: 24
+    end_offset: 119
   }
   text: "i"
 }
@@ -372,6 +495,9 @@ tokens {
     line: 6
     col: 26
     offset: 121
+    end_line: 6
+    end_col: 27
+    end_offset: 122
   }
   text: "<="
 }
@@ -381,6 +507,9 @@ tokens {
     line: 6
     col: 29
     offset: 124
+    end_line: 6
+    end_col: 29
+    end_offset: 124
   }
   text: "n"
 }
@@ -390,6 +519,9 @@ tokens {
     line: 6
     col: 30
     offset: 125
+    end_line: 6
+    end_col: 30
+    end_offset: 125
   }
   text: ";"
 }
@@ -399,24 +531,57 @@ tokens {
     line: 6
     col: 32
     offset: 127
+    end_line: 6
+    end_col: 32
+    end_offset: 127
   }
   text: "i"
 }
 tokens {
-  kind: PLUS_EQUALS
+  kind: ASSIGN
   position {
     line: 6
     col: 34
     offset: 129
+    end_line: 6
+    end_col: 34
+    end_offset: 129
   }
-  text: "+="
+  text: "="
+}
+tokens {
+  kind: IDENTIFIER
+  position {
+    line: 6
+    col: 36
+    offset: 131
+    end_line: 6
+    end_col: 36
+    end_offset: 131
+  }
+  text: "i"
+}
+tokens {
+  kind: PLUS
+  position {
+    line: 6
+    col: 38
+    offset: 133
+    end_line: 6
+    end_col: 38
+    end_offset: 133
+  }
+  text: "+"
 }
 tokens {
   kind: INT_LIT
   position {
     line: 6
-    col: 37
-    offset: 132
+    col: 40
+    offset: 135
+    end_line: 6
+    end_col: 40
+    end_offset: 135
   }
   text: "1"
 }
@@ -424,8 +589,11 @@ tokens {
   kind: RPAREN
   position {
     line: 6
-    col: 38
-    offset: 133
+    col: 41
+    offset: 136
+    end_line: 6
+    end_col: 41
+    end_offset: 136
   }
   text: ")"
 }
@@ -433,8 +601,11 @@ tokens {
   kind: LBRACE
   position {
     line: 6
-    col: 40
-    offset: 135
+    col: 43
+    offset: 138
+    end_line: 6
+    end_col: 43
+    end_offset: 138
   }
   text: "{"
 }
@@ -443,7 +614,10 @@ tokens {
   position {
     line: 7
     col: 5
-    offset: 141
+    offset: 144
+    end_line: 7
+    end_col: 6
+    end_offset: 145
   }
   text: "if"
 }
@@ -452,7 +626,10 @@ tokens {
   position {
     line: 7
     col: 8
-    offset: 144
+    offset: 147
+    end_line: 7
+    end_col: 8
+    end_offset: 147
   }
   text: "("
 }
@@ -461,7 +638,10 @@ tokens {
   position {
     line: 7
     col: 9
-    offset: 145
+    offset: 148
+    end_line: 7
+    end_col: 9
+    end_offset: 148
   }
   text: "n"
 }
@@ -470,7 +650,10 @@ tokens {
   position {
     line: 7
     col: 11
-    offset: 147
+    offset: 150
+    end_line: 7
+    end_col: 11
+    end_offset: 150
   }
   text: "%"
 }
@@ -479,7 +662,10 @@ tokens {
   position {
     line: 7
     col: 13
-    offset: 149
+    offset: 152
+    end_line: 7
+    end_col: 13
+    end_offset: 152
   }
   text: "i"
 }
@@ -488,7 +674,10 @@ tokens {
   position {
     line: 7
     col: 15
-    offset: 151
+    offset: 154
+    end_line: 7
+    end_col: 16
+    end_offset: 155
   }
   text: "=="
 }
@@ -497,7 +686,10 @@ tokens {
   position {
     line: 7
     col: 18
-    offset: 154
+    offset: 157
+    end_line: 7
+    end_col: 18
+    end_offset: 157
   }
   text: "0"
 }
@@ -506,7 +698,10 @@ tokens {
   position {
     line: 7
     col: 19
-    offset: 155
+    offset: 158
+    end_line: 7
+    end_col: 19
+    end_offset: 158
   }
   text: ")"
 }
@@ -515,7 +710,10 @@ tokens {
   position {
     line: 7
     col: 21
-    offset: 157
+    offset: 160
+    end_line: 7
+    end_col: 21
+    end_offset: 160
   }
   text: "{"
 }
@@ -524,7 +722,10 @@ tokens {
   position {
     line: 8
     col: 7
-    offset: 165
+    offset: 168
+    end_line: 8
+    end_col: 12
+    end_offset: 173
   }
   text: "return"
 }
@@ -533,7 +734,10 @@ tokens {
   position {
     line: 8
     col: 14
-    offset: 172
+    offset: 175
+    end_line: 8
+    end_col: 18
+    end_offset: 179
   }
   text: "false"
 }
@@ -542,7 +746,10 @@ tokens {
   position {
     line: 8
     col: 19
-    offset: 177
+    offset: 180
+    end_line: 8
+    end_col: 19
+    end_offset: 180
   }
   text: ";"
 }
@@ -551,7 +758,10 @@ tokens {
   position {
     line: 9
     col: 5
-    offset: 183
+    offset: 186
+    end_line: 9
+    end_col: 5
+    end_offset: 186
   }
   text: "}"
 }
@@ -560,7 +770,10 @@ tokens {
   position {
     line: 10
     col: 3
-    offset: 187
+    offset: 190
+    end_line: 10
+    end_col: 3
+    end_offset: 190
   }
   text: "}"
 }
@@ -569,7 +782,10 @@ tokens {
   position {
     line: 11
     col: 3
-    offset: 191
+    offset: 194
+    end_line: 11
+    end_col: 8
+    end_offset: 199
   }
   text: "return"
 }
@@ -578,7 +794,10 @@ tokens {
   position {
     line: 11
     col: 10
-    offset: 198
+    offset: 201
+    end_line: 11
+    end_col: 13
+    end_offset: 204
   }
   text: "true"
 }
@@ -587,7 +806,10 @@ tokens {
   position {
     line: 11
     col: 14
-    offset: 202
+    offset: 205
+    end_line: 11
+    end_col: 14
+    end_offset: 205
   }
   text: ";"
 }
@@ -596,7 +818,10 @@ tokens {
   position {
     line: 12
     col: 1
-    offset: 204
+    offset: 207
+    end_line: 12
+    end_col: 1
+    end_offset: 207
   }
   text: "}"
 }
@@ -605,7 +830,10 @@ tokens {
   position {
     line: 14
     col: 1
-    offset: 207
+    offset: 210
+    end_line: 14
+    end_col: 4
+    end_offset: 213
   }
   text: "func"
 }
@@ -614,7 +842,10 @@ tokens {
   position {
     line: 14
     col: 6
-    offset: 212
+    offset: 215
+    end_line: 14
+    end_col: 9
+    end_offset: 218
   }
   text: "main"
 }
@@ -623,7 +854,10 @@ tokens {
   position {
     line: 14
     col: 11
-    offset: 217
+    offset: 220
+    end_line: 14
+    end_col: 11
+    end_offset: 220
   }
   text: "{"
 }
@@ -632,7 +866,10 @@ tokens {
   position {
     line: 15
     col: 3
-    offset: 221
+    offset: 224
+    end_line: 15
+    end_col: 5
+    end_offset: 226
   }
   text: "for"
 }
@@ -641,7 +878,10 @@ tokens {
   position {
     line: 15
     col: 7
-    offset: 225
+    offset: 228
+    end_line: 15
+    end_col: 7
+    end_offset: 228
   }
   text: "("
 }
@@ -650,7 +890,10 @@ tokens {
   position {
     line: 15
     col: 8
-    offset: 226
+    offset: 229
+    end_line: 15
+    end_col: 8
+    end_offset: 229
   }
   text: "n"
 }
@@ -659,7 +902,10 @@ tokens {
   position {
     line: 15
     col: 9
-    offset: 227
+    offset: 230
+    end_line: 15
+    end_col: 9
+    end_offset: 230
   }
   text: ":"
 }
@@ -668,7 +914,10 @@ tokens {
   position {
     line: 15
     col: 11
-    offset: 229
+    offset: 232
+    end_line: 15
+    end_col: 13
+    end_offset: 234
   }
   text: "Int"
 }
@@ -677,7 +926,10 @@ tokens {
   position {
     line: 15
     col: 15
-    offset: 233
+    offset: 236
+    end_line: 15
+    end_col: 15
+    end_offset: 236
   }
   text: "="
 }
@@ -686,7 +938,10 @@ tokens {
   position {
     line: 15
     col: 17
-    offset: 235
+    offset: 238
+    end_line: 15
+    end_col: 18
+    end_offset: 239
   }
   text: "90"
 }
@@ -695,7 +950,10 @@ tokens {
   position {
     line: 15
     col: 19
-    offset: 237
+    offset: 240
+    end_line: 15
+    end_col: 19
+    end_offset: 240
   }
   text: ";"
 }
@@ -704,7 +962,10 @@ tokens {
   position {
     line: 15
     col: 21
-    offset: 239
+    offset: 242
+    end_line: 15
+    end_col: 21
+    end_offset: 242
   }
   text: "n"
 }
@@ -713,7 +974,10 @@ tokens {
   position {
     line: 15
     col: 23
-    offset: 241
+    offset: 244
+    end_line: 15
+    end_col: 23
+    end_offset: 244
   }
   text: "<"
 }
@@ -722,7 +986,10 @@ tokens {
   position {
     line: 15
     col: 25
-    offset: 243
+    offset: 246
+    end_line: 15
+    end_col: 27
+    end_offset: 248
   }
   text: "100"
 }
@@ -731,7 +998,10 @@ tokens {
   position {
     line: 15
     col: 28
-    offset: 246
+    offset: 249
+    end_line: 15
+    end_col: 28
+    end_offset: 249
   }
   text: ";"
 }
@@ -740,7 +1010,10 @@ tokens {
   position {
     line: 15
     col: 30
-    offset: 248
+    offset: 251
+    end_line: 15
+    end_col: 30
+    end_offset: 251
   }
   text: "n"
 }
@@ -749,7 +1022,10 @@ tokens {
   position {
     line: 15
     col: 32
-    offset: 250
+    offset: 253
+    end_line: 15
+    end_col: 32
+    end_offset: 253
   }
   text: "="
 }
@@ -758,7 +1034,10 @@ tokens {
   position {
     line: 15
     col: 34
-    offset: 252
+    offset: 255
+    end_line: 15
+    end_col: 34
+    end_offset: 255
   }
   text: "n"
 }
@@ -767,7 +1046,10 @@ tokens {
   position {
     line: 15
     col: 36
-    offset: 254
+    offset: 257
+    end_line: 15
+    end_col: 36
+    end_offset: 257
   }
   text: "+"
 }
@@ -776,7 +1058,10 @@ tokens {
   position {
     line: 15
     col: 38
-    offset: 256
+    offset: 259
+    end_line: 15
+    end_col: 38
+    end_offset: 259
   }
   text: "1"
 }
@@ -785,7 +1070,10 @@ tokens {
   position {
     line: 15
     col: 39
-    offset: 257
+    offset: 260
+    end_line: 15
+    end_col: 39
+    end_offset: 260
   }
   text: ")"
 }
@@ -794,7 +1082,10 @@ tokens {
   position {
     line: 15
     col: 41
-    offset: 259
+    offset: 262
+    end_line: 15
+    end_col: 41
+    end_offset: 262
   }
   text: "{"
 }
@@ -803,7 +1094,10 @@ tokens {
   position {
     line: 16
     col: 5
-    offset: 265
+    offset: 268
+    end_line: 16
+    end_col: 12
+    end_offset: 275
   }
   text: "printInt"
 }
@@ -812,7 +1106,10 @@ tokens {
   position {
     line: 16
     col: 13
-    offset: 273
+    offset: 276
+    end_line: 16
+    end_col: 13
+    end_offset: 276
   }
   text: "("
 }
@@ -821,7 +1118,10 @@ tokens {
   position {
     line: 16
     col: 14
-    offset: 274
+    offset: 277
+    end_line: 16
+    end_col: 14
+    end_offset: 277
   }
   text: "n"
 }
@@ -830,7 +1130,10 @@ tokens {
   position {
     line: 16
     col: 15
-    offset: 275
+    offset: 278
+    end_line: 16
+    end_col: 15
+    end_offset: 278
   }
   text: ")"
 }
@@ -839,7 +1142,10 @@ tokens {
   position {
     line: 16
     col: 16
-    offset: 276
+    offset: 279
+    end_line: 16
+    end_col: 16
+    end_offset: 279
   }
   text: ";"
 }
@@ -848,7 +1154,10 @@ tokens {
   position {
     line: 17
     col: 5
-    offset: 282
+    offset: 285
+    end_line: 17
+    end_col: 9
+    end_offset: 289
   }
   text: "print"
 }
@@ -857,7 +1166,10 @@ tokens {
   position {
     line: 17
     col: 10
-    offset: 287
+    offset: 290
+    end_line: 17
+    end_col: 10
+    end_offset: 290
   }
   text: "("
 }
@@ -866,7 +1178,10 @@ tokens {
   position {
     line: 17
     col: 11
-    offset: 288
+    offset: 291
+    end_line: 17
+    end_col: 13
+    end_offset: 293
   }
   text: "\' \'"
 }
@@ -875,7 +1190,10 @@ tokens {
   position {
     line: 17
     col: 14
-    offset: 291
+    offset: 294
+    end_line: 17
+    end_col: 14
+    end_offset: 294
   }
   text: ")"
 }
@@ -884,7 +1202,10 @@ tokens {
   position {
     line: 17
     col: 15
-    offset: 292
+    offset: 295
+    end_line: 17
+    end_col: 15
+    end_offset: 295
   }
   text: ";"
 }
@@ -893,7 +1214,10 @@ tokens {
   position {
     line: 18
     col: 5
-    offset: 298
+    offset: 301
+    end_line: 18
+    end_col: 6
+    end_offset: 302
   }
   text: "if"
 }
@@ -902,7 +1226,10 @@ tokens {
   position {
     line: 18
     col: 8
-    offset: 301
+    offset: 304
+    end_line: 18
+    end_col: 8
+    end_offset: 304
   }
   text: "("
 }
@@ -911,7 +1238,10 @@ tokens {
   position {
     line: 18
     col: 9
-    offset: 302
+    offset: 305
+    end_line: 18
+    end_col: 15
+    end_offset: 311
   }
   text: "isPrime"
 }
@@ -920,7 +1250,10 @@ tokens {
   position {
     line: 18
     col: 16
-    offset: 309
+    offset: 312
+    end_line: 18
+    end_col: 16
+    end_offset: 312
   }
   text: "("
 }
@@ -929,7 +1262,10 @@ tokens {
   position {
     line: 18
     col: 17
-    offset: 310
+    offset: 313
+    end_line: 18
+    end_col: 17
+    end_offset: 313
   }
   text: "n"
 }
@@ -938,7 +1274,10 @@ tokens {
   position {
     line: 18
     col: 18
-    offset: 311
+    offset: 314
+    end_line: 18
+    end_col: 18
+    end_offset: 314
   }
   text: ")"
 }
@@ -947,7 +1286,10 @@ tokens {
   position {
     line: 18
     col: 19
-    offset: 312
+    offset: 315
+    end_line: 18
+    end_col: 19
+    end_offset: 315
   }
   text: ")"
 }
@@ -956,7 +1298,10 @@ tokens {
   position {
     line: 18
     col: 21
-    offset: 314
+    offset: 317
+    end_line: 18
+    end_col: 21
+    end_offset: 317
   }
   text: "{"
 }
@@ -965,7 +1310,10 @@ tokens {
   position {
     line: 19
     col: 9
-    offset: 324
+    offset: 327
+    end_line: 19
+    end_col: 16
+    end_offset: 334
   }
   text: "printInt"
 }
@@ -974,7 +1322,10 @@ tokens {
   position {
     line: 19
     col: 17
-    offset: 332
+    offset: 335
+    end_line: 19
+    end_col: 17
+    end_offset: 335
   }
   text: "("
 }
@@ -983,7 +1334,10 @@ tokens {
   position {
     line: 19
     col: 18
-    offset: 333
+    offset: 336
+    end_line: 19
+    end_col: 18
+    end_offset: 336
   }
   text: "1"
 }
@@ -992,7 +1346,10 @@ tokens {
   position {
     line: 19
     col: 19
-    offset: 334
+    offset: 337
+    end_line: 19
+    end_col: 19
+    end_offset: 337
   }
   text: ")"
 }
@@ -1001,7 +1358,10 @@ tokens {
   position {
     line: 19
     col: 20
-    offset: 335
+    offset: 338
+    end_line: 19
+    end_col: 20
+    end_offset: 338
   }
   text: ";"
 }
@@ -1010,7 +1370,10 @@ tokens {
   position {
     line: 20
     col: 5
-    offset: 341
+    offset: 344
+    end_line: 20
+    end_col: 5
+    end_offset: 344
   }
   text: "}"
 }
@@ -1019,7 +1382,10 @@ tokens {
   position {
     line: 20
     col: 7
-    offset: 343
+    offset: 346
+    end_line: 20
+    end_col: 10
+    end_offset: 349
   }
   text: "else"
 }
@@ -1028,7 +1394,10 @@ tokens {
   position {
     line: 20
     col: 12
-    offset: 348
+    offset: 351
+    end_line: 20
+    end_col: 12
+    end_offset: 351
   }
   text: "{"
 }
@@ -1037,7 +1406,10 @@ tokens {
   position {
     line: 21
     col: 9
-    offset: 358
+    offset: 361
+    end_line: 21
+    end_col: 16
+    end_offset: 368
   }
   text: "printInt"
 }
@@ -1046,7 +1418,10 @@ tokens {
   position {
     line: 21
     col: 17
-    offset: 366
+    offset: 369
+    end_line: 21
+    end_col: 17
+    end_offset: 369
   }
   text: "("
 }
@@ -1055,7 +1430,10 @@ tokens {
   position {
     line: 21
     col: 18
-    offset: 367
+    offset: 370
+    end_line: 21
+    end_col: 18
+    end_offset: 370
   }
   text: "0"
 }
@@ -1064,7 +1442,10 @@ tokens {
   position {
     line: 21
     col: 19
-    offset: 368
+    offset: 371
+    end_line: 21
+    end_col: 19
+    end_offset: 371
   }
   text: ")"
 }
@@ -1073,7 +1454,10 @@ tokens {
   position {
     line: 21
     col: 20
-    offset: 369
+    offset: 372
+    end_line: 21
+    end_col: 20
+    end_offset: 372
   }
   text: ";"
 }
@@ -1082,7 +1466,10 @@ tokens {
   position {
     line: 22
     col: 5
-    offset: 375
+    offset: 378
+    end_line: 22
+    end_col: 5
+    end_offset: 378
   }
   text: "}"
 }
@@ -1091,7 +1478,10 @@ tokens {
   position {
     line: 23
     col: 5
-    offset: 381
+    offset: 384
+    end_line: 23
+    end_col: 9
+    end_offset: 388
   }
   text: "print"
 }
@@ -1100,7 +1490,10 @@ tokens {
   position {
     line: 23
     col: 10
-    offset: 386
+    offset: 389
+    end_line: 23
+    end_col: 10
+    end_offset: 389
   }
   text: "("
 }
@@ -1109,7 +1502,10 @@ tokens {
   position {
     line: 23
     col: 11
-    offset: 387
+    offset: 390
+    end_line: 23
+    end_col: 14
+    end_offset: 393
   }
   text: "\'\\n\'"
 }
@@ -1118,7 +1514,10 @@ tokens {
   position {
     line: 23
     col: 15
-    offset: 391
+    offset: 394
+    end_line: 23
+    end_col: 15
+    end_offset: 394
   }
   text: ")"
 }
@@ -1127,7 +1526,10 @@ tokens {
   position {
     line: 23
     col: 16
-    offset: 392
+    offset: 395
+    end_line: 23
+    end_col: 16
+    end_offset: 395
   }
   text: ";"
 }
@@ -1136,7 +1538,10 @@ tokens {
   position {
     line: 24
     col: 3
-    offset: 396
+    offset: 399
+    end_line: 24
+    end_col: 3
+    end_offset: 399
   }
   text: "}"
 }
@@ -1145,7 +1550,10 @@ tokens {
   position {
     line: 25
     col: 1
-    offset: 398
+    offset: 401
+    end_line: 25
+    end_col: 1
+    end_offset: 401
   }
   text: "}"
 }
