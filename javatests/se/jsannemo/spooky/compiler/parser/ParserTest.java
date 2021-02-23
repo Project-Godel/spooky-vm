@@ -132,6 +132,8 @@ public class ParserTest {
   public void testExpressions() {
     // Assign
     assertOk("func x{ a += b /= c *= d -= e %= f = g;}");
+    assertOk("func x{ a.b = c ;}");
+    assertOk("func x{ a[b] = c ;}");
 
     // Ternary
     assertOk("func x{ a ? b : c ? d : e ? f : g;}");
@@ -223,6 +225,7 @@ public class ParserTest {
     assertOk("func x{ x: Int = {x: y}; }");
     assertOk("func x{ x: Int = {x: y, z: w}; }");
     assertOk("func x{ x: Int = default; }");
+    assertOk("struct hej{ fisk: Int[1]; } func blah { x: hej = {fisk: [5]}; }");
 
     assertErr("func x{ x = default; }", "Unexpected default");
     assertErr("func x{ x = {}; }", "Unexpected {");
@@ -235,18 +238,17 @@ public class ParserTest {
   @Test
   public void testArrayInits() {
     assertOk("func x{ x: Int[] = []; }");
-    assertOk("func x{ x: Int[] = [5]; }");
-    assertOk("func x{ x: Int[] = [5]default; }");
-    assertOk("func x{ x: Int[] = [5]{x, {blah: hej}, ...}; }");
-    assertOk("func x{ x: Int[] = [5]{x, ...default}; }");
-    assertOk("func x{ x: Int[] = [7][8]; }");
-    assertOk("func x{ x: Int[] = [7][8]{{...}}; }");
-    assertOk("func x{ x: Int[][] = [9][11]{{2, ...default},  {1, ...}, ...}; }");
-    assertOk("func x{ x: Int[][] = [15][12]{{...},  {1, {}, ...}, ...default}; }");
+    assertOk("func x{ x: Int[5] = [...]; }");
+    assertOk("func x{ x: Int[5] = default; }");
+    assertOk("func x{ x: Int[5] = [x, {blah: hej}, ...]; }");
+    assertOk("func x{ x: Int[5] = [x, ...default]; }");
+    assertOk("func x{ x: Int[7][8] = [[...]]; }");
+    assertOk("func x{ x: Int[7][8] = [[...]]; }");
+    assertOk("func x{ x: Int[9][11] = [[2, ...default],  [1, ...], ...]; }");
+    assertOk("func x{ x: Int[15][12] = [[...],  [1, {}, ...], ...default]; }");
 
-    assertErr("func x{ x: Int[] = [5]1; }", "Expected ;");
-    assertErr("func x{ x: Int[] = [5]{default...}; }", "Expected }");
-    assertErr("func x{ x: Int[] = [5]{{...}}; }", "Expected }");
+    assertErr("func x{ x: Int[5] = {default...}; }", "Expected }");
+    assertErr("func x{ x: Int[5] = {{...}}; }", "Expected }");
   }
 
   private static void assertOk(String s) {
@@ -268,7 +270,7 @@ public class ParserTest {
   }
 
   @Test
-  public void testParser() throws IOException {
+  public void testExamplePrograms() throws IOException {
     TestCases cases =
         TextFormat.parse(
             Files.readString(Paths.get("test_programs/tests.textproto"), StandardCharsets.UTF_8),

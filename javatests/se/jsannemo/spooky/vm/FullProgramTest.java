@@ -39,8 +39,6 @@ public class FullProgramTest {
                   Files.readString(
                       Paths.get("test_programs/sources/" + tc.getName()), StandardCharsets.UTF_8)),
               parseErr);
-      System.err.println(tc.getName());
-      System.err.println(parsed);
       if (tc.getFailure() == FailureMode.RUNTIME
           || tc.getFailure() == FailureMode.FAILURE_MODE_UNSPECIFIED) {
         Truth.assertWithMessage(tc.getName() + " parsing errors").that(parseErr.errors()).isEmpty();

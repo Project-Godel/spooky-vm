@@ -252,8 +252,18 @@ functions {
       body {
         expression {
           assignment {
-            variable {
-              name: "a"
+            reference {
+              reference {
+                name: "a"
+                position {
+                  line: 9
+                  col: 21
+                  offset: 96
+                  end_line: 9
+                  end_col: 21
+                  end_offset: 96
+                }
+              }
               position {
                 line: 9
                 col: 21
@@ -286,15 +296,29 @@ functions {
             }
             position {
               line: 9
-              col: 21
-              offset: 96
+              col: 23
+              offset: 98
               end_line: 9
               end_col: 25
               end_offset: 100
             }
           }
+          position {
+            line: 9
+            col: 23
+            offset: 98
+            end_line: 9
+            end_col: 25
+            end_offset: 100
+          }
         }
         position {
+          line: 9
+          col: 23
+          offset: 98
+          end_line: 9
+          end_col: 25
+          end_offset: 100
         }
       }
       position {
@@ -383,8 +407,18 @@ functions {
       body {
         expression {
           assignment {
-            variable {
-              name: "a"
+            reference {
+              reference {
+                name: "a"
+                position {
+                  line: 10
+                  col: 22
+                  offset: 126
+                  end_line: 10
+                  end_col: 22
+                  end_offset: 126
+                }
+              }
               position {
                 line: 10
                 col: 22
@@ -417,15 +451,29 @@ functions {
             }
             position {
               line: 10
-              col: 22
-              offset: 126
+              col: 24
+              offset: 128
               end_line: 10
               end_col: 26
               end_offset: 130
             }
           }
+          position {
+            line: 10
+            col: 24
+            offset: 128
+            end_line: 10
+            end_col: 26
+            end_offset: 130
+          }
         }
         position {
+          line: 10
+          col: 24
+          offset: 128
+          end_line: 10
+          end_col: 26
+          end_offset: 130
         }
       }
       position {
@@ -507,3 +555,4 @@ externs {
     end_offset: 21
   }
 }
+valid: true

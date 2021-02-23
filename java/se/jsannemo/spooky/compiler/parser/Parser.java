@@ -39,7 +39,7 @@ public final class Parser {
   private final Tokenizer toks;
   private final Errors err;
   private final CircularQueue<Ast.Token> lookahead = CircularQueue.withCapacity(3);
-  private final Ast.Program.Builder program = Ast.Program.newBuilder();
+  private final Ast.Program.Builder program = Ast.Program.newBuilder().setValid(true);
   // The last token that was eat()en.
   private Ast.Token last;
 
@@ -325,78 +325,36 @@ public final class Parser {
   private Ast.Expr arrayInit() {
     Ast.Expr.Builder expr = Ast.Expr.newBuilder();
     Ast.ArrayLit.Builder array = expr.getArrayBuilder();
-    while (peek().getKind() == Ast.Token.Kind.LBRACKET) {
-      Ast.ArrayLit.Dimension.Builder dim = array.addDimensionsBuilder();
-      eat(dim.getPositionBuilder());
-      if (peek().getKind() == Ast.Token.Kind.RBRACKET) {
-        dim.setInferred(Empty.getDefaultInstance());
-      } else {
-        Optional<Ast.Expr> dimension = expression();
-        dimension.ifPresent(
-            ex -> {
-              dim.setExpression(ex);
-              appendPos(dim.getPositionBuilder(), ex.getPosition());
-            });
-      }
-      if (eatIfExpected("Expected ]", Ast.Token.Kind.RBRACKET, dim.getPositionBuilder()) == null) {
-        eatLineUntil(last, ImmutableSet.of(Ast.Token.Kind.SEMICOLON));
-      }
-      appendPos(array.getPositionBuilder(), dim.getPosition());
-    }
-    arrayValues(array);
-    return expr.setPosition(array.getPosition()).build();
-  }
-
-  private void arrayValues(Ast.ArrayLit.Builder array) {
-    if (peek().getKind() == Ast.Token.Kind.LBRACE) {
-      eat(array.getPositionBuilder());
-      while (true) {
-        boolean isFill = peek().getKind() == Ast.Token.Kind.ELLIPSIS;
-        Ast.Expr.Builder nextValue;
-        if (isFill) {
-          eat(array.getPositionBuilder());
-          array.setShouldFill(true);
-          if (peek().getKind() == Ast.Token.Kind.RBRACE) {
-            break;
-          }
-          nextValue = array.getFillBuilder();
-        } else {
-          nextValue = array.addValuesBuilder();
-        }
-        if (!arrayValue(array, nextValue) || isFill) {
+    eatIfExpected("Expected [", Ast.Token.Kind.LBRACKET, array.getPositionBuilder());
+    while (peek().getKind() != Ast.Token.Kind.RBRACKET) {
+      boolean isFill = peek().getKind() == Ast.Token.Kind.ELLIPSIS;
+      Ast.Expr.Builder nextValue;
+      if (isFill) {
+        eat(array.getPositionBuilder());
+        array.setShouldFill(true);
+        if (peek().getKind() == Ast.Token.Kind.RBRACKET) {
           break;
         }
+        nextValue = array.getFillBuilder();
+      } else {
+        nextValue = array.addValuesBuilder();
       }
-      eatIfExpected("Expected }", Ast.Token.Kind.RBRACE, array.getPositionBuilder());
-    } else if (peek().getKind() == Ast.Token.Kind.DEFAULT) {
-      Ast.Expr fill = defaultInit();
-      array.setFill(fill);
-      appendPos(array.getPositionBuilder(), fill.getPosition());
-    }
-  }
-
-  private boolean arrayValue(Ast.ArrayLit.Builder array, Ast.Expr.Builder valueBuilder) {
-    // This is a multidimensional array; any {}-delimited values that is used in the initializer is
-    // another array with one fewer dimension.
-    if (peek().getKind() == Ast.Token.Kind.LBRACE && array.getDimensionsCount() > 1) {
-      Ast.ArrayLit.Builder subarray = valueBuilder.getArrayBuilder();
-      subarray.addAllDimensions(array.getDimensionsList().subList(1, array.getDimensionsCount()));
-      arrayValues(subarray);
-      valueBuilder.setPosition(subarray.getPosition());
-      appendPos(array.getPositionBuilder(), valueBuilder.getPosition());
-    } else {
       Optional<Ast.Expr> val = initVal();
       val.ifPresent(
           v -> {
-            valueBuilder.mergeFrom(v);
+            nextValue.mergeFrom(v);
             appendPos(array.getPositionBuilder(), v.getPosition());
           });
+      if (val.isEmpty() || isFill) {
+        break;
+      }
+      if (peek().getKind() != Ast.Token.Kind.COMMA) {
+        break;
+      }
+      eat(array.getPositionBuilder());
     }
-    if (peek().getKind() != Ast.Token.Kind.COMMA) {
-      return false;
-    }
-    eat(array.getPositionBuilder());
-    return true;
+    eatIfExpected("Expected ]", Ast.Token.Kind.RBRACKET, array.getPositionBuilder());
+    return expr.setPosition(array.getPosition()).build();
   }
 
   private Optional<Ast.Statement> returnStmt() {
@@ -564,26 +522,23 @@ public final class Parser {
           .build();
 
   private Optional<Ast.Expr> assignment() {
-    if (peek().getKind() == Ast.Token.Kind.IDENTIFIER
-        && assignments.containsKey(peek(1).getKind())) {
+    Optional<Ast.Expr> lhs = ternary();
+    if (lhs.isPresent() && assignments.containsKey(peek().getKind())) {
       Ast.Expr.Builder expr = Ast.Expr.newBuilder();
-      Ast.Assignment.Builder assign = expr.getAssignmentBuilder();
-
-      Ast.Identifier name = identifier("Expected identifier", assign.getPositionBuilder()).get();
-      assign.setVariable(name);
-
+      Ast.Assignment.Builder assign = expr.getAssignmentBuilder().setReference(lhs.get());
       Ast.Token opTok = eat(assign.getPositionBuilder());
-      Ast.BinaryOp op = assignments.get(opTok.getKind());
-      Optional<Ast.Expr> value = assignment();
-      value.ifPresent(
-          v -> {
-            assign.setValue(v);
-            appendPos(assign.getPositionBuilder(), v.getPosition());
+      Optional<Ast.Expr> rhs = assignment();
+      rhs.ifPresent(
+          ex -> {
+            appendPos(assign.getPositionBuilder(), ex.getPosition());
+            assign.setValue(rhs.get());
           });
+      Ast.BinaryOp op = assignments.get(opTok.getKind());
       assign.setCompound(op);
+      expr.setPosition(assign.getPosition());
       return Optional.of(expr.build());
     }
-    return ternary();
+    return lhs;
   }
 
   private Optional<Ast.Expr> ternary() {
@@ -613,9 +568,8 @@ public final class Parser {
 
       builder.setPosition(cond.getPosition());
       return Optional.of(builder.build());
-    } else {
-      return e;
     }
+    return e;
   }
 
   private static final ImmutableMap<Ast.Token.Kind, Ast.BinaryOp> binOps =
@@ -923,14 +877,42 @@ public final class Parser {
       return Optional.empty();
     }
     builder.setName(nameOpt.get().getName());
-    int dim = 0;
     while (peek().getKind() == Ast.Token.Kind.LBRACKET) {
-      eat(builder.getPositionBuilder());
+      System.out.println("Is array!");
+      Ast.Token lbrack = eat(builder.getPositionBuilder());
+      if (peek().getKind() == Ast.Token.Kind.RBRACKET) {
+        eat(builder.getPositionBuilder());
+        builder
+            .addDimensionsBuilder()
+            .setInferred(Empty.getDefaultInstance())
+            .setPosition(lbrack.getPosition());
+        continue;
+      }
+      Optional<Ast.Expr> expression = expression();
+      if (expression.isEmpty()) {
+        if (peek().getKind() != Ast.Token.Kind.RBRACKET) {
+          eatLineUntil(
+              last,
+              ImmutableSet.of(
+                  Ast.Token.Kind.RBRACKET, Ast.Token.Kind.EQUALS, Ast.Token.Kind.COMMA));
+        }
+      } else {
+        Ast.Value dimValue = expression.get().getValue();
+        if (dimValue.getLiteralCase() != Ast.Value.LiteralCase.INT_LITERAL) {
+          errAt("Array dimensions must be integer constants", lbrack);
+        } else {
+          builder
+              .addDimensionsBuilder()
+              .setDimension(dimValue.getIntLiteral())
+              .setPosition(expression.get().getPosition())
+              .build();
+          appendPos(builder.getPositionBuilder(), dimValue.getPosition());
+        }
+      }
       eatIfExpected("Expected closing ]", Ast.Token.Kind.RBRACKET, builder.getPositionBuilder());
-      dim++;
     }
     appendPos(pos, builder.getPosition());
-    return Optional.of(builder.setDimension(dim).build());
+    return Optional.of(builder.build());
   }
 
   private Optional<Ast.Identifier> identifier(String error, Ast.Pos.Builder pos) {

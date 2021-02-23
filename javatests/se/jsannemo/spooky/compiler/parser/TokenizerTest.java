@@ -19,7 +19,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class TokenizerTest {
 
   @Test
-  public void testTokenizer() throws IOException {
+  public void testExamplePrograms() throws IOException {
     TestCases cases =
         TextFormat.parse(
             Files.readString(Paths.get("test_programs/tests.textproto"), StandardCharsets.UTF_8),

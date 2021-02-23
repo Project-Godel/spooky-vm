@@ -140,8 +140,18 @@ functions {
       body {
         expression {
           assignment {
-            variable {
-              name: "x"
+            reference {
+              reference {
+                name: "x"
+                position {
+                  line: 7
+                  col: 3
+                  offset: 70
+                  end_line: 7
+                  end_col: 3
+                  end_offset: 70
+                }
+              }
               position {
                 line: 7
                 col: 3
@@ -174,15 +184,29 @@ functions {
             }
             position {
               line: 7
-              col: 3
-              offset: 70
+              col: 5
+              offset: 72
               end_line: 7
               end_col: 8
               end_offset: 75
             }
           }
+          position {
+            line: 7
+            col: 5
+            offset: 72
+            end_line: 7
+            end_col: 8
+            end_offset: 75
+          }
         }
         position {
+          line: 7
+          col: 5
+          offset: 72
+          end_line: 7
+          end_col: 8
+          end_offset: 75
         }
       }
       body {
@@ -326,3 +350,4 @@ externs {
     end_offset: 22
   }
 }
+valid: true

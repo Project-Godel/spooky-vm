@@ -17,21 +17,20 @@ message Func {
   repeated Type variables = 1;
   repeated Type params = 2;
   Type returnType = 3;
-  Scope body = 4;
+  BasicBlock body = 4;
 }
 
-message Scope {
+message BasicBlock {
   repeated Statement body = 1;
 }
 
 message Statement {
   oneof statement {
-    Scope block = 1;
-    Conditional conditional = 2;
-    Loop loop = 3;
-    Expr expression = 4;
-    Returns returnValue = 5;
-    Halt halt = 6;
+    Conditional conditional = 1;
+    Loop loop = 2;
+    Expr expression = 3;
+    Returns returnValue = 4;
+    Halt halt = 5;
   }
 }
 
@@ -44,13 +43,13 @@ message Halt {
 
 message Loop {
   Expr condition = 1;
-  Scope body = 2;
+  BasicBlock body = 2;
 }
 
 message Conditional {
   Expr condition = 1;
-  Scope body = 2;
-  Scope elseBody = 3;
+  BasicBlock body = 2;
+  BasicBlock elseBody = 3;
 }
 
 message VarRef {
@@ -72,8 +71,38 @@ message Expr {
     Assignment assignment = 6;
     UnaryExpr unary = 7;
     Select select = 8;
+    ArrayInit array = 12;
+    StructInit struct = 11;
   }
   Type type = 9;
+  bool lvalue = 13;
+}
+
+message ArrayInit {
+  int32 total_size = 1;
+  Init init = 2;
+
+  message Init {
+    int32 dimension = 1;
+    oneof values {
+      ScalarArray scalars = 2;
+      SubArrays subarray = 3;
+    }
+  }
+
+  message ScalarArray {
+    repeated Expr values = 3;
+    Expr fill = 5;
+  }
+
+  message SubArrays {
+    repeated Init values = 3;
+    Init fill = 5;
+  }
+}
+
+message StructInit {
+  map<int32, Expr> values = 1;
 }
 
 message Select {
@@ -82,8 +111,9 @@ message Select {
 }
 
 message Assignment {
-  VarRef variable = 1;
+  Expr reference = 1;
   Expr value = 2;
+  BinaryOp operator = 3;
 }
 
 message Ternary {
@@ -135,6 +165,10 @@ enum UnaryOp {
   UNARY_OP_UNSPECIFIED = 0;
   NEGATE = 1;
   NOT = 2;
+  POSTFIX_INCREMENT = 3;
+  POSTFIX_DECREMENT = 4;
+  PREFIX_INCREMENT = 5;
+  PREFIX_DECREMENT = 6;
 }
 
 /** An expression computed using a binary operator on two sub-expressions. */
@@ -166,7 +200,7 @@ message Type {
   oneof type {
     Builtin builtin = 1;
     int32 struct = 2;
-    Type array = 3;
+    Array array = 3;
   }
 
   enum Builtin {
@@ -177,5 +211,11 @@ message Type {
     STRING = 4;
     VOID = 5;
     ERROR = 6;
+  }
+
+  message Array {
+    // Dimensions of 0 signify dimensions that are yet to be inferred.
+    repeated int32 dimensions = 1;
+    Type arrayOf = 2;
   }
 }

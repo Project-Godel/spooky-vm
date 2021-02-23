@@ -301,8 +301,18 @@ functions {
           increment {
             expression {
               assignment {
-                variable {
-                  name: "i"
+                reference {
+                  reference {
+                    name: "i"
+                    position {
+                      line: 6
+                      col: 32
+                      offset: 127
+                      end_line: 6
+                      end_col: 32
+                      end_offset: 127
+                    }
+                  }
                   position {
                     line: 6
                     col: 32
@@ -377,15 +387,29 @@ functions {
                 }
                 position {
                   line: 6
-                  col: 32
-                  offset: 127
+                  col: 34
+                  offset: 129
                   end_line: 6
                   end_col: 40
                   end_offset: 135
                 }
               }
+              position {
+                line: 6
+                col: 34
+                offset: 129
+                end_line: 6
+                end_col: 40
+                end_offset: 135
+              }
             }
             position {
+              line: 6
+              col: 34
+              offset: 129
+              end_line: 6
+              end_col: 40
+              end_offset: 135
             }
           }
           body {
@@ -819,8 +843,18 @@ functions {
           increment {
             expression {
               assignment {
-                variable {
-                  name: "n"
+                reference {
+                  reference {
+                    name: "n"
+                    position {
+                      line: 15
+                      col: 30
+                      offset: 251
+                      end_line: 15
+                      end_col: 30
+                      end_offset: 251
+                    }
+                  }
                   position {
                     line: 15
                     col: 30
@@ -895,15 +929,29 @@ functions {
                 }
                 position {
                   line: 15
-                  col: 30
-                  offset: 251
+                  col: 32
+                  offset: 253
                   end_line: 15
                   end_col: 38
                   end_offset: 259
                 }
               }
+              position {
+                line: 15
+                col: 32
+                offset: 253
+                end_line: 15
+                end_col: 38
+                end_offset: 259
+              }
             }
             position {
+              line: 15
+              col: 32
+              offset: 253
+              end_line: 15
+              end_col: 38
+              end_offset: 259
             }
           }
           body {
@@ -1482,3 +1530,4 @@ externs {
     end_offset: 45
   }
 }
+valid: true

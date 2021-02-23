@@ -270,8 +270,18 @@ functions {
               body {
                 expression {
                   assignment {
-                    variable {
-                      name: "n"
+                    reference {
+                      reference {
+                        name: "n"
+                        position {
+                          line: 6
+                          col: 9
+                          offset: 106
+                          end_line: 6
+                          end_col: 9
+                          end_offset: 106
+                        }
+                      }
                       position {
                         line: 6
                         col: 9
@@ -346,15 +356,29 @@ functions {
                     }
                     position {
                       line: 6
-                      col: 9
-                      offset: 106
+                      col: 11
+                      offset: 108
                       end_line: 6
                       end_col: 17
                       end_offset: 114
                     }
                   }
+                  position {
+                    line: 6
+                    col: 11
+                    offset: 108
+                    end_line: 6
+                    end_col: 17
+                    end_offset: 114
+                  }
                 }
                 position {
+                  line: 6
+                  col: 11
+                  offset: 108
+                  end_line: 6
+                  end_col: 17
+                  end_offset: 114
                 }
               }
               position {
@@ -771,3 +795,4 @@ externs {
     end_offset: 20
   }
 }
+valid: true

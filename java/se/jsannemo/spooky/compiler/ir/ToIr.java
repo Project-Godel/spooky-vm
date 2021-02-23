@@ -402,7 +402,7 @@ public final class ToIr {
 
   private static Ir.Type assign(Ast.Assignment assign, IrContext ctx) throws ValidationException {
     IrContext.Scope cur = ctx.scope;
-    String refName = assign.getVariable().getName();
+    String refName = assign.getReference().getReference().getName();
     Ir.Value ref =
         cur.resolve(refName)
             .orElseThrow(

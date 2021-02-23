@@ -41,7 +41,7 @@ public final class IrTypes {
   }
 
   public static Ir.Type fromAst(Ast.Type type) throws ValidationException {
-    return fromName(type.getName(), type.getDimension());
+    return fromName(type.getName(), 0);
   }
 
   public static int memSize(Ir.Type type) {

@@ -16,20 +16,17 @@ final class Structs {
    * Sorts {@code structs} so that a struct only includes as fields structs that appear earlier in
    * the ordering. If no such ordering appears, an empty optional is returned and an error is logged
    * to {@code err}.
-   * @return
    */
-  static Optional<List<Ast.StructDecl>> topologicalOrder(
-      List<Ast.StructDecl> structs, Errors err) {
+  static Optional<List<Ast.StructDecl>> topologicalOrder(List<Ast.StructDecl> structs, Errors err) {
     HashMap<String, Ast.StructDecl> byName = new HashMap<>();
     structs.forEach(x -> byName.put(x.getName().getName(), x));
-    ImmutableList.Builder<Ast.StructDecl> ordering = ImmutableList.builder();
     DfsData dfs = new DfsData(byName);
     for (String name : byName.keySet()) {
       if (!dfsStructs(name, dfs, err)) {
         return Optional.empty();
       }
     }
-    return Optional.of(ordering.build());
+    return Optional.of(dfs.ordering.build());
   }
 
   private static class DfsData {
@@ -54,12 +51,19 @@ final class Structs {
     }
     dfs.onStack.add(name);
     dfs.seen.add(name);
-    dfs.ordering.add(struct);
     for (Ast.StructField field : struct.getFieldsList()) {
-      if (!dfsStructs(field.getName().getName(), dfs, err)) {
+      String type = field.getType().getName();
+      if (Types.hasBuiltin(type)) {
+        continue;
+      }
+      if (!dfs.byName.containsKey(type)) {
+        continue;
+      }
+      if (!dfsStructs(type, dfs, err)) {
         return false;
       }
     }
+    dfs.ordering.add(struct);
     dfs.onStack.remove(name);
     return true;
   }

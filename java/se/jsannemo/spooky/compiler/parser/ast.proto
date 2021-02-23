@@ -131,25 +131,15 @@ message StructLit {
 }
 
 message ArrayLit {
-  // Expressions evaluating to the dimensions the array.
-  repeated Dimension dimensions = 1;
   // A prefix of the values that should be set for the first dimension.
-  repeated Expr values = 2;
+  repeated Expr values = 1;
   // The value that the array should be padded with if the first is not exhaustive.
   // If unset, the values will not be initialized.
-  Expr fill = 3;
+  Expr fill = 2;
   // Used in the AST to mark if explicit fill was requested. This is used to differentiate between a requested fill
   // with a given value and an uninitialized fill (array literal values must explicitly span their entire range).
-  bool should_fill = 4;
-  Pos position = 5;
-
-  message Dimension {
-    oneof dimension {
-      Expr expression = 1;
-      google.protobuf.Empty inferred = 2;
-    }
-    Pos position = 3;
-  }
+  bool should_fill = 3;
+  Pos position = 4;
 }
 
 message DefaultInit {
@@ -163,7 +153,7 @@ message FieldInit {
 }
 
 message Assignment {
-  Identifier variable = 1;
+  Expr reference = 1;
   Expr value = 2;
   Pos position = 3;
   BinaryOp compound = 4;
@@ -269,8 +259,16 @@ message Identifier {
 
 message Type {
   string name = 1;
-  int32 dimension = 2;
+  repeated ArrayDimension dimensions = 2;
   Pos position = 3;
+
+  message ArrayDimension {
+    oneof dim {
+      int32 dimension = 1;
+      google.protobuf.Empty inferred = 2;
+    }
+    Pos position = 3;
+  }
 }
 
 message Token {

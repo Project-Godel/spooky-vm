@@ -7,6 +7,7 @@ import se.jsannemo.spooky.compiler.Errors;
 import se.jsannemo.spooky.compiler.Prog;
 import se.jsannemo.spooky.compiler.ast.Ast;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -17,12 +18,13 @@ import static com.google.common.base.Preconditions.checkArgument;
 /** A type-checker for Spooky {@link se.jsannemo.spooky.compiler.ast.Ast.Program}s. */
 public final class TypeChecker {
 
+  private static final Prog.Expr ERROR_EXPR = Prog.Expr.newBuilder().setType(Types.ERROR).build();
   private final boolean permissive;
   private final Errors err;
 
   private final HashMap<String, FuncData> externs = new HashMap<>();
   final HashMap<String, StructData> structs = new HashMap<>();
-  final HashMap<Integer, String> structNames = new HashMap<>();
+  final HashMap<Integer, StructData> structsIdx = new HashMap<>();
   // Functions do not need any extra information regarding typechecking, so we only keep the index
   // of the function in the programBuilder.functions list.
   private final HashMap<String, Integer> funcIdx = new HashMap<>();
@@ -49,13 +51,13 @@ public final class TypeChecker {
     // Next, functions must be registered first, since global variables may reference them during
     // initialization.
     program.getExternsList().forEach(this::registerExtern);
-    registerFunctions(programBuilder, program.getFunctionsList());
+    List<Ast.Func> funcs = registerFunctions(programBuilder, program.getFunctionsList());
 
     // Next, globals must be registered since function expressions can reference them.
     createGlobalInit(programBuilder, program.getGlobalsList());
 
-    // Only after
-    checkFunctions(programBuilder, program.getFunctionsList());
+    // Finally function bodies can be type checked.
+    checkFunctions(programBuilder, funcs);
     return programBuilder.build();
   }
 
@@ -68,8 +70,10 @@ public final class TypeChecker {
         continue;
       }
       String name = struct.getName().getName();
-      if (structs.containsKey(name)) {
-        err.error(struct.getPosition(), "Struct already declared");
+      if (Types.hasBuiltin(name)) {
+        err.error(struct.getPosition(), "Struct name clashes with builtin");
+      } else if (structs.containsKey(name)) {
+        err.error(struct.getPosition(), "Struct already defined");
       } else {
         structs.put(name, new StructData());
         dedupBuilder.add(struct);
@@ -83,21 +87,17 @@ public final class TypeChecker {
     for (Ast.StructDecl decl : ordering) {
       String name = decl.getName().getName();
       StructData data = structs.get(name);
-      data.type = Types.struct(data.index);
       data.index = programBuilder.getStructsCount();
+      data.type = Types.struct(data.index);
       data.name = name;
-      structNames.put(data.index, name);
+      structsIdx.put(data.index, data);
       Prog.Struct.Builder struct = programBuilder.addStructsBuilder();
       for (Ast.StructField field : decl.getFieldsList()) {
         if (syntaxError(field.getType().getName().isEmpty())) {
           continue;
         }
-        Prog.Type t = Types.resolve(field.getType(), this);
-        if (t == Types.ERROR) {
-          err.error(field.getType().getPosition(), "Unknown type");
-        }
         data.fields.put(field.getName().getName(), struct.getFieldsCount());
-        struct.addFields(t);
+        struct.addFields(resolveType(field.getType()));
       }
     }
   }
@@ -111,12 +111,16 @@ public final class TypeChecker {
       err.error(decl.getPosition(), "A function with this name is already defined");
       return;
     }
+    externs.put(name, new FuncData(getDeclReturnType(decl), getDeclTypes(decl)));
+  }
+
+  private Prog.Type getDeclReturnType(Ast.FuncDecl decl) {
     Prog.Type returnType = decl.hasReturnType() ? resolveType(decl.getReturnType()) : Types.VOID;
-    List<Prog.Type> params =
-        decl.getParamsList().stream()
-            .map(p -> resolveType(p.getType()))
-            .collect(Collectors.toUnmodifiableList());
-    externs.put(name, new FuncData(returnType, params));
+    if (!Types.isVoid(returnType) && !Types.isCopyable(returnType)) {
+      err.error(decl.getReturnType().getPosition(), "Return type not assignable");
+      returnType = Types.ERROR;
+    }
+    return returnType;
   }
 
   private List<Ast.Func> registerFunctions(Prog.Program.Builder builder, List<Ast.Func> decls) {
@@ -128,19 +132,71 @@ public final class TypeChecker {
         continue;
       }
       if (externs.containsKey(name) || funcIdx.containsKey(name)) {
-        err.error(decl.getPosition(), "Function with this name is already declared.");
+        err.error(decl.getPosition(), "Function with this name is already defined.");
         continue;
       }
       funcIdx.put(name, builder.getFunctionsCount());
-      Prog.Type type = decl.hasReturnType() ? resolveType(decl.getReturnType()) : Types.VOID;
-      List<Prog.Type> params =
-          decl.getParamsList().stream()
-              .map(p -> resolveType(p.getType()))
-              .collect(Collectors.toUnmodifiableList());
-      builder.addFunctionsBuilder().setReturnType(type).addAllParams(params);
+      builder
+          .addFunctionsBuilder()
+          .setReturnType(getDeclReturnType(decl))
+          .addAllParams(getDeclTypes(decl));
       funcsToCheck.add(func);
     }
     return funcsToCheck.build();
+  }
+
+  private List<Prog.Type> getDeclTypes(Ast.FuncDecl decl) {
+    return decl.getParamsList().stream()
+        .map(
+            p -> {
+              Prog.Type t = resolveType(p.getType());
+              if (!Types.isCopyable(t)) {
+                err.error(p.getType().getPosition(), "Function parameter is not copyable");
+              }
+              return t;
+            })
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  private void createGlobalInit(Prog.Program.Builder builder, List<Ast.VarDecl> globalsList) {
+    Prog.Func.Builder func = builder.addFunctionsBuilder();
+    func.setReturnType(Types.VOID);
+    Prog.BasicBlock.Builder body = func.getBodyBuilder();
+
+    // Register globals one at a time after they are initialized, to at least avoid direct
+    // references to uninitialized globals. Circular references may still be possible since
+    // functions called during initialization can refer to globals yet uninitialized.
+    for (int i = 0; i < globalsList.size(); i++) {
+      Ast.VarDecl decl = globalsList.get(i);
+      String varName = decl.getName().getName();
+      if (syntaxError(varName.isEmpty())) {
+        continue;
+      }
+      if (scope.collides(varName)) {
+        err.error(decl.getPosition(), "Global variable with this name already exists");
+        continue;
+      }
+      Prog.VarRef varRef = Prog.VarRef.newBuilder().setGlobalIndex(i).build();
+      Prog.Expr refExpr = initVariable(varRef, body.addBodyBuilder().getExpressionBuilder(), decl);
+      builder.addGlobals(refExpr.getType());
+      scope.put(varName, refExpr);
+    }
+  }
+
+  private Prog.Expr initVariable(Prog.VarRef ref, Prog.Expr.Builder builder, Ast.VarDecl decl) {
+    Prog.Type varType = resolveType(decl.getType());
+    Prog.Expr value = checkInitVal(decl.getInit(), varType);
+    if (varType.hasArray() && value.hasArray()) {
+      // For arrays we update the type with the inferred dimensions from initialization.
+      varType = Types.inheritDims(varType, value.getType());
+    }
+    Prog.Expr refExpr = Prog.Expr.newBuilder().setReference(ref).setType(varType).setLvalue(true).build();
+    builder
+        .setType(varType)
+        .getAssignmentBuilder()
+        .setValue(value)
+        .setReference(refExpr);
+    return refExpr;
   }
 
   private void checkFunctions(Prog.Program.Builder builder, List<Ast.Func> functions) {
@@ -157,19 +213,32 @@ public final class TypeChecker {
     // Register function parameters
     for (int i = 0; i < params.size(); i++) {
       Ast.FuncParam p = params.get(i);
-      syntaxError(p.getName().getName().isEmpty() || p.getType().getName().isEmpty());
-      scope.put(p.getName().getName(), Prog.VarRef.newBuilder().setFunctionParam(i).build());
-      // Note: types have already been added to the Func.Builder during registration.
+      if (syntaxError(p.getName().getName().isEmpty())) {
+        continue;
+      }
+      Prog.Expr refExpr =
+          Prog.Expr.newBuilder()
+              .setReference(Prog.VarRef.newBuilder().setFunctionParam(i))
+              .setType(funcBuilder.getParams(i))
+              .setLvalue(true)
+              .build();
+      scope.put(p.getName().getName(), refExpr);
     }
     checkStatement(func.getBody());
+    if ((scope.scope.getBodyCount() == 0
+            || !scope.scope.getBody(scope.scope.getBodyCount() - 1).hasReturnValue())
+        && !funcBuilder.getReturnType().equals(Types.VOID)) {
+      err.error(func.getPosition(), "Function does not return");
+    }
     scope = scope.pop();
   }
 
   private void checkStatement(Ast.Statement body) {
     switch (body.getStatementCase()) {
       case BLOCK:
-        // Only if our body is not a block do we push a new scope.
-        scope = scope.push(scope.scope.addBodyBuilder().getBlockBuilder());
+        // For AST blocks we push a new *naming* scope but not a new basic block. Conditional and
+        // loop checks are responsible for pushing new blocks when required.
+        scope = scope.push();
         body.getBlock().getBodyList().forEach(this::checkStatement);
         scope = scope.pop();
         break;
@@ -189,49 +258,39 @@ public final class TypeChecker {
         checkReturn(body.getReturnValue());
         break;
       case STATEMENT_NOT_SET:
-        throw new IllegalArgumentException();
+        syntaxError();
     }
   }
 
   private void checkDecl(Ast.VarDecl decl) {
-    checkArgument(decl.hasInit(), decl.hasName());
     String name = decl.getName().getName();
+    if (syntaxError(name.isEmpty())) {
+      return;
+    }
     if (scope.collides(name)) {
       err.error(decl.getPosition(), "Variable with this name already defined in same scope.");
       return;
     }
-    Prog.Expr value = expr(decl.getInit());
     Prog.VarRef varRef =
         Prog.VarRef.newBuilder().setFunctionIndex(scope.function.getVariablesCount()).build();
-    if (!expectType(value.getType(), resolveType(decl.getType()), decl.getInit().getPosition())) {
-      return;
-    }
-    scope.put(name, varRef);
-    scope.function.addVariables(value.getType());
-    scope
-        .scope
-        .addBodyBuilder()
-        .getExpressionBuilder()
-        .getAssignmentBuilder()
-        .setVariable(varRef)
-        .setValue(value);
+    Prog.Expr refExpr =
+        initVariable(varRef, scope.scope.addBodyBuilder().getExpressionBuilder(), decl);
+    scope.put(name, refExpr);
+    scope.function.addVariables(refExpr.getType());
   }
 
   private void checkLoop(Ast.Loop loop) {
-    // We need a new scope before the body since the initializer has its own scope.
-    scope = scope.push(scope.scope.addBodyBuilder().getBlockBuilder());
-    checkArgument(loop.hasBody());
+    // We need a new naming scope before the body since the initializer is part of that naming
+    // scope.
+    scope = scope.push();
     // Check init first to generate it before the loop statement.
     if (loop.hasInit()) {
       checkStatement(loop.getInit());
     }
-
     Prog.Loop.Builder loopBuilder = scope.scope.addBodyBuilder().getLoopBuilder();
     if (loop.hasCondition()) {
       Prog.Expr cond = expr(loop.getCondition());
-      if (expectType(cond.getType(), Types.BOOLEAN, loop.getCondition().getPosition())) {
-        return;
-      }
+      expectType(cond.getType(), Types.BOOLEAN, loop.getCondition().getPosition());
       loopBuilder.setCondition(cond);
     } else {
       loopBuilder.setCondition(
@@ -242,92 +301,48 @@ public final class TypeChecker {
 
     scope = scope.push(loopBuilder.getBodyBuilder());
     checkStatement(loop.getBody());
+    if (loop.hasIncrement()) {
+      checkStatement(loop.getIncrement());
+    }
     scope = scope.pop();
 
     scope = scope.pop();
   }
 
   private void checkConditional(Ast.Conditional conditional) {
-    checkArgument(conditional.hasCondition() && conditional.hasBody());
     Prog.Expr cond = expr(conditional.getCondition());
-    if (expectType(cond.getType(), Types.BOOLEAN, conditional.getPosition())) {
-      return;
-    }
+    expectType(cond.getType(), Types.BOOLEAN, conditional.getPosition());
     Prog.Conditional.Builder condBuilder =
         scope.scope.addBodyBuilder().getConditionalBuilder().setCondition(cond);
-    boolean bodyIsBlock = conditional.getBody().hasBlock();
-    if (!bodyIsBlock) {
-      scope = scope.push(condBuilder.getBodyBuilder());
-    }
+    scope = scope.push(condBuilder.getBodyBuilder());
     checkStatement(conditional.getBody());
-    if (!bodyIsBlock) {
-      scope = scope.pop();
-    }
+    scope = scope.pop();
     if (conditional.hasElseBody()) {
-      Ast.Statement elseBody = conditional.getElseBody();
-      boolean elseBodyIsBlock = elseBody.hasBlock();
-      if (!elseBodyIsBlock) {
-        scope = scope.push(condBuilder.getElseBodyBuilder());
-      }
+      scope = scope.push(condBuilder.getElseBodyBuilder());
       checkStatement(conditional.getElseBody());
-      if (!elseBodyIsBlock) {
-        scope = scope.pop();
-      }
+      scope = scope.pop();
     }
   }
 
   private void checkReturn(Ast.ReturnValue returnValue) {
     Prog.Returns.Builder returnBuilder =
         scope.function.getBodyBuilder().addBodyBuilder().getReturnValueBuilder();
+    Prog.Type functionReturnType = scope.function.getReturnType();
     if (returnValue.hasValue()) {
-      if (scope.function.getReturnType().equals(Types.VOID)) {
+      if (functionReturnType.equals(Types.VOID)) {
         err.error(returnValue.getValue().getPosition(), "Return with value in void function");
       } else {
-        returnBuilder.setReturnValue(expr(returnValue.getValue()));
+        Prog.Expr value = expr(returnValue.getValue());
+        expectType(value.getType(), functionReturnType, returnValue.getPosition());
+        returnBuilder.setReturnValue(value);
       }
-    } else if (!scope.function.getReturnType().equals(Types.VOID)) {
-      err.error(returnValue.getValue().getPosition(), "Return missing value");
+    } else if (!functionReturnType.equals(Types.VOID)) {
+      err.error(returnValue.getPosition(), "Return missing value");
     }
   }
 
   private void checkExpr(Ast.Expr expression) {
     scope.function.getBodyBuilder().addBodyBuilder().setExpression(expr(expression));
-  }
-
-  private void createGlobalInit(Prog.Program.Builder builder, List<Ast.VarDecl> globalsList) {
-    Prog.Func.Builder func = builder.addFunctionsBuilder();
-    func.setReturnType(Types.VOID);
-    Prog.Scope.Builder body = func.getBodyBuilder();
-
-    // Register globals one at a time after they are initialized, to at least avoid direct
-    // references to uninitialized globals. It may still be possible since functions called can
-    // still refer to uninitialized globals.
-    for (int i = 0; i < globalsList.size(); i++) {
-      Ast.VarDecl decl = globalsList.get(i);
-      checkArgument(decl.hasName(), "Global must have name");
-      String varName = decl.getName().getName();
-      if (scope.collides(varName)) {
-        err.error(decl.getPosition(), "Global variable with this name already exists");
-        continue;
-      }
-      Prog.Type type = resolveType(decl.getType());
-      Prog.VarRef varRef = Prog.VarRef.newBuilder().setGlobalIndex(i).build();
-      Prog.Expr value = expr(decl.getInit());
-      if (!expectType(value.getType(), type, decl.getInit().getPosition())) {
-        err.error(
-            decl.getInit().getPosition(),
-            "Expression has mismatched type " + Types.asString(value.getType(), this));
-        continue;
-      }
-      body.addBodyBuilder()
-          .getExpressionBuilder()
-          .setType(type)
-          .getAssignmentBuilder()
-          .setVariable(varRef)
-          .setValue(value);
-      builder.addGlobals(type);
-      scope.put(varName, varRef);
-    }
   }
 
   private Prog.Expr expr(Ast.Expr expr) {
@@ -346,13 +361,21 @@ public final class TypeChecker {
         return checkAssignment(expr.getAssignment());
       case UNARY:
         return checkUnary(expr.getUnary());
+      case SELECT:
+        return checkSelect(expr.getSelect());
+      case STRUCT:
+      case DEFAULT_INIT:
       case EXPR_NOT_SET:
-        throw new IllegalArgumentException();
+      case ARRAY:
+        syntaxError();
+        break;
+      default:
+        throw new IllegalStateException("Unimplemented expression?");
     }
-    throw new IllegalArgumentException();
+    throw new AssertionError("Unreachable");
   }
 
-  private static ImmutableMap<Ast.BinaryOp, Prog.BinaryOp> OP_CONV =
+  private static final ImmutableMap<Ast.BinaryOp, Prog.BinaryOp> OP_CONV =
       ImmutableMap.<Ast.BinaryOp, Prog.BinaryOp>builder()
           .put(Ast.BinaryOp.LESS_THAN, Prog.BinaryOp.LESS_THAN)
           .put(Ast.BinaryOp.GREATER_THAN, Prog.BinaryOp.GREATER_THAN)
@@ -373,74 +396,99 @@ public final class TypeChecker {
   private Prog.Expr checkBinary(Ast.BinaryExpr binary) {
     Prog.Expr left = expr(binary.getLeft());
     Prog.Expr right = expr(binary.getRight());
-    Prog.Expr.Builder e = Prog.Expr.newBuilder().setType(Types.ERROR);
+    Prog.Expr.Builder e = Prog.Expr.newBuilder();
+    Prog.BinaryOp op = OP_CONV.get(binary.getOperator());
     e.getBinaryBuilder()
         .setLeft(left)
         .setRight(right)
-        .setOperator(OP_CONV.get(binary.getOperator()));
+        .setOperator(op);
+    if (op == Prog.BinaryOp.ARRAY_ACCESS) {
+      e.setLvalue(true);
+    }
+    e.setType(
+        binaryType(
+            left,
+            binary.getLeft().getPosition(),
+            right,
+            binary.getRight().getPosition(),
+            binary.getOperator()));
+    return e.build();
+  }
+
+  private Prog.Type binaryType(
+      Prog.Expr left, Ast.Pos leftPos, Prog.Expr right, Ast.Pos rightPos, Ast.BinaryOp operator) {
     boolean errors = left.getType().equals(Types.ERROR) || right.getType().equals(Types.ERROR);
-    switch (binary.getOperator()) {
+    switch (operator) {
       case LESS_THAN:
       case GREATER_THAN:
       case LESS_EQUALS:
       case GREATER_EQUALS:
       case EQUALS:
       case NOT_EQUALS:
-        e.setType(Types.BOOLEAN);
-        if (left.getType().equals(Types.INT)) {
-          expectType(right.getType(), Types.INT, binary.getRight().getPosition());
-        } else if (left.getType().equals(Types.BOOLEAN)) {
-          expectType(right.getType(), Types.BOOLEAN, binary.getRight().getPosition());
-        } else if (left.getType().equals(Types.CHAR)) {
-          expectType(right.getType(), Types.CHAR, binary.getRight().getPosition());
-        } else {
-          e.setType(Types.ERROR);
+        if (errors) {
+          return Types.ERROR;
         }
-        break;
+        if (Types.isComparable(left.getType(), right.getType())) {
+          return Types.BOOLEAN;
+        }
+        err.error(leftPos, "Values are not comparable");
+        return Types.ERROR;
       case ARRAY_ACCESS:
         Prog.Type ltype = left.getType();
         if (!ltype.equals(Types.ERROR) && !ltype.hasArray()) {
-          err.error(binary.getPosition(), "Indexing on non-array value");
-        } else if (expectType(right.getType(), Types.INT, binary.getRight().getPosition())) {
-          e.setType(ltype.getArray());
+          err.error(leftPos, "Indexing on non-array value");
+          return Types.ERROR;
         }
-        break;
+        if (!expectType(right.getType(), Types.INT, rightPos)) {
+          return Types.ERROR;
+        }
+        if (!errors) {
+          return Types.subarray(left.getType());
+        }
+        return Types.ERROR;
       case ADD:
       case SUBTRACT:
       case MULTIPLY:
       case DIVIDE:
       case MODULO:
-        if (expectType(left.getType(), Types.INT, binary.getLeft().getPosition())
-            && expectType(right.getType(), Types.INT, binary.getRight().getPosition())
+        if (expectType(left.getType(), Types.INT, leftPos)
+            && expectType(right.getType(), Types.INT, rightPos)
             && !errors) {
-          e.setType(Types.INT);
+          return Types.INT;
         }
-        break;
+        return Types.ERROR;
       case AND:
       case OR:
-        if (expectType(left.getType(), Types.BOOLEAN, binary.getLeft().getPosition())
-            && expectType(right.getType(), Types.BOOLEAN, binary.getRight().getPosition())
+        if (expectType(left.getType(), Types.BOOLEAN, leftPos)
+            && expectType(right.getType(), Types.BOOLEAN, rightPos)
             && !errors) {
-          e.setType(Types.BOOLEAN);
+          return Types.BOOLEAN;
+        } else {
+          return Types.ERROR;
         }
-        break;
+      case UNRECOGNIZED:
+      case BINARY_OP_UNSPECIFIED:
+        syntaxError();
+        return Types.ERROR;
       default:
-        throw new IllegalArgumentException();
+        throw new IllegalStateException("Unhandled expression?");
     }
-    return e.build();
   }
 
   private Prog.Expr checkCall(Ast.FuncCall call) {
-    checkArgument(call.hasFunction());
-    String name = call.getFunction().getName();
     List<Prog.Expr> paramVals =
         call.getParamsList().stream().map(this::expr).collect(Collectors.toUnmodifiableList());
+    String name = call.getFunction().getName();
+    if (syntaxError(name.isEmpty())) {
+      return ERROR_EXPR;
+    }
     if (externs.containsKey(name)) {
       return checkExtern(call, externs.get(name), paramVals);
     } else if (funcIdx.containsKey(name)) {
       return checkFunc(call, funcIdx.get(name), paramVals);
     } else {
-      return Prog.Expr.newBuilder().setType(Types.ERROR).build();
+      err.error(call.getFunction().getPosition(), "Function not found");
+      return ERROR_EXPR;
     }
   }
 
@@ -455,7 +503,9 @@ public final class TypeChecker {
           call.getPosition(), "Got " + callParams + " parameters, expected " + functionParams);
     } else {
       for (int i = 0; i < paramVals.size(); i++) {
-        expectType(callTypes.get(i), called.getParams(i), call.getParams(i).getPosition());
+        if (!Types.isAssignable(called.getParams(i), callTypes.get(i))) {
+          err.error(call.getParams(i).getPosition(), "Value not assignable to parameter");
+        }
       }
     }
     Prog.Expr.Builder builder = Prog.Expr.newBuilder().setType(called.getReturnType());
@@ -473,7 +523,9 @@ public final class TypeChecker {
           call.getPosition(), "Got " + callParams + " parameters, expected " + functionParams);
     } else {
       for (int i = 0; i < paramVals.size(); i++) {
-        expectType(callTypes.get(i), funcData.argTypes.get(i), call.getParams(i).getPosition());
+        if (!Types.isAssignable(funcData.argTypes.get(i), callTypes.get(i))) {
+          err.error(call.getParams(i).getPosition(), "Value not assignable to parameter");
+        }
       }
     }
     Prog.Expr.Builder builder = Prog.Expr.newBuilder().setType(funcData.returnType);
@@ -481,70 +533,273 @@ public final class TypeChecker {
     return builder.build();
   }
 
-  private Prog.Expr checkAssignment(Ast.Assignment assignment) {
-    Prog.Expr.Builder e = Prog.Expr.newBuilder();
-    checkArgument(assignment.hasVariable() && assignment.hasValue());
-    Optional<Prog.VarRef> resolve = scope.resolve(assignment.getVariable().getName());
-    if (resolve.isEmpty()) {
-      err.error(assignment.getPosition(), "No such variable exists");
-      e.setType(Types.ERROR);
-    } else {
-      e.setType(toExpr(resolve.get()).getType());
-      e.getAssignmentBuilder().setVariable(resolve.get());
+  private Prog.Expr checkAssignment(Ast.Assignment astAssignment) {
+    Prog.Expr reference = expr(astAssignment.getReference());
+    Prog.Expr val = expr(astAssignment.getValue());
+
+    if (!Types.isAssignable(reference.getType(), val.getType())) {
+      err.error(astAssignment.getPosition(), "Left type is not assignable from right type");
+      return ERROR_EXPR;
+    }
+    if (!reference.getLvalue()) {
+      err.error(astAssignment.getPosition(), "Left type is not lvalue");
+      return ERROR_EXPR;
     }
 
-    Prog.Expr val = expr(assignment.getValue());
-    if (!expectType(val.getType(), e.getType(), assignment.getValue().getPosition())) {
-      e.setType(Types.ERROR);
+    Prog.Expr.Builder expr = Prog.Expr.newBuilder().setType(reference.getType());
+    Prog.Assignment.Builder assignment =
+        expr.getAssignmentBuilder().setReference(reference).setValue(val);
+
+    Ast.BinaryOp compoundOperator = astAssignment.getCompound();
+    if (compoundOperator != Ast.BinaryOp.BINARY_OP_UNSPECIFIED) {
+      assignment.setOperator(OP_CONV.get(compoundOperator));
+      if (!binaryType(
+              reference,
+              astAssignment.getReference().getPosition(),
+              val,
+              astAssignment.getValue().getPosition(),
+              compoundOperator)
+          .equals(Types.ERROR)) {
+        return ERROR_EXPR;
+      }
     }
-    if (val.getType().equals(Types.ERROR)) {
-      e.setType(Types.ERROR);
+    return expr.build();
+  }
+
+  private Prog.Expr checkInitVal(Ast.Expr value, Prog.Type type) {
+    if (value.hasStruct()) {
+      return structInit(value, type);
     }
-    return e.build();
+    if (value.hasArray()) {
+      return arrayInit(value, type);
+    }
+    if (value.hasDefaultInit()) {
+      return defaultValue(value, type);
+    }
+    if (!Types.isCopyable(type)) {
+      err.error(value.getPosition(), "Variable type is not assignable");
+      return ERROR_EXPR;
+    }
+    Prog.Expr expr = expr(value);
+    if (!Types.isAssignable(type, expr.getType())) {
+      err.error(
+          value.getPosition(),
+          Types.asString(expr.getType(), this)
+              + " not assignable to "
+              + Types.asString(type, this));
+      return ERROR_EXPR;
+    }
+    return expr;
+  }
+
+  private Prog.Expr arrayInit(Ast.Expr value, Prog.Type type) {
+    if (!type.hasArray()) {
+      err.error(value.getPosition(), "Initializing non-array with array value");
+      return ERROR_EXPR;
+    }
+    List<Integer> inferredDimensions = new ArrayList<>(type.getArray().getDimensionsList());
+    resolveInferred(value, inferredDimensions);
+    Prog.Type.Builder inferredType = type.toBuilder();
+    inferredType.getArrayBuilder().clearDimensions().addAllDimensions(inferredDimensions);
+    type = inferredType.build();
+    long totSize = Types.arraySize(type);
+    if (totSize == 0) {
+      err.error(value.getPosition(), "Could not infer all array dimensions");
+      return ERROR_EXPR;
+    }
+    if (totSize == Integer.MAX_VALUE) {
+      err.error(value.getPosition(), "Array size too large");
+      return ERROR_EXPR;
+    }
+    Prog.Expr.Builder expr = Prog.Expr.newBuilder();
+    expr.getArrayBuilder().setTotalSize((int) totSize);
+    expr.setType(inferredType);
+    arrayInitValues(
+        value,
+        type.getArray().getArrayOf(),
+        inferredDimensions,
+        expr.getArrayBuilder().getInitBuilder());
+    return expr.build();
+  }
+
+  private void arrayInitValues(
+      Ast.Expr value,
+      Prog.Type base,
+      List<Integer> dimensions,
+      Prog.ArrayInit.Init.Builder initBuilder) {
+    initBuilder.setDimension(dimensions.get(0));
+    if (dimensions.size() == 1) {
+      // Scalar array
+      Prog.ArrayInit.ScalarArray.Builder scalars = initBuilder.getScalarsBuilder();
+      if (value.hasArray()) {
+        Ast.ArrayLit array = value.getArray();
+        List<Ast.Expr> valuesList = array.getValuesList();
+        valuesList.forEach(
+            v -> {
+              Prog.Expr expr = checkInitVal(v, base);
+              expectType(expr.getType(), base, v.getPosition());
+              scalars.addValues(expr);
+            });
+        if (array.getShouldFill()) {
+          if (array.hasFill()) {
+            Prog.Expr expr = checkInitVal(array.getFill(), base);
+            expectType(expr.getType(), base, array.getFill().getPosition());
+            scalars.setFill(expr);
+          }
+        } else if (valuesList.size() != dimensions.get(0)) {
+          err.error(value.getPosition(), "Expected " + dimensions.get(0) + " values");
+        }
+      } else if (value.hasDefaultInit()) {
+        scalars.setFill(checkInitVal(value, base));
+      } else {
+        err.error(value.getPosition(), "Expected array");
+      }
+    } else {
+      // Array-of-arrays
+      Prog.ArrayInit.SubArrays.Builder subarray = initBuilder.getSubarrayBuilder();
+      List<Integer> subdims = dimensions.subList(1, dimensions.size());
+      if (value.hasArray()) {
+        Ast.ArrayLit array = value.getArray();
+        List<Ast.Expr> valuesList = array.getValuesList();
+        valuesList.forEach(v -> arrayInitValues(v, base, subdims, subarray.addValuesBuilder()));
+        if (array.getShouldFill()) {
+          if (array.hasFill()) {
+            arrayInitValues(array.getFill(), base, subdims, subarray.getFillBuilder());
+          }
+        } else if (valuesList.size() != dimensions.get(0)) {
+          err.error(value.getPosition(), "Expected " + dimensions.get(0) + " values");
+        }
+      } else if (value.hasDefaultInit()) {
+        arrayInitValues(value, base, subdims, subarray.getFillBuilder());
+      } else {
+        err.error(value.getPosition(), "Expected subarray");
+      }
+    }
+  }
+
+  private Prog.Expr defaultValue(Ast.Expr value, Prog.Type type) {
+    if (type.hasArray()) {
+      return arrayInit(value, type);
+    }
+    if (type.getTypeCase() == Prog.Type.TypeCase.STRUCT) {
+      return structInit(value, type);
+    }
+    if (type.equals(Types.INT)) {
+      return Prog.Expr.newBuilder()
+          .setType(Types.INT)
+          .setConstant(Prog.Constant.newBuilder().setIntConst(0))
+          .build();
+    } else if (type.equals(Types.BOOLEAN)) {
+      return Prog.Expr.newBuilder()
+          .setType(Types.BOOLEAN)
+          .setConstant(Prog.Constant.newBuilder().setBoolConst(false))
+          .build();
+    } else if (type.equals(Types.CHAR)) {
+      return Prog.Expr.newBuilder()
+          .setType(Types.CHAR)
+          .setConstant(Prog.Constant.newBuilder().setCharConst(0))
+          .build();
+    } else if (type.equals(Types.STRING)) {
+      return Prog.Expr.newBuilder()
+          .setType(Types.STRING)
+          .setConstant(Prog.Constant.newBuilder().setStringConst(""))
+          .build();
+    } else if (type.equals(Types.ERROR)) {
+      return ERROR_EXPR;
+    }
+    throw new IllegalStateException("Unexpected type");
+  }
+
+  private void resolveInferred(Ast.Expr value, List<Integer> inferredDimensions) {
+    if (inferredDimensions.isEmpty()) {
+      return;
+    }
+    if (value.hasArray()) {
+      if (!value.getArray().getShouldFill()) {
+        int len = value.getArray().getValuesCount();
+        if (inferredDimensions.get(0) == 0) {
+          inferredDimensions.set(0, len);
+        }
+      }
+      value
+          .getArray()
+          .getValuesList()
+          .forEach(
+              v -> {
+                resolveInferred(v, inferredDimensions.subList(1, inferredDimensions.size()));
+              });
+    }
+  }
+
+  private Prog.Expr structInit(Ast.Expr value, Prog.Type type) {
+    if (type.equals(Types.ERROR)) {
+      return ERROR_EXPR;
+    }
+    if (type.getTypeCase() != Prog.Type.TypeCase.STRUCT) {
+      err.error(value.getPosition(), "Struct initializer used for non-struct type");
+      return ERROR_EXPR;
+    }
+    if (value.hasDefaultInit()) {
+      Prog.Expr.Builder def = Prog.Expr.newBuilder().setType(type);
+      Prog.StructInit.Builder struct = def.getStructBuilder();
+      List<Prog.Type> fieldTypes = programBuilder.getStructs(type.getStruct()).getFieldsList();
+      for (int i = 0; i < fieldTypes.size(); i++) {
+        struct.putValues(i, defaultValue(value, fieldTypes.get(i)));
+      }
+      return def.build();
+    }
+    if (value.hasStruct()) {
+      StructData structData = structsIdx.get(type.getStruct());
+      Prog.Expr.Builder builder = Prog.Expr.newBuilder().setType(type);
+      Prog.StructInit.Builder struct = builder.getStructBuilder();
+      value
+          .getStruct()
+          .getValuesList()
+          .forEach(
+              v -> {
+                String name = v.getField().getName();
+                if (syntaxError(name.isEmpty())) {
+                  return;
+                }
+                if (!structData.fields.containsKey(name)) {
+                  err.error(
+                      v.getField().getPosition(),
+                      "No field " + name + " in struct " + structData.name);
+                } else {
+                  Integer fieldIdx = structData.fields.get(name);
+                  Prog.Type fieldType =
+                      programBuilder.getStructs(structData.index).getFields(fieldIdx);
+                  Prog.Expr fieldValue = checkInitVal(v.getValue(), fieldType);
+                  expectType(fieldValue.getType(), fieldType, v.getValue().getPosition());
+                  struct.putValues(fieldIdx, fieldValue);
+                }
+              });
+      return builder.build();
+    }
+    return expr(value);
   }
 
   private Prog.Expr checkReference(Ast.Identifier reference) {
-    Optional<Prog.VarRef> resolve = scope.resolve(reference.getName());
+    Optional<Prog.Expr> resolve = scope.resolve(reference.getName());
     if (resolve.isEmpty()) {
       err.error(reference.getPosition(), "No such variable");
-      return Prog.Expr.newBuilder().setType(Types.ERROR).build();
+      return ERROR_EXPR;
     }
-    Prog.VarRef ref = resolve.get();
-    return toExpr(ref);
-  }
-
-  private Prog.Expr toExpr(Prog.VarRef ref) {
-    Prog.Expr.Builder builder = Prog.Expr.newBuilder().setReference(ref);
-    switch (ref.getRefCase()) {
-      case FUNCTION_INDEX:
-        builder.setType(scope.function.getVariables(ref.getFunctionIndex()));
-        break;
-      case FUNCTION_PARAM:
-        builder.setType(scope.function.getParams(ref.getFunctionParam()));
-        break;
-      case GLOBAL_INDEX:
-        builder.setType(programBuilder.getGlobals(ref.getGlobalIndex()));
-        break;
-      default:
-        throw new IllegalArgumentException();
-    }
-    return builder.build();
+    return resolve.get();
   }
 
   private Prog.Expr checkTernary(Ast.Ternary conditional) {
-    checkArgument(conditional.hasCond() && conditional.hasLeft() && conditional.hasRight());
     Prog.Expr cond = expr(conditional.getCond());
     expectType(cond.getType(), Types.BOOLEAN, conditional.getCond().getPosition());
     Prog.Expr left = expr(conditional.getLeft());
     Prog.Expr right = expr(conditional.getRight());
-    Prog.Type type = left.getType();
-    if (!expectType(right.getType(), left.getType(), conditional.getRight().getPosition())) {
-      type = Types.ERROR;
-    } else if (right.getType().equals(Types.ERROR)) {
-      type = Types.ERROR;
+    Optional<Prog.Type> common = Types.unify(left.getType(), right.getType());
+    if (common.isEmpty()) {
+      err.error(conditional.getPosition(), "Ternary subexpressions have incompatible type");
+      return ERROR_EXPR;
     }
     return Prog.Expr.newBuilder()
-        .setType(type)
+        .setType(common.get())
         .setConditional(Prog.Ternary.newBuilder().setCond(cond).setLeft(left).setRight(right))
         .build();
   }
@@ -569,36 +824,113 @@ public final class TypeChecker {
         builder.setCharConst(value.getCharLiteral());
         b.setType(Types.CHAR);
         break;
+      case LITERAL_NOT_SET:
+        syntaxError();
+        break;
       default:
-        throw new IllegalArgumentException();
+        throw new IllegalStateException();
     }
     return b.build();
   }
 
+  private static final ImmutableMap<Ast.UnaryOp, Prog.UnaryOp> UNARY_OP_CONV =
+      ImmutableMap.<Ast.UnaryOp, Prog.UnaryOp>builder()
+          .put(Ast.UnaryOp.NEGATE, Prog.UnaryOp.NEGATE)
+          .put(Ast.UnaryOp.NOT, Prog.UnaryOp.NOT)
+          .put(Ast.UnaryOp.POSTFIX_DECREMENT, Prog.UnaryOp.POSTFIX_DECREMENT)
+          .put(Ast.UnaryOp.POSTFIX_INCREMENT, Prog.UnaryOp.POSTFIX_INCREMENT)
+          .put(Ast.UnaryOp.PREFIX_DECREMENT, Prog.UnaryOp.PREFIX_DECREMENT)
+          .put(Ast.UnaryOp.PREFIX_INCREMENT, Prog.UnaryOp.PREFIX_INCREMENT)
+          .build();
+
   private Prog.Expr checkUnary(Ast.UnaryExpr unary) {
     Prog.Expr val = expr(unary.getExpr());
     Prog.Expr.Builder e = Prog.Expr.newBuilder().setType(val.getType());
-    Prog.UnaryExpr.Builder unaryBuilder = e.getUnaryBuilder().setExpr(val);
-    if (unary.getOperator() == Ast.UnaryOp.NOT) {
-      expectType(val.getType(), Types.BOOLEAN, unary.getExpr().getPosition());
-      unaryBuilder.setOperator(Prog.UnaryOp.NOT);
-    } else if (unary.getOperator() == Ast.UnaryOp.NEGATE) {
-      expectType(val.getType(), Types.INT, unary.getExpr().getPosition());
-      unaryBuilder.setOperator(Prog.UnaryOp.NEGATE);
-    } else {
-      throw new IllegalArgumentException();
+    e.getUnaryBuilder().setExpr(val).setOperator(UNARY_OP_CONV.get(unary.getOperator()));
+    switch (unary.getOperator()) {
+      case NEGATE:
+        if (!expectType(val.getType(), Types.INT, unary.getExpr().getPosition())) {
+          return ERROR_EXPR;
+        }
+        break;
+      case NOT:
+        if (!expectType(val.getType(), Types.BOOLEAN, unary.getExpr().getPosition())) {
+          return ERROR_EXPR;
+        }
+        break;
+      case PREFIX_INCREMENT:
+      case PREFIX_DECREMENT:
+      case POSTFIX_INCREMENT:
+      case POSTFIX_DECREMENT:
+        if (!val.getLvalue()) {
+          err.error(unary.getExpr().getPosition(), "Expected lvalue");
+          return ERROR_EXPR;
+        }
+        if (!expectType(val.getType(), Types.INT, unary.getExpr().getPosition())) {
+          return ERROR_EXPR;
+        }
+        break;
+      case UNARY_OP_UNSPECIFIED:
+      case UNRECOGNIZED:
+        syntaxError();
+        break;
+      default:
+        throw new IllegalStateException();
     }
     return e.build();
   }
 
-  private Prog.Type resolveType(Ast.Type type) {
-    Optional<Prog.Type> builtin = Types.builtin(type);
-    if (builtin.isPresent()) {
-      return builtin.get();
+  private Prog.Expr checkSelect(Ast.Select select) {
+    Prog.Expr value = expr(select.getCalledOn());
+    // Just propagate errors up; doesn't matter that it's not the semantically correct expression
+    // during type check.
+    if (value.getType().equals(Types.ERROR)) {
+      return value;
+    }
+    Prog.Expr.Builder selected = Prog.Expr.newBuilder().setLvalue(true);
+    selected.getSelectBuilder().setValue(value);
+    String name = select.getField().getName();
+    if (syntaxError(name.isEmpty())) {
+      return ERROR_EXPR;
     } else {
-      err.error(type.getPosition(), "Unknown type");
+      Optional<StructData> maybeStruct = resolveStruct(value.getType());
+      if (maybeStruct.isPresent()) {
+        StructData struct = maybeStruct.get();
+        if (!struct.fields.containsKey(name)) {
+          err.error(
+              select.getField().getPosition(), "No field " + name + " in struct " + struct.name);
+          selected.setType(Types.ERROR);
+        } else {
+          Integer fieldIdx = struct.fields.get(name);
+          selected.getSelectBuilder().setField(fieldIdx);
+          selected.setType(programBuilder.getStructs(struct.index).getFields(fieldIdx));
+        }
+      } else {
+        if (!value.getType().equals(Types.ERROR)) {
+          err.error(select.getField().getPosition(), "Cannot get field on non-struct");
+        }
+        return ERROR_EXPR;
+      }
+    }
+    return selected.build();
+  }
+
+  private Optional<StructData> resolveStruct(Prog.Type type) {
+    if (type.getTypeCase() != Prog.Type.TypeCase.STRUCT) {
+      return Optional.empty();
+    }
+    return Optional.of(structsIdx.get(type.getStruct()));
+  }
+
+  private Prog.Type resolveType(Ast.Type type) {
+    if (syntaxError(type.getName().isEmpty())) {
       return Types.ERROR;
     }
+    Prog.Type resolved = Types.resolve(type, this);
+    if (resolved.equals(Types.ERROR)) {
+      err.error(type.getPosition(), "Unknown type");
+    }
+    return resolved;
   }
 
   private boolean expectType(Prog.Type has, Prog.Type expected, Ast.Pos pos) {
@@ -606,7 +938,7 @@ public final class TypeChecker {
     if (has.equals(Types.ERROR) || expected.equals(Types.ERROR)) {
       return true;
     }
-    if (!has.equals(expected)) {
+    if (!Types.isCastable(expected, has)) {
       err.error(
           pos,
           "Expected type "
@@ -619,10 +951,16 @@ public final class TypeChecker {
   }
 
   private boolean syntaxError(boolean isError) {
-    if (!permissive && isError) {
-      throw new IllegalArgumentException();
+    if (isError) {
+      syntaxError();
     }
     return isError;
+  }
+
+  private void syntaxError() {
+    if (!permissive) {
+      throw new IllegalArgumentException();
+    }
   }
 
   public static Prog.Program typeCheck(Ast.Program program, Errors err) {
@@ -631,17 +969,17 @@ public final class TypeChecker {
 
   private static class Scope {
     private final Scope parent;
-    private final HashMap<String, Prog.VarRef> vars = new HashMap<>();
+    private final HashMap<String, Prog.Expr> vars = new HashMap<>();
     public Prog.Func.Builder function;
-    public Prog.Scope.Builder scope;
+    public Prog.BasicBlock.Builder scope;
 
-    private Scope(Scope parent, Prog.Func.Builder function, Prog.Scope.Builder scope) {
+    private Scope(Scope parent, Prog.Func.Builder function, Prog.BasicBlock.Builder scope) {
       this.parent = parent;
       this.function = function;
       this.scope = scope;
     }
 
-    public Optional<Prog.VarRef> resolve(String name) {
+    public Optional<Prog.Expr> resolve(String name) {
       if (vars.containsKey(name)) {
         return Optional.of(vars.get(name));
       }
@@ -655,13 +993,18 @@ public final class TypeChecker {
       return vars.containsKey(name);
     }
 
-    public void put(String name, Prog.VarRef ref) {
+    public void put(String name, Prog.Expr ref) {
       checkArgument(!vars.containsKey(name));
       vars.put(name, ref);
     }
 
     @CheckReturnValue
-    public Scope push(Prog.Scope.Builder scope) {
+    public Scope push() {
+      return new Scope(this, function, scope);
+    }
+
+    @CheckReturnValue
+    public Scope push(Prog.BasicBlock.Builder scope) {
       return new Scope(this, function, scope);
     }
 
@@ -695,6 +1038,8 @@ public final class TypeChecker {
     HashMap<String, Integer> fields = new HashMap<>(); // The indices of the field in programBuilder
     int index; // The index of this struct in the programBuilder
     String name;
-    Prog.Type type;
+    // Initialized to ERROR since there may be references to the type in cyclic struct dependencies
+    // before this is set
+    Prog.Type type = Types.ERROR;
   }
 }
