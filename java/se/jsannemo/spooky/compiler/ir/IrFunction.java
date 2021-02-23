@@ -18,7 +18,7 @@ public final class IrFunction {
   @Override
   public String toString() {
     return "IrFunction{"
-            + (extern ? "extern " : "")
+        + (extern ? "extern " : "")
         + "paramSignature="
         + paramSignature
         + ", returnSignature="

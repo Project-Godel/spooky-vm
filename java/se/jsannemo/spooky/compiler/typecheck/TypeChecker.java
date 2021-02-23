@@ -190,12 +190,9 @@ public final class TypeChecker {
       // For arrays we update the type with the inferred dimensions from initialization.
       varType = Types.inheritDims(varType, value.getType());
     }
-    Prog.Expr refExpr = Prog.Expr.newBuilder().setReference(ref).setType(varType).setLvalue(true).build();
-    builder
-        .setType(varType)
-        .getAssignmentBuilder()
-        .setValue(value)
-        .setReference(refExpr);
+    Prog.Expr refExpr =
+        Prog.Expr.newBuilder().setReference(ref).setType(varType).setLvalue(true).build();
+    builder.setType(varType).getAssignmentBuilder().setValue(value).setReference(refExpr);
     return refExpr;
   }
 
@@ -398,10 +395,7 @@ public final class TypeChecker {
     Prog.Expr right = expr(binary.getRight());
     Prog.Expr.Builder e = Prog.Expr.newBuilder();
     Prog.BinaryOp op = OP_CONV.get(binary.getOperator());
-    e.getBinaryBuilder()
-        .setLeft(left)
-        .setRight(right)
-        .setOperator(op);
+    e.getBinaryBuilder().setLeft(left).setRight(right).setOperator(op);
     if (op == Prog.BinaryOp.ARRAY_ACCESS) {
       e.setLvalue(true);
     }

@@ -20,7 +20,7 @@ public final class RegenParseTrees {
             TestCases.class);
     for (TestCase tc : cases.getTestCaseList()) {
       Ast.Program parsed =
-              Parser.parse(
+          Parser.parse(
               Tokenizer.create(
                   Files.readString(
                       Paths.get("test_programs/sources/" + tc.getName()), StandardCharsets.UTF_8)),

@@ -52,6 +52,6 @@ public final class IrTypes {
   }
 
   public static boolean typeChecks(Ir.Type a, Ir.Type b) {
-      return a.getTypeCheckType().equals(b.getTypeCheckType()) && a.getDim() == b.getDim();
+    return a.getTypeCheckType().equals(b.getTypeCheckType()) && a.getDim() == b.getDim();
   }
 }
