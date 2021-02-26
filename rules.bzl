@@ -1,8 +1,26 @@
+load("@rules_java//java:defs.bzl", "java_library", "java_proto_library", "java_test")
+load("@com_google_j2cl//build_defs:rules.bzl", "j2cl_library")
+load("@com_google_j2cl_protobuf//java/com/google/protobuf/contrib/j2cl:j2cl_proto.bzl", "new_j2cl_proto_library")
+
+def java_j2cl_proto_library(name, **kwargs):
+    pass
+    java_proto_library(name = name, **kwargs)
+    new_j2cl_proto_library(name = name + "-j2cl", **kwargs)
+
+def java_j2cl_library(name, **kwargs):
+    deps = kwargs.pop("deps", [])
+    j2cl_deps = [_label_fix(d) + "-j2cl" for d in deps]
+    java_library(name = name, deps = deps, **kwargs)
+    j2cl_library(name = name + "-j2cl", deps = j2cl_deps, **kwargs)
+
+def _label_fix(s):
+    if ":" not in s:
+        s = s + ":" + s[s.rindex("/") + 1:]
+    return s
+
 # From https://github.com/GerritCodeReview/bazlets/blob/master/tools/junit.bzl
 # Copyright (C) 2016 The Android Open Source Project
 # Apache V2: http://www.apache.org/licenses/LICENSE-2.0
-load("@rules_java//java:defs.bzl", "java_test")
-
 _OUTPUT = """import org.junit.runners.Suite;
 import org.junit.runner.RunWith;
 @RunWith(Suite.class)

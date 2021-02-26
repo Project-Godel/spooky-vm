@@ -1,19 +1,18 @@
 package se.jsannemo.spooky.compiler.typecheck;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CheckReturnValue;
-import se.jsannemo.spooky.compiler.Errors;
-import se.jsannemo.spooky.compiler.Prog;
-import se.jsannemo.spooky.compiler.ast.Ast;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkArgument;
+import se.jsannemo.spooky.compiler.Errors;
+import se.jsannemo.spooky.compiler.Prog;
+import se.jsannemo.spooky.compiler.ast.Ast;
 
 /** A type-checker for Spooky {@link se.jsannemo.spooky.compiler.ast.Ast.Program}s. */
 public final class TypeChecker {
@@ -97,7 +96,17 @@ public final class TypeChecker {
           continue;
         }
         data.fields.put(field.getName().getName(), struct.getFieldsCount());
-        struct.addFields(resolveType(field.getType()));
+        Prog.Type fieldType = resolveType(field.getType());
+        if (fieldType.hasArray()) {
+          if (Types.arraySize(fieldType) == 0) {
+            err.error(
+                field.getType().getPosition(), "Struct arrays can not have inferred dimensions");
+          }
+          if (Types.arraySize(fieldType) == Integer.MAX_VALUE) {
+            err.error(field.getType().getPosition(), "Array field too large");
+          }
+        }
+        struct.addFields(fieldType);
       }
     }
   }
@@ -161,7 +170,7 @@ public final class TypeChecker {
   private void createGlobalInit(Prog.Program.Builder builder, List<Ast.VarDecl> globalsList) {
     Prog.Func.Builder func = builder.addFunctionsBuilder();
     func.setReturnType(Types.VOID);
-    Prog.BasicBlock.Builder body = func.getBodyBuilder();
+    Prog.Block.Builder body = func.getBodyBuilder();
 
     // Register globals one at a time after they are initialized, to at least avoid direct
     // references to uninitialized globals. Circular references may still be possible since
@@ -197,10 +206,28 @@ public final class TypeChecker {
   }
 
   private void checkFunctions(Prog.Program.Builder builder, List<Ast.Func> functions) {
+    boolean hasMain = false;
     for (Ast.Func func : functions) {
-      Prog.Func.Builder funcBuilder =
-          builder.getFunctionsBuilder(funcIdx.get(func.getDecl().getName().getName()));
+      String funcName = func.getDecl().getName().getName();
+      int idx = funcIdx.get(funcName);
+      if (funcName.equals("main")
+          && !func.getDecl().hasReturnType()
+          && func.getDecl().getParamsCount() == 0) {
+        hasMain = true;
+        // Add a call to main from init.
+        builder
+            .getFunctionsBuilder(0)
+            .getBodyBuilder()
+            .addBodyBuilder()
+            .getExpressionBuilder()
+            .getCallBuilder()
+            .setFunction(idx);
+      }
+      Prog.Func.Builder funcBuilder = builder.getFunctionsBuilder(idx);
       checkFunction(funcBuilder, func);
+    }
+    if (!hasMain) {
+      err.error(Ast.Pos.getDefaultInstance(), "No func main() {} found.");
     }
   }
 
@@ -640,6 +667,9 @@ public final class TypeChecker {
             expectType(expr.getType(), base, array.getFill().getPosition());
             scalars.setFill(expr);
           }
+          if (valuesList.size() > dimensions.get(0)) {
+            err.error(value.getPosition(), "Expected at most " + dimensions.get(0) + " values");
+          }
         } else if (valuesList.size() != dimensions.get(0)) {
           err.error(value.getPosition(), "Expected " + dimensions.get(0) + " values");
         }
@@ -659,6 +689,9 @@ public final class TypeChecker {
         if (array.getShouldFill()) {
           if (array.hasFill()) {
             arrayInitValues(array.getFill(), base, subdims, subarray.getFillBuilder());
+          }
+          if (valuesList.size() > dimensions.get(0)) {
+            err.error(value.getPosition(), "Expected at most " + dimensions.get(0) + " values");
           }
         } else if (valuesList.size() != dimensions.get(0)) {
           err.error(value.getPosition(), "Expected " + dimensions.get(0) + " values");
@@ -932,7 +965,7 @@ public final class TypeChecker {
     if (has.equals(Types.ERROR) || expected.equals(Types.ERROR)) {
       return true;
     }
-    if (!Types.isCastable(expected, has)) {
+    if (!Types.isAssignable(expected, has)) {
       err.error(
           pos,
           "Expected type "
@@ -965,9 +998,9 @@ public final class TypeChecker {
     private final Scope parent;
     private final HashMap<String, Prog.Expr> vars = new HashMap<>();
     public Prog.Func.Builder function;
-    public Prog.BasicBlock.Builder scope;
+    public Prog.Block.Builder scope;
 
-    private Scope(Scope parent, Prog.Func.Builder function, Prog.BasicBlock.Builder scope) {
+    private Scope(Scope parent, Prog.Func.Builder function, Prog.Block.Builder scope) {
       this.parent = parent;
       this.function = function;
       this.scope = scope;
@@ -998,7 +1031,7 @@ public final class TypeChecker {
     }
 
     @CheckReturnValue
-    public Scope push(Prog.BasicBlock.Builder scope) {
+    public Scope push(Prog.Block.Builder scope) {
       return new Scope(this, function, scope);
     }
 

@@ -1,15 +1,14 @@
 package se.jsannemo.spooky.compiler.typecheck;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableSet;
-import se.jsannemo.spooky.compiler.Prog;
-import se.jsannemo.spooky.compiler.ast.Ast;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkArgument;
+import se.jsannemo.spooky.compiler.Prog;
+import se.jsannemo.spooky.compiler.ast.Ast;
 
 public final class Types {
   public static final Prog.Type VOID =
@@ -63,21 +62,11 @@ public final class Types {
     if (to.equals(Types.ERROR) || from.equals(Types.ERROR)) {
       return true;
     }
-    if (!isCopyable(to)) {
-      return false;
-    }
-    return to.equals(from);
-  }
-
-  public static boolean isCastable(Prog.Type to, Prog.Type from) {
-    if (to.equals(Types.ERROR) || from.equals(Types.ERROR)) {
-      return true;
-    }
     return to.equals(from);
   }
 
   public static boolean isCopyable(Prog.Type type) {
-    return !isArray(type);
+    return true;
   }
 
   private static boolean isStruct(Prog.Type type) {

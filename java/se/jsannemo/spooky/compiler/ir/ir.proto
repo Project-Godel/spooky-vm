@@ -1,175 +1,144 @@
 syntax = "proto3";
 
-option java_package = "se.jsannemo.spooky.compiler.ir";
+option java_package = "se.jsannemo.spooky.compiler";
+option java_outer_classname = "Ir";
 
-message Statement {
-  oneof statement {
-    Label label = 1;
-    Halt halt = 2;
-    Extern extern = 3;
-    Call call = 4;
-    Store store = 5;
-    StoreLabel store_label = 6;
+message Program {
+  repeated Type global_slots = 1;
+  repeated Constant constants = 2;
+  repeated Func functions = 3;
+}
 
-    Add add = 7;
-    Mul mul = 8;
-    Div div = 9;
-    Sub sub = 10;
-    Mod mod = 11;
-    Copy copy = 12;
-
-    JmpZero jmp_zero = 13;
-    JmpNZero jmp_nzero = 14;
-    JmpAdr jmp_addr = 15;
-    Jmp jmp = 16;
-
-    LessThan less_than = 17;
-    LessEquals less_equals = 18;
-    Equals equals = 19;
-    NotEquals not_equals = 20;
-
-    BitAnd bit_and = 21;
-    BitOr bit_or = 22;
+message Type {
+  oneof storage {
+    Scalar scalar = 1;
+    Struct struct = 2;
+    Array array = 3;
+    Type prefix_array = 4;
+    Type pointer = 5;
   }
 }
 
-message Label {
-  int32 label = 1;
+enum Scalar {
+  STORAGE_UNSPECIFIED = 0;
+  INT = 1;
+}
+
+message Struct {
+  repeated Type fields = 1;
+}
+
+message Array {
+  Type type = 1;
+  int32 size = 2;
+}
+
+message Constant {
+  oneof value {
+    int32 int = 1;
+    Array unprefixed_array = 2;
+    Array prefixed_array = 3;
+  }
+  message Array {
+    repeated int32 values = 1;
+  }
+}
+
+message Func {
+  int32 param_slots = 1;
+  repeated Type slots = 2;
+  Type returnType = 3;
+  // Block [0] is the entry block
+  repeated Block blocks = 4;
+}
+
+message Ref {
+  oneof slot {
+    Constant constant = 1;
+    int32 function = 2;
+    int32 global = 3;
+    ArrayOffset array = 4;
+    StructOffset struct = 5;
+    Ref pointer = 6;
+  }
+  message ArrayOffset {
+    Ref array = 1;
+    Ref offset = 2;
+  }
+  message StructOffset {
+    Ref struct = 1;
+    int32 offset = 2;
+  }
+}
+
+message Block {
+  repeated Op body = 1;
+}
+
+message Op {
+  oneof op {
+    Jump jmp = 1;
+    Extern extern = 2;
+    Call call = 3;
+    Binary binary = 4;
+    Unary unary = 5;
+    Return return = 6;
+    Halt halt = 7;
+  }
+}
+
+message Jump {
+  Ref cond_slot = 1; // If empty, the jump is unconditional.
+  Block if_true = 2;
+  Block if_false = 3;
+}
+
+message Extern {
+  string name = 1;
+  repeated Ref params = 2;
+}
+
+message Call {
+  string name = 1;
+  repeated Ref params = 2;
+}
+
+message Binary {
+  Ref a = 1;
+  Ref b = 2;
+  Ref target = 3;
+  enum Op {
+    OP_UNSPECIFIED = 0;
+    ADD = 1;
+    SUB = 2;
+    MUL = 3;
+    DIV = 4;
+    MOD = 5;
+    AND = 6;
+    OR = 7;
+    EQ = 8;
+    NEQ = 9;
+    LESS = 10;
+    LEQ = 11;
+  }
+}
+
+message Unary {
+  Ref a = 1;
+  Ref target = 2;
+  enum Op {
+    OP_UNSPECIFIED = 0;
+    NEGATE = 1;
+    NOT = 2;
+    ADDRESS = 3;
+    DEREFERENCE = 4;
+  }
+}
+
+message Return {
+  Ref return_slot = 1;
 }
 
 message Halt {
 }
 
-message Extern {
-  string name = 1;
-  int32 spOffset = 2;
-}
-
-message Call {
-  string name = 1;
-  int32 spOffset = 2;
-  Label label = 3;
-}
-
-message JmpZero {
-  Label label = 1;
-  Addr flag = 2;
-}
-
-message JmpNZero {
-  Label label = 1;
-  Addr flag = 2;
-}
-
-message Jmp {
-  Label label = 1;
-}
-
-message JmpAdr {
-  Addr addr = 1;
-}
-
-message Store {
-  Addr addr = 1;
-  int32 value = 2;
-}
-
-message StoreLabel {
-  Addr addr = 1;
-  Label label = 2;
-}
-
-message Add {
-  Addr a = 1;
-  Addr b = 2;
-  Addr result = 3;
-}
-
-message Sub {
-  Addr a = 1;
-  Addr b = 2;
-  Addr result = 3;
-}
-
-message Mul {
-  Addr a = 1;
-  Addr b = 2;
-  Addr result = 3;
-}
-
-message Div {
-  Addr a = 1;
-  Addr b = 2;
-  Addr result = 3;
-}
-
-message Mod {
-  Addr a = 1;
-  Addr b = 2;
-  Addr result = 3;
-}
-
-message LessThan {
-  Addr a = 1;
-  Addr b = 2;
-  Addr result = 3;
-}
-
-message LessEquals {
-  Addr a = 1;
-  Addr b = 2;
-  Addr result = 3;
-}
-
-message BitOr {
-  Addr a = 1;
-  Addr b = 2;
-  Addr result = 3;
-}
-
-message BitAnd {
-  Addr a = 1;
-  Addr b = 2;
-  Addr result = 3;
-}
-
-message Equals {
-  Addr a = 1;
-  Addr b = 2;
-  Addr result = 3;
-}
-
-message NotEquals {
-  Addr a = 1;
-  Addr b = 2;
-  Addr result = 3;
-}
-
-message Copy {
-  Addr from = 1;
-  Addr to = 2;
-}
-
-message Addr {
-  oneof addr {
-    int32 relSp = 1;
-    int32 abs = 2;
-  }
-}
-
-message IpAddr {
-  oneof addr {
-    int32 absText = 1;
-  }
-}
-
-message Value {
-  Type type = 1;
-  Addr address = 2;
-}
-
-message Type {
-  string baseType = 1;
-  string typeCheckType = 2;
-  int32 dim = 3;
-}

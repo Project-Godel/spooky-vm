@@ -1,6 +1,6 @@
 package se.jsannemo.spooky.vm;
 
-import se.jsannemo.spooky.compiler.ir.Conventions;
+import se.jsannemo.spooky.compiler.ABI;
 
 /**
  * {@link StdLib} provides the Spooky standard library with utility methods to implement extern
@@ -16,7 +16,7 @@ public final class StdLib {
    * @throws VmException if the stack pointer or the argument is out of bounds.
    */
   public static int getArg(SpookyVm vm, int offset) throws VmException {
-    int sp = vm.getM(Conventions.STACK_POINTER.getAbs());
+    int sp = vm.getM(ABI.STACK_PTR_ADDR);
     return vm.getM(sp - 1 - offset);
   }
 
@@ -27,7 +27,7 @@ public final class StdLib {
    * @throws VmException if not enough stack is reserved for the return value.
    */
   public static void setReturn(SpookyVm vm, int argSize, int value) throws VmException {
-    int sp = vm.getM(Conventions.STACK_POINTER.getAbs());
+    int sp = vm.getM(ABI.STACK_PTR_ADDR);
     vm.setM(sp - 1 - argSize, value);
   }
 }

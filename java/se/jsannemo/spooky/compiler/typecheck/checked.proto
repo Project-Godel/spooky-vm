@@ -17,10 +17,10 @@ message Func {
   repeated Type variables = 1;
   repeated Type params = 2;
   Type returnType = 3;
-  BasicBlock body = 4;
+  Block body = 4;
 }
 
-message BasicBlock {
+message Block {
   repeated Statement body = 1;
 }
 
@@ -43,13 +43,13 @@ message Halt {
 
 message Loop {
   Expr condition = 1;
-  BasicBlock body = 2;
+  Block body = 2;
 }
 
 message Conditional {
   Expr condition = 1;
-  BasicBlock body = 2;
-  BasicBlock elseBody = 3;
+  Block body = 2;
+  Block elseBody = 3;
 }
 
 message VarRef {

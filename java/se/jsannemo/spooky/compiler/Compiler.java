@@ -1,25 +1,22 @@
 package se.jsannemo.spooky.compiler;
 
+import jsinterop.annotations.JsType;
 import se.jsannemo.spooky.compiler.ast.Ast;
-import se.jsannemo.spooky.compiler.codegen.CodeGen;
-import se.jsannemo.spooky.compiler.ir.IrProgram;
-import se.jsannemo.spooky.compiler.ir.ToIr;
+import se.jsannemo.spooky.compiler.ir.IrGen;
 import se.jsannemo.spooky.compiler.parser.Parser;
 import se.jsannemo.spooky.compiler.parser.Tokenizer;
-import se.jsannemo.spooky.vm.Executable;
+import se.jsannemo.spooky.compiler.typecheck.TypeChecker;
 
+@JsType(namespace = "spooky.compiler")
 public final class Compiler {
 
-  private Compiler() {}
-
-  public static byte[] compile(String source) throws ValidationException {
-    Errors err = new Errors();
-    Ast.Program parse = Parser.parse(Tokenizer.create(source), err);
-    if (!err.errors().isEmpty()) {
-      throw new ValidationException(err.errors().get(0).msg, err.errors().get(0).position);
+  public static Ir.Program compile(String source) {
+    Errors errs = new Errors();
+    Ast.Program parsed = Parser.parse(Tokenizer.create(source), errs);
+    Prog.Program program = TypeChecker.typeCheck(parsed, errs);
+    if (errs.errors().isEmpty()) {
+      return IrGen.generateIr(program);
     }
-    IrProgram ir = ToIr.generate(parse);
-    Executable exec = CodeGen.codegen(ir);
-    return exec.toByteArray();
+    throw new RuntimeException(errs.errors().get(0).toString());
   }
 }

@@ -1,5 +1,4 @@
-load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library")
-load("@com_google_j2cl//build_defs:rules.bzl", "j2cl_library")
+load("@//:rules.bzl", "java_j2cl_library", "java_j2cl_proto_library")
 
 proto_library(
     name = "ast_proto",
@@ -10,7 +9,7 @@ proto_library(
     ],
 )
 
-java_proto_library(
+java_j2cl_proto_library(
     name = "ast_java_proto",
     visibility = ["//visibility:public"],
     deps = [
@@ -18,7 +17,7 @@ java_proto_library(
     ],
 )
 
-java_library(
+java_j2cl_library(
     name = "parser",
     srcs = [
         "Parser.java",
@@ -30,6 +29,6 @@ java_library(
         "//java/se/jsannemo/spooky/compiler:common",
         "//java/se/jsannemo/spooky/util",
         "//third_party/guava",
-        "//third_party/protobuf:java",
+        "//third_party/protobuf:empty",
     ],
 )

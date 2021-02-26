@@ -5,8 +5,6 @@ java_library(
     deps = [
         ":code_java_proto",
         "//java/se/jsannemo/spooky/compiler:common",
-        "//java/se/jsannemo/spooky/compiler/codegen",
-        "//java/se/jsannemo/spooky/compiler/ir",
         "//third_party/guava",
     ],
 )
