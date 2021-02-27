@@ -57,21 +57,11 @@ load("//third_party/protobuf:protobuf_install.bzl", "install_protobuf")
 
 install_protobuf()
 
-local_repository(
+http_archive(
     name = "com_google_j2cl_protobuf",
-    path = "../j2cl-protobuf",
-    repo_mapping = {
-        "@com_google_google_java_format": "@com_google_googlejavaformat_google_java_format",
-    },
+    strip_prefix = "j2cl-protobuf-fixes",
+    url = "https://github.com/Project-Godel/j2cl-protobuf/archive/fixes.zip",
 )
-#http_archive(
-#    name = "com_google_j2cl_protobuf",
-#    repo_mapping = {
-#        "@com_google_google_java_format": "@com_google_googlejavaformat_google_java_format",
-#    },
-#    strip_prefix = "j2cl-protobuf-master",
-#    url = "https://github.com/google/j2cl-protobuf/archive/master.zip",
-#)
 
 load("@com_google_j2cl_protobuf//:repository.bzl", "load_j2cl_proto_repo_deps")
 
