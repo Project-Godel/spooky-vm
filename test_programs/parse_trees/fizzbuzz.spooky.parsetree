@@ -1050,19 +1050,49 @@ functions {
                             end_offset: 286
                           }
                         }
+                        position {
+                          line: 9
+                          col: 14
+                          offset: 205
+                          end_line: 13
+                          end_col: 7
+                          end_offset: 286
+                        }
                       }
                       position {
                         line: 7
                         col: 14
                         offset: 153
+                        end_line: 13
+                        end_col: 7
+                        end_offset: 286
                       }
+                    }
+                    position {
+                      line: 7
+                      col: 14
+                      offset: 153
+                      end_line: 13
+                      end_col: 7
+                      end_offset: 286
                     }
                   }
                   position {
                     line: 5
                     col: 7
                     offset: 86
+                    end_line: 13
+                    end_col: 7
+                    end_offset: 286
                   }
+                }
+                position {
+                  line: 5
+                  col: 7
+                  offset: 86
+                  end_line: 13
+                  end_col: 7
+                  end_offset: 286
                 }
               }
               position {
@@ -1091,6 +1121,14 @@ functions {
             end_col: 3
             end_offset: 290
           }
+        }
+        position {
+          line: 4
+          col: 3
+          offset: 41
+          end_line: 14
+          end_col: 3
+          end_offset: 290
         }
       }
       position {

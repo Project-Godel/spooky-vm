@@ -8,10 +8,8 @@ java_library(
     ],
 )
 
-j2cl_library(
+alias(
     name = "guava-j2cl",
+    actual = "@com_google_guava-j2cl",
     visibility = ["//visibility:public"],
-    exports = [
-        "@com_google_guava-j2cl",
-    ],
 )

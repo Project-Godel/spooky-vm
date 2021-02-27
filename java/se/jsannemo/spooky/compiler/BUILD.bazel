@@ -25,6 +25,7 @@ java_j2cl_library(
         "//java/se/jsannemo/spooky/compiler/parser:ast_java_proto",
         "//java/se/jsannemo/spooky/compiler/typecheck",
         "//java/se/jsannemo/spooky/compiler/typecheck:checked_java_proto",
+        "//third_party/guava",
         "@com_google_j2cl//:jsinterop-annotations",
     ],
 )

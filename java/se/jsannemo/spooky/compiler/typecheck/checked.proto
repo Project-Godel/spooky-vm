@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package se.jsannemo.spooky.compiler.typecheck;
+
 option java_package = "se.jsannemo.spooky.compiler";
 option java_outer_classname = "Prog";
 

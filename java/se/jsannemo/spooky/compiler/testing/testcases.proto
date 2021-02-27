@@ -24,6 +24,6 @@ message TestCase {
 }
 
 message TestTokenization {
-  repeated Token tokens = 1;
+  repeated se.jsannemo.spooky.compiler.parser.Token tokens = 1;
 }
 

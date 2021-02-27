@@ -2,16 +2,14 @@ package se.jsannemo.spooky.compiler.parser;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.protobuf.Empty;
-import se.jsannemo.spooky.compiler.Errors;
-import se.jsannemo.spooky.compiler.ast.Ast;
-import se.jsannemo.spooky.util.CircularQueue;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import se.jsannemo.spooky.compiler.Errors;
+import se.jsannemo.spooky.compiler.ast.Ast;
+import se.jsannemo.spooky.util.CircularQueue;
 
 /**
  * Parser of Spooky code. Tokenization (and thus input to the parser) is set up in another class,
@@ -88,25 +86,29 @@ public final class Parser {
   }
 
   private Optional<Ast.StructDecl> struct() {
+    Ast.Pos.Builder pos = Ast.Pos.newBuilder();
     Ast.StructDecl.Builder struct = Ast.StructDecl.newBuilder();
-    eat(struct.getPositionBuilder());
-    Optional<Ast.Identifier> name = identifier("Expected struct name", struct.getPositionBuilder());
+    eat(pos);
+    Optional<Ast.Identifier> name = identifier("Expected struct name", pos);
     name.ifPresent(struct::setName);
     if (peek().getKind() == Ast.Token.Kind.LBRACE) {
-      eat(struct.getPositionBuilder());
+      eat(pos);
       while (peek().getKind() == Ast.Token.Kind.IDENTIFIER) {
-        Ast.StructField.Builder field = struct.addFieldsBuilder();
-        field.setName(identifier("Expected struct field name", field.getPositionBuilder()).get());
-        if (eatIfExpected("Expected :", Ast.Token.Kind.COLON, field.getPositionBuilder()) == null) {
+        Ast.Pos.Builder fieldPos = Ast.Pos.newBuilder();
+        Ast.StructField.Builder field = Ast.StructField.newBuilder();
+        field.setName(identifier("Expected struct field name", fieldPos).get());
+        if (eatIfExpected("Expected :", Ast.Token.Kind.COLON, fieldPos) == null) {
           eatLineUntil(last, STATEMENT_FAILURE_ENDS);
           continue;
         }
-        Optional<Ast.Type> type = type(field.getPositionBuilder());
+        Optional<Ast.Type> type = type(fieldPos);
         type.ifPresent(field::setType);
         finishLine();
-        appendPos(struct.getPositionBuilder(), field.getPosition());
+        field.setPosition(fieldPos);
+        struct.addFields(field);
+        appendPos(pos, field.getPosition());
       }
-      if (eatIfExpected("Expected }", Ast.Token.Kind.RBRACE, struct.getPositionBuilder()) == null) {
+      if (eatIfExpected("Expected }", Ast.Token.Kind.RBRACE, pos) == null) {
         eatUntil(Ast.Token.Kind.RBRACE);
         if (peek().getKind() == Ast.Token.Kind.RBRACE) {
           eat(null);
@@ -115,41 +117,46 @@ public final class Parser {
     } else if (name.isPresent()) {
       errPeek("Expected {");
     }
-    return Optional.of(struct.build());
+    return Optional.of(struct.setPosition(pos).build());
   }
 
   private Optional<Ast.FuncDecl> decl(Ast.Token kw) {
+    Ast.Pos.Builder declPos = Ast.Pos.newBuilder();
     Ast.FuncDecl.Builder decl = Ast.FuncDecl.newBuilder();
     if (kw != null) {
-      appendPos(decl.getPositionBuilder(), kw.getPosition());
+      appendPos(declPos, kw.getPosition());
     }
-    Optional<Ast.Identifier> name = identifier("Expected function name", decl.getPositionBuilder());
+    Optional<Ast.Identifier> name = identifier("Expected function name", declPos);
     name.ifPresent(decl::setName);
     if (peek().getKind() == Ast.Token.Kind.LPAREN) {
-      eat(decl.getPositionBuilder());
+      eat(declPos);
       parameterList(decl);
-      if (eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, decl.getPositionBuilder()) == null) {
+      if (eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, declPos) == null) {
         eatLine(last);
       }
     }
     if (peek().getKind() == Ast.Token.Kind.ARROW) {
-      eat(decl.getPositionBuilder());
-      type(decl.getPositionBuilder()).ifPresent(decl::setReturnType);
+      eat(declPos);
+      type(declPos).ifPresent(decl::setReturnType);
     }
+    decl.setPosition(declPos);
     return Optional.of(decl.build());
   }
 
   private void parameterList(Ast.FuncDecl.Builder builder) {
     while (peek().getKind() == Ast.Token.Kind.IDENTIFIER) {
-      Ast.FuncParam.Builder param = builder.addParamsBuilder();
-      param.setName(identifier("Expected parameter name", param.getPositionBuilder()).get());
-      eatIfExpected("Expected :", Ast.Token.Kind.COLON, param.getPositionBuilder());
-      Optional<Ast.Type> type = type(param.getPositionBuilder());
+      Ast.Pos.Builder paramPos = Ast.Pos.newBuilder();
+      Ast.FuncParam.Builder param = Ast.FuncParam.newBuilder();
+      param.setName(identifier("Expected parameter name", paramPos).get());
+      eatIfExpected("Expected :", Ast.Token.Kind.COLON, paramPos);
+      Optional<Ast.Type> type = type(paramPos);
       type.ifPresent(param::setType);
       if (peek().getKind() == Ast.Token.Kind.COMMA) {
-        eat(param.getPositionBuilder());
+        eat(paramPos);
       }
-      appendPos(builder.getPositionBuilder(), param.getPosition());
+      param.setPosition(paramPos);
+      builder.addParams(param);
+      builder.setPosition(mergePos(builder.getPosition(), param.getPosition()));
     }
   }
 
@@ -158,36 +165,35 @@ public final class Parser {
   }
 
   private Optional<Ast.Func> func() {
-    Ast.Func.Builder func = Ast.Func.newBuilder();
     Optional<Ast.FuncDecl> maybeDecl =
         decl(eatIfExpected("Expected 'func'", Ast.Token.Kind.FUNC, null));
-    if (maybeDecl.isEmpty()) {
+    if (!maybeDecl.isPresent()) {
       return Optional.empty();
     }
     Ast.FuncDecl decl = maybeDecl.get();
-    appendPos(func.getPositionBuilder(), decl.getPosition());
-    func.setDecl(decl);
+    Ast.Pos.Builder funcPos = decl.getPosition().toBuilder();
+    ;
+    Ast.Func.Builder func = Ast.Func.newBuilder().setDecl(decl);
     Optional<Ast.Statement> body = block();
     body.ifPresent(
         b -> {
           func.setBody(b);
-          appendPos(func.getPositionBuilder(), b.getPosition());
+          appendPos(funcPos, b.getPosition());
         });
-    return Optional.of(func.build());
+    return Optional.of(func.setPosition(funcPos).build());
   }
 
   private Optional<Ast.Statement> block() {
-    Ast.Statement.Builder statement = Ast.Statement.newBuilder();
-    Ast.Block.Builder block = statement.getBlockBuilder();
-    Ast.Token lbrace =
-        eatIfExpected("Expected block", Ast.Token.Kind.LBRACE, block.getPositionBuilder());
+    Ast.Pos.Builder blockPos = Ast.Pos.newBuilder();
+    Ast.Block.Builder block = Ast.Block.newBuilder();
+    Ast.Token lbrace = eatIfExpected("Expected block", Ast.Token.Kind.LBRACE, blockPos);
     if (lbrace == null) {
       return Optional.empty();
     }
     while (true) {
       Ast.Token nx = peek();
       if (nx.getKind() == Ast.Token.Kind.RBRACE) {
-        eat(block.getPositionBuilder());
+        eat(blockPos);
         break;
       }
       if (nx.getKind() == Ast.Token.Kind.EOF) {
@@ -195,23 +201,27 @@ public final class Parser {
         break;
       }
       Optional<Ast.Statement> st = statement();
-      if (st.isEmpty()) {
+      if (!st.isPresent()) {
         break;
       }
-      appendPos(block.getPositionBuilder(), st.get().getPosition());
+      appendPos(blockPos, st.get().getPosition());
       block.addBody(st.get());
     }
-    return Optional.of(statement.setPosition(block.getPositionBuilder()).build());
+    block.setPosition(blockPos);
+    return Optional.of(
+        Ast.Statement.newBuilder().setBlock(block).setPosition(block.getPosition()).build());
   }
 
   private Optional<Ast.Statement> statement() {
     Ast.Token.Kind nx = peek().getKind();
     if (nx == Ast.Token.Kind.SEMICOLON) {
-      Ast.Statement.Builder st = Ast.Statement.newBuilder();
-      Ast.Block.Builder block = st.getBlockBuilder();
-      eat(block.getPositionBuilder());
-      st.setPosition(block.getPositionBuilder());
-      return Optional.of(st.build());
+      Ast.Pos.Builder pos = Ast.Pos.newBuilder();
+      eat(pos);
+      return Optional.of(
+          Ast.Statement.newBuilder()
+              .setBlock(Ast.Block.newBuilder().setPosition(pos))
+              .setPosition(pos)
+              .build());
     } else if (nx == Ast.Token.Kind.IF) {
       return conditional();
     } else if (nx == Ast.Token.Kind.FOR) {
@@ -234,28 +244,27 @@ public final class Parser {
   }
 
   private Optional<Ast.Statement> varDecl() {
-    Ast.Statement.Builder stmt = Ast.Statement.newBuilder();
-    Ast.VarDecl.Builder declBuilder = stmt.getDeclBuilder();
-    Optional<Ast.Identifier> name =
-        identifier("Expected variable name", declBuilder.getPositionBuilder());
-    if (name.isEmpty()) {
+    Ast.Pos.Builder declPos = Ast.Pos.newBuilder();
+    Ast.VarDecl.Builder declBuilder = Ast.VarDecl.newBuilder();
+    Optional<Ast.Identifier> name = identifier("Expected variable name", declPos);
+    if (!name.isPresent()) {
       return Optional.empty();
     }
     declBuilder.setName(name.get());
-    if (eatIfExpected("Expected :", Ast.Token.Kind.COLON, declBuilder.getPositionBuilder())
-        != null) {
-      type(declBuilder.getPositionBuilder()).ifPresent(declBuilder::setType);
+    if (eatIfExpected("Expected :", Ast.Token.Kind.COLON, declPos) != null) {
+      type(declPos).ifPresent(declBuilder::setType);
     }
-    if (eatIfExpected("Expected =", Ast.Token.Kind.ASSIGN, declBuilder.getPositionBuilder())
-        != null) {
+    if (eatIfExpected("Expected =", Ast.Token.Kind.ASSIGN, declPos) != null) {
       initVal()
           .ifPresent(
               ex -> {
                 declBuilder.setInit(ex);
-                appendPos(declBuilder.getPositionBuilder(), ex.getPosition());
+                appendPos(declPos, ex.getPosition());
               });
     }
-    return Optional.of(stmt.setPosition(declBuilder.getPosition()).build());
+    declBuilder.setPosition(declPos);
+    return Optional.of(
+        Ast.Statement.newBuilder().setDecl(declBuilder).setPosition(declPos).build());
   }
 
   private Optional<Ast.Expr> initVal() {
@@ -272,30 +281,32 @@ public final class Parser {
   }
 
   private Ast.Expr defaultInit() {
-    Ast.Expr.Builder expr = Ast.Expr.newBuilder();
-    Ast.DefaultInit.Builder def = expr.getDefaultInitBuilder();
-    eatIfExpected("Expected {", Ast.Token.Kind.DEFAULT, def.getPositionBuilder());
-    expr.setDefaultInit(def).setPosition(def.getPosition());
-    return expr.build();
+    Ast.Pos.Builder pos = Ast.Pos.newBuilder();
+    eatIfExpected("Expected {", Ast.Token.Kind.DEFAULT, pos);
+    return Ast.Expr.newBuilder()
+        .setDefaultInit(Ast.DefaultInit.newBuilder().setPosition(pos))
+        .setPosition(pos)
+        .build();
   }
 
   private Ast.Expr structInit() {
-    Ast.Expr.Builder expr = Ast.Expr.newBuilder();
-    Ast.StructLit.Builder struct = expr.getStructBuilder();
-    eatIfExpected("Expected {", Ast.Token.Kind.LBRACE, struct.getPositionBuilder());
+    Ast.StructLit.Builder struct = Ast.StructLit.newBuilder();
+    Ast.Pos.Builder structPos = Ast.Pos.newBuilder();
+    eatIfExpected("Expected {", Ast.Token.Kind.LBRACE, structPos);
     while (peek().getKind() == Ast.Token.Kind.IDENTIFIER) {
       boolean err = false;
       boolean done = false;
-      Ast.FieldInit.Builder field = struct.addValuesBuilder();
-      field.setField(identifier("Expected identifier", field.getPosBuilder()).get());
-      if (eatIfExpected("Expected :", Ast.Token.Kind.COLON, field.getPosBuilder()) != null) {
+      Ast.FieldInit.Builder field = Ast.FieldInit.newBuilder();
+      Ast.Pos.Builder fieldPos = Ast.Pos.newBuilder();
+      field.setField(identifier("Expected identifier", fieldPos).get());
+      if (eatIfExpected("Expected :", Ast.Token.Kind.COLON, fieldPos) != null) {
         Optional<Ast.Expr> value = initVal();
         if (value.isPresent()) {
           Ast.Expr e = value.get();
           field.setValue(e);
-          appendPos(field.getPosBuilder(), e.getPosition());
+          appendPos(fieldPos, e.getPosition());
           if (peek().getKind() == Ast.Token.Kind.COMMA) {
-            eat(struct.getPositionBuilder());
+            eat(structPos);
           } else {
             done = true;
           }
@@ -308,60 +319,62 @@ public final class Parser {
       if (err) {
         eatLineUntil(last, ImmutableSet.of(Ast.Token.Kind.COMMA, Ast.Token.Kind.RBRACE));
       }
+      field.setPos(fieldPos);
+      struct.addValues(field);
       if (done) {
         break;
       }
     }
-    if (eatIfExpected("Expected }", Ast.Token.Kind.RBRACE, struct.getPositionBuilder()) == null) {
+    if (eatIfExpected("Expected }", Ast.Token.Kind.RBRACE, structPos) == null) {
       eatUntil(Ast.Token.Kind.RBRACE);
       if (peek().getKind() == Ast.Token.Kind.RBRACE) {
         eat(null);
       }
     }
-    expr.setPosition(struct.getPosition());
-    return expr.build();
+    struct.setPosition(structPos);
+    return Ast.Expr.newBuilder().setStruct(struct).setPosition(structPos).build();
   }
 
   private Ast.Expr arrayInit() {
-    Ast.Expr.Builder expr = Ast.Expr.newBuilder();
-    Ast.ArrayLit.Builder array = expr.getArrayBuilder();
-    eatIfExpected("Expected [", Ast.Token.Kind.LBRACKET, array.getPositionBuilder());
+    Ast.ArrayLit.Builder array = Ast.ArrayLit.newBuilder();
+    Ast.Pos.Builder arrayPos = Ast.Pos.newBuilder();
+    eatIfExpected("Expected [", Ast.Token.Kind.LBRACKET, arrayPos);
     while (peek().getKind() != Ast.Token.Kind.RBRACKET) {
       boolean isFill = peek().getKind() == Ast.Token.Kind.ELLIPSIS;
-      Ast.Expr.Builder nextValue;
       if (isFill) {
-        eat(array.getPositionBuilder());
+        eat(arrayPos);
         array.setShouldFill(true);
         if (peek().getKind() == Ast.Token.Kind.RBRACKET) {
           break;
         }
-        nextValue = array.getFillBuilder();
-      } else {
-        nextValue = array.addValuesBuilder();
       }
       Optional<Ast.Expr> val = initVal();
-      val.ifPresent(
-          v -> {
-            nextValue.mergeFrom(v);
-            appendPos(array.getPositionBuilder(), v.getPosition());
-          });
-      if (val.isEmpty() || isFill) {
+      if (val.isPresent()) {
+        Ast.Expr initExpr = val.get();
+        if (isFill) {
+          array.setFill(initExpr);
+        } else {
+          array.addValues(initExpr);
+        }
+        appendPos(arrayPos, initExpr.getPosition());
+      }
+      if (!val.isPresent() || isFill) {
         break;
       }
       if (peek().getKind() != Ast.Token.Kind.COMMA) {
         break;
       }
-      eat(array.getPositionBuilder());
+      eat(arrayPos);
     }
-    eatIfExpected("Expected ]", Ast.Token.Kind.RBRACKET, array.getPositionBuilder());
-    return expr.setPosition(array.getPosition()).build();
+    eatIfExpected("Expected ]", Ast.Token.Kind.RBRACKET, arrayPos);
+    array.setPosition(arrayPos);
+    return Ast.Expr.newBuilder().setArray(array).setPosition(arrayPos).build();
   }
 
   private Optional<Ast.Statement> returnStmt() {
-    Ast.Statement.Builder stmt = Ast.Statement.newBuilder();
-    Ast.ReturnValue.Builder returnBuilder = stmt.getReturnValueBuilder();
-    Ast.Token retTok =
-        eatIfExpected("Expected return", Ast.Token.Kind.RETURN, returnBuilder.getPositionBuilder());
+    Ast.Pos.Builder returnPos = Ast.Pos.newBuilder();
+    Ast.ReturnValue.Builder returnBuilder = Ast.ReturnValue.newBuilder();
+    Ast.Token retTok = eatIfExpected("Expected return", Ast.Token.Kind.RETURN, returnPos);
     if (retTok == null) {
       return Optional.empty();
     }
@@ -370,80 +383,83 @@ public final class Parser {
           .ifPresent(
               expr -> {
                 returnBuilder.setValue(expr);
-                appendPos(returnBuilder.getPositionBuilder(), expr.getPosition());
+                appendPos(returnPos, expr.getPosition());
               });
     }
     finishLine();
-    return Optional.of(stmt.setPosition(returnBuilder.getPosition()).build());
+    returnBuilder.setPosition(returnPos);
+    return Optional.of(
+        Ast.Statement.newBuilder().setReturnValue(returnBuilder).setPosition(returnPos).build());
   }
 
   private Optional<Ast.Statement> whileLoop() {
-    Ast.Statement.Builder stmt = Ast.Statement.newBuilder();
-    Ast.Loop.Builder loop = stmt.getLoopBuilder();
-    if (eatIfExpected("Expected while", Ast.Token.Kind.WHILE, loop.getPositionBuilder()) == null) {
+    Ast.Loop.Builder loop = Ast.Loop.newBuilder();
+    Ast.Pos.Builder loopPos = Ast.Pos.newBuilder();
+    if (eatIfExpected("Expected while", Ast.Token.Kind.WHILE, loopPos) == null) {
       return Optional.empty();
     }
     if (peek().getKind() == Ast.Token.Kind.LPAREN) {
-      eat(loop.getPositionBuilder());
+      eat(loopPos);
       expression()
           .ifPresent(
               expr -> {
                 loop.setCondition(expr);
-                appendPos(loop.getPositionBuilder(), expr.getPosition());
+                appendPos(loopPos, expr.getPosition());
               });
-      eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, loop.getPositionBuilder());
+      eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, loopPos);
     }
     statement()
         .ifPresent(
             s -> {
               loop.setBody(s);
-              appendPos(loop.getPositionBuilder(), s.getPosition());
+              appendPos(loopPos, s.getPosition());
             });
-    return Optional.of(stmt.setPosition(loop.getPosition()).build());
+    loop.setPosition(loopPos);
+    return Optional.of(Ast.Statement.newBuilder().setLoop(loop).setPosition(loopPos).build());
   }
 
   private Optional<Ast.Statement> forLoop() {
-    Ast.Statement.Builder stmt = Ast.Statement.newBuilder();
-    Ast.Loop.Builder loop = stmt.getLoopBuilder();
-    if (eatIfExpected("Expected for", Ast.Token.Kind.FOR, loop.getPositionBuilder()) == null) {
+    Ast.Loop.Builder loop = Ast.Loop.newBuilder();
+    Ast.Pos.Builder loopPos = Ast.Pos.newBuilder();
+    if (eatIfExpected("Expected for", Ast.Token.Kind.FOR, loopPos) == null) {
       return Optional.empty();
     }
-    if (eatIfExpected("Expected (", Ast.Token.Kind.LPAREN, loop.getPositionBuilder()) != null) {
+    if (eatIfExpected("Expected (", Ast.Token.Kind.LPAREN, loopPos) != null) {
       if (peek().getKind() != Ast.Token.Kind.SEMICOLON) {
         Optional<Ast.Statement> init = simpleStatement();
         if (init.isPresent()) {
           Ast.Statement s = init.get();
           loop.setInit(s);
-          appendPos(loop.getPositionBuilder(), s.getPosition());
+          appendPos(loopPos, s.getPosition());
         } else {
           eatLineUntil(last, COND_FAILURE_ENDS);
         }
       }
-      eatIfExpected("Expected ;", Ast.Token.Kind.SEMICOLON, loop.getPositionBuilder());
+      eatIfExpected("Expected ;", Ast.Token.Kind.SEMICOLON, loopPos);
 
       if (peek().getKind() != Ast.Token.Kind.SEMICOLON) {
         Optional<Ast.Expr> cond = expression();
         if (cond.isPresent()) {
           Ast.Expr e = cond.get();
           loop.setCondition(e);
-          appendPos(loop.getPositionBuilder(), e.getPosition());
+          appendPos(loopPos, e.getPosition());
         } else {
           eatLineUntil(last, COND_FAILURE_ENDS);
         }
       }
-      eatIfExpected("Expected ;", Ast.Token.Kind.SEMICOLON, loop.getPositionBuilder());
+      eatIfExpected("Expected ;", Ast.Token.Kind.SEMICOLON, loopPos);
 
       if (peek().getKind() != Ast.Token.Kind.RPAREN) {
         Optional<Ast.Statement> inc = exprStatement();
         if (inc.isPresent()) {
           Ast.Statement s = inc.get();
           loop.setIncrement(s);
-          appendPos(loop.getPositionBuilder(), s.getPosition());
+          appendPos(loopPos, s.getPosition());
         } else {
           eatLineUntil(last, COND_FAILURE_ENDS);
         }
       }
-      eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, loop.getPositionBuilder());
+      eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, loopPos);
     } else {
       eatLineUntil(last, STATEMENT_FAILURE_ENDS);
     }
@@ -451,9 +467,10 @@ public final class Parser {
         .ifPresent(
             s -> {
               loop.setBody(s);
-              appendPos(loop.getPositionBuilder(), s.getPosition());
+              appendPos(loopPos, s.getPosition());
             });
-    return Optional.of(stmt.build());
+    loop.setPosition(loopPos);
+    return Optional.of(Ast.Statement.newBuilder().setLoop(loop).setPosition(loopPos).build());
   }
 
   private Optional<Ast.Statement> simpleStatement() {
@@ -465,41 +482,43 @@ public final class Parser {
   }
 
   private Optional<Ast.Statement> conditional() {
-    Ast.Statement.Builder stmt = Ast.Statement.newBuilder();
-    Ast.Conditional.Builder cond = stmt.getConditionalBuilder();
-    if (eatIfExpected("Expected if", Ast.Token.Kind.IF, cond.getPositionBuilder()) == null) {
+    Ast.Pos.Builder condPos = Ast.Pos.newBuilder();
+    Ast.Conditional.Builder cond = Ast.Conditional.newBuilder();
+    if (eatIfExpected("Expected if", Ast.Token.Kind.IF, condPos) == null) {
       return Optional.empty();
     }
-    if (eatIfExpected("Expected (", Ast.Token.Kind.LPAREN, cond.getPositionBuilder()) != null) {
+    if (eatIfExpected("Expected (", Ast.Token.Kind.LPAREN, condPos) != null) {
       expression()
           .ifPresent(
               e -> {
                 cond.setCondition(e);
-                appendPos(cond.getPositionBuilder(), e.getPosition());
+                appendPos(condPos, e.getPosition());
               });
-      eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, cond.getPositionBuilder());
+      eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, condPos);
     }
     statement()
         .ifPresent(
             s -> {
               cond.setBody(s);
-              appendPos(cond.getPositionBuilder(), s.getPosition());
+              appendPos(condPos, s.getPosition());
             });
     if (peek().getKind() == Ast.Token.Kind.ELSE) {
-      eat(cond.getPositionBuilder());
+      eat(condPos);
       statement()
           .ifPresent(
               s -> {
                 cond.setElseBody(s);
-                appendPos(cond.getPositionBuilder(), s.getPosition());
+                appendPos(condPos, s.getPosition());
               });
     }
-    return Optional.of(stmt.build());
+    cond.setPosition(condPos);
+    return Optional.of(
+        Ast.Statement.newBuilder().setConditional(cond).setPosition(condPos).build());
   }
 
   private Optional<Ast.Statement> exprStatement() {
     Optional<Ast.Expr> maybeExpr = expression();
-    if (maybeExpr.isEmpty()) {
+    if (!maybeExpr.isPresent()) {
       return Optional.empty();
     }
     Ast.Expr expr = maybeExpr.get();
@@ -524,19 +543,20 @@ public final class Parser {
   private Optional<Ast.Expr> assignment() {
     Optional<Ast.Expr> lhs = ternary();
     if (lhs.isPresent() && assignments.containsKey(peek().getKind())) {
-      Ast.Expr.Builder expr = Ast.Expr.newBuilder();
-      Ast.Assignment.Builder assign = expr.getAssignmentBuilder().setReference(lhs.get());
-      Ast.Token opTok = eat(assign.getPositionBuilder());
+      Ast.Assignment.Builder assign = Ast.Assignment.newBuilder().setReference(lhs.get());
+      Ast.Pos.Builder assignPos = Ast.Pos.newBuilder();
+      Ast.Token opTok = eat(assignPos);
       Optional<Ast.Expr> rhs = assignment();
       rhs.ifPresent(
           ex -> {
-            appendPos(assign.getPositionBuilder(), ex.getPosition());
+            appendPos(assignPos, ex.getPosition());
             assign.setValue(rhs.get());
           });
       Ast.BinaryOp op = assignments.get(opTok.getKind());
       assign.setCompound(op);
-      expr.setPosition(assign.getPosition());
-      return Optional.of(expr.build());
+      assign.setPosition(assignPos);
+      return Optional.of(
+          Ast.Expr.newBuilder().setPosition(assignPos).setAssignment(assign).build());
     }
     return lhs;
   }
@@ -545,29 +565,28 @@ public final class Parser {
     Optional<Ast.Expr> e = orExpr();
     if (e.isPresent() && peek().getKind() == Ast.Token.Kind.QUESTION) {
       Ast.Expr cond = e.get();
-      Ast.Expr.Builder builder = Ast.Expr.newBuilder();
-      Ast.Ternary.Builder conditionalBuilder =
-          builder.getConditionalBuilder().setPosition(cond.getPosition()).setCond(cond);
-      eat(conditionalBuilder.getPositionBuilder());
+      Ast.Pos.Builder ternPos = cond.getPosition().toBuilder();
+      Ast.Ternary.Builder ternary = Ast.Ternary.newBuilder().setCond(cond);
+      eat(ternPos);
 
       Optional<Ast.Expr> e1 = ternary();
       e1.ifPresent(
           ex -> {
-            conditionalBuilder.setLeft(ex);
-            appendPos(conditionalBuilder.getPositionBuilder(), ex.getPosition());
+            ternary.setLeft(ex);
+            appendPos(ternPos, ex.getPosition());
           });
 
-      eatIfExpected("Expected :", Ast.Token.Kind.COLON, conditionalBuilder.getPositionBuilder());
+      eatIfExpected("Expected :", Ast.Token.Kind.COLON, ternPos);
 
       Optional<Ast.Expr> e2 = ternary();
       e2.ifPresent(
           ex -> {
-            conditionalBuilder.setRight(ex);
-            appendPos(conditionalBuilder.getPositionBuilder(), ex.getPosition());
+            ternary.setRight(ex);
+            appendPos(ternPos, ex.getPosition());
           });
-
-      builder.setPosition(cond.getPosition());
-      return Optional.of(builder.build());
+      ternary.setPosition(ternPos);
+      return Optional.of(
+          Ast.Expr.newBuilder().setConditional(ternary).setPosition(ternPos).build());
     }
     return e;
   }
@@ -594,21 +613,20 @@ public final class Parser {
     Optional<Ast.Expr> e = next.get();
     while (e.isPresent() && Arrays.stream(opKinds).anyMatch(t -> t == peek().getKind())) {
       Ast.Expr lhs = e.get();
-      Ast.Expr.Builder expr = Ast.Expr.newBuilder();
-      Ast.BinaryExpr.Builder binary =
-          expr.getBinaryBuilder().setLeft(lhs).setPosition(lhs.getPosition());
+      Ast.Pos.Builder binPos = lhs.getPosition().toBuilder();
+      Ast.BinaryExpr.Builder binary = Ast.BinaryExpr.newBuilder().setLeft(lhs);
 
-      Ast.Token.Kind opKind = eat(binary.getPositionBuilder()).getKind();
+      Ast.Token.Kind opKind = eat(binPos).getKind();
       binary.setOperator(binOps.get(opKind));
 
       Optional<Ast.Expr> rhs = next.get();
       rhs.ifPresent(
           ex -> {
             binary.setRight(ex);
-            appendPos(binary.getPositionBuilder(), ex.getPosition());
+            appendPos(binPos, ex.getPosition());
           });
-      expr.setPosition(binary.getPosition());
-      e = Optional.of(expr.build());
+      binary.setPosition(binPos);
+      e = Optional.of(Ast.Expr.newBuilder().setBinary(binary).setPosition(binPos).build());
     }
     return e;
   }
@@ -653,32 +671,31 @@ public final class Parser {
   private Optional<Ast.Expr> unaryExpr() {
     if (peek().getKind() == Ast.Token.Kind.MINUS && peek(1).getKind() == Ast.Token.Kind.INT_LIT) {
       // Was actually negative constant, not unary operator
-      Ast.Expr.Builder expr = Ast.Expr.newBuilder();
-      Ast.Value.Builder value = expr.getValueBuilder();
-      eat(value.getPositionBuilder());
-      String text = eat(value.getPositionBuilder()).getText();
+      Ast.Value.Builder value = Ast.Value.newBuilder();
+      Ast.Pos.Builder valPos = Ast.Pos.newBuilder();
+      eat(valPos);
+      String text = eat(valPos).getText();
       int lit = 0;
       try {
         lit = Integer.parseInt("-" + text);
       } catch (NumberFormatException nfe) {
         errLast("Integer " + text + " out of range");
       }
-      value.setIntLiteral(lit);
-      expr.setPosition(value.getPosition());
-      return Optional.of(expr.build());
+      value.setIntLiteral(lit).setPosition(valPos);
+      return Optional.of(Ast.Expr.newBuilder().setValue(value).setPosition(valPos).build());
     } else if (unaryOps.containsKey(peek().getKind())) {
-      Ast.Expr.Builder expr = Ast.Expr.newBuilder();
       Ast.UnaryExpr.Builder unary =
-          expr.getUnaryBuilder().setOperator(unaryOps.get(peek().getKind()));
-      eat(unary.getPositionBuilder());
+          Ast.UnaryExpr.newBuilder().setOperator(unaryOps.get(peek().getKind()));
+      Ast.Pos.Builder unaryPos = Ast.Pos.newBuilder();
+      eat(unaryPos);
       unaryExpr()
           .ifPresent(
               ex -> {
                 unary.setExpr(ex);
-                appendPos(unary.getPositionBuilder(), ex.getPosition());
+                appendPos(unaryPos, ex.getPosition());
               });
-      expr.setPosition(unary.getPosition());
-      return Optional.of(expr.build());
+      unary.setPosition(unaryPos);
+      return Optional.of(Ast.Expr.newBuilder().setUnary(unary).setPosition(unaryPos).build());
     }
     return unary2Expr();
   }
@@ -723,83 +740,82 @@ public final class Parser {
   }
 
   private Ast.Expr arrayIndex(Ast.Expr lhs) {
-    Ast.Expr.Builder newE = Ast.Expr.newBuilder();
+    Ast.Pos.Builder accessPos = lhs.getPosition().toBuilder();
     Ast.BinaryExpr.Builder arrayAccess =
-        newE.getBinaryBuilder()
-            .setPosition(lhs.getPosition())
-            .setOperator(Ast.BinaryOp.ARRAY_ACCESS)
-            .setLeft(lhs);
-    eat(arrayAccess.getPositionBuilder());
+        Ast.BinaryExpr.newBuilder().setOperator(Ast.BinaryOp.ARRAY_ACCESS).setLeft(lhs);
+    eat(accessPos);
     Optional<Ast.Expr> rhs = expression();
     rhs.ifPresent(
         ex -> {
           arrayAccess.setRight(ex);
-          appendPos(arrayAccess.getPositionBuilder(), ex.getPosition());
+          appendPos(accessPos, ex.getPosition());
         });
-    eatIfExpected("Expected ]", Ast.Token.Kind.RBRACKET, arrayAccess.getPositionBuilder());
-    newE.setPosition(arrayAccess.getPosition());
-    return newE.build();
+    eatIfExpected("Expected ]", Ast.Token.Kind.RBRACKET, accessPos);
+    arrayAccess.setPosition(accessPos);
+    return Ast.Expr.newBuilder().setBinary(arrayAccess).setPosition(accessPos).build();
   }
 
   private Ast.Expr funcCall(Optional<Ast.Expr> lhs) {
-    Ast.Expr.Builder expr = Ast.Expr.newBuilder();
-    Ast.FuncCall.Builder call = expr.getCallBuilder();
+    Ast.FuncCall.Builder call = Ast.FuncCall.newBuilder();
+    Ast.Pos.Builder callPos = Ast.Pos.newBuilder();
     lhs.ifPresent(
         ex -> {
           call.setCalledOn(ex);
-          appendPos(call.getPositionBuilder(), ex.getPosition());
+          appendPos(callPos, ex.getPosition());
         });
-    Ast.Identifier funcName = identifier("Expected identifier", call.getPositionBuilder()).get();
-    eat(call.getPositionBuilder()); // The following LPAREN
+    Ast.Identifier funcName = identifier("Expected identifier", callPos).get();
+    eat(callPos); // The following LPAREN
     call.setFunction(funcName);
     while (peek().getKind() != Ast.Token.Kind.RPAREN) {
       Optional<Ast.Expr> param = expression();
-      if (param.isEmpty()) {
+      if (!param.isPresent()) {
         break;
       }
       Ast.Expr val = param.get();
-      appendPos(call.getPositionBuilder(), val.getPosition());
+      appendPos(callPos, val.getPosition());
       call.addParams(val);
       if (peek().getKind() != Ast.Token.Kind.COMMA) {
         break;
       }
-      eat(call.getPositionBuilder());
+      eat(callPos);
     }
-    eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, call.getPositionBuilder());
-    return expr.setPosition(call.getPosition()).build();
+    eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, callPos);
+    call.setPosition(callPos);
+    return Ast.Expr.newBuilder().setCall(call).setPosition(callPos).build();
   }
 
   private Ast.Expr select(Ast.Expr lhs) {
-    Ast.Expr.Builder newE = Ast.Expr.newBuilder();
-    Ast.Select.Builder select =
-        newE.getSelectBuilder().setPosition(lhs.getPosition()).setCalledOn(lhs);
-    select.setField(identifier("Expected identifier", select.getPositionBuilder()).get());
-    newE.setPosition(select.getPosition());
-    return newE.build();
+    Ast.Pos.Builder selectPos = lhs.getPosition().toBuilder();
+    Ast.Select.Builder select = Ast.Select.newBuilder().setCalledOn(lhs);
+    select.setField(identifier("Expected identifier", selectPos).get());
+    return Ast.Expr.newBuilder().setSelect(select).setPosition(selectPos).build();
   }
 
   private Optional<Ast.Expr> reference() {
     if (peek().getKind() == Ast.Token.Kind.IDENTIFIER) {
-      Ast.Expr.Builder expr = Ast.Expr.newBuilder();
-      expr.setReference(identifier("Expected identifier", expr.getPositionBuilder()).get());
-      return Optional.of(expr.build());
+      Ast.Identifier identifier = identifier("Expected identifier", null).get();
+      return Optional.of(
+          Ast.Expr.newBuilder()
+              .setReference(identifier)
+              .setPosition(identifier.getPosition())
+              .build());
     }
     errPeek("Invalid expression start " + peek().getText());
     return Optional.empty();
   }
 
   private Optional<Ast.Expr> literal() {
-    Ast.Expr.Builder expr = Ast.Expr.newBuilder();
-    Ast.Value.Builder value = expr.getValueBuilder();
+    Ast.Value.Builder value = Ast.Value.newBuilder();
+    Ast.Pos.Builder valuePos = Ast.Pos.newBuilder();
     if (peek().getKind() == Ast.Token.Kind.TRUE) {
-      eat(value.getPositionBuilder());
+      eat(valuePos);
       value.setBoolLiteral(true);
     } else if (peek().getKind() == Ast.Token.Kind.FALSE) {
-      eat(value.getPositionBuilder());
+      eat(valuePos);
       value.setBoolLiteral(false);
     } else if (peek().getKind() == Ast.Token.Kind.INT_LIT) {
       int lit = 0;
-      String text = eat(value.getPositionBuilder()).getText();
+      String text = eat(valuePos).getText();
       try {
         lit = Integer.parseInt(text);
       } catch (NumberFormatException nfe) {
@@ -808,14 +824,14 @@ public final class Parser {
       value.setIntLiteral(lit);
     } else if (peek().getKind() == Ast.Token.Kind.UNTERMINATED_CHAR_LIT) {
       errPeek("Unterminated character literal");
-      eat(value.getPositionBuilder());
+      eat(valuePos);
       value.setCharLiteral(0);
     } else if (peek().getKind() == Ast.Token.Kind.UNTERMINATED_STRING_LIT) {
       errPeek("Unterminated string literal");
-      eat(value.getPositionBuilder());
+      eat(valuePos);
       value.setStringLiteral("");
     } else if (peek().getKind() == Ast.Token.Kind.CHAR_LIT) {
-      String content = eat(value.getPositionBuilder()).getText();
+      String content = eat(valuePos).getText();
       content = content.substring(1, content.length() - 1); // Strip ''
       content = unescape(content);
       if (content.length() != 1) {
@@ -825,14 +841,15 @@ public final class Parser {
         value.setCharLiteral(content.charAt(0));
       }
     } else if (peek().getKind() == Ast.Token.Kind.STRING_LIT) {
-      String content = eat(value.getPositionBuilder()).getText();
+      String content = eat(valuePos).getText();
       content = content.substring(1, content.length() - 1); // Strip ""
       content = unescape(content);
       value.setStringLiteral(content);
     } else {
       return parenthesized();
     }
-    return Optional.of(expr.setPosition(value.getPosition()).build());
+    value.setPosition(valuePos);
+    return Optional.of(Ast.Expr.newBuilder().setValue(value).setPosition(valuePos).build());
   }
 
   private Optional<Ast.Expr> parenthesized() {
@@ -870,61 +887,60 @@ public final class Parser {
   }
 
   private Optional<Ast.Type> type(Ast.Pos.Builder pos) {
-    Ast.Type.Builder builder = Ast.Type.newBuilder();
-    Optional<Ast.Identifier> nameOpt =
-        identifier("Expected type name", builder.getPositionBuilder());
-    if (nameOpt.isEmpty()) {
+    Ast.Type.Builder type = Ast.Type.newBuilder();
+    Ast.Pos.Builder typePos = Ast.Pos.newBuilder();
+    Optional<Ast.Identifier> nameOpt = identifier("Expected type name", typePos);
+    if (!nameOpt.isPresent()) {
       return Optional.empty();
     }
-    builder.setName(nameOpt.get().getName());
+    type.setName(nameOpt.get().getName());
     while (peek().getKind() == Ast.Token.Kind.LBRACKET) {
       System.out.println("Is array!");
-      Ast.Token lbrack = eat(builder.getPositionBuilder());
+      Ast.Token lbrack = eat(typePos);
       if (peek().getKind() == Ast.Token.Kind.RBRACKET) {
-        eat(builder.getPositionBuilder());
-        builder
-            .addDimensionsBuilder()
-            .setInferred(Empty.getDefaultInstance())
-            .setPosition(lbrack.getPosition());
+        eat(typePos);
+        type.addDimensions(
+            Ast.Type.ArrayDimension.newBuilder().setDimension(0).setPosition(lbrack.getPosition()));
         continue;
       }
       Optional<Ast.Expr> expression = expression();
-      if (expression.isEmpty()) {
+      if (expression.isPresent()) {
+        Ast.Value dimValue = expression.get().getValue();
+        if (dimValue.getLiteralCase() != Ast.Value.LiteralCase.INT_LITERAL) {
+          errAt("Array dimensions must be integer constants", lbrack);
+        } else {
+          type.addDimensions(
+              Ast.Type.ArrayDimension.newBuilder()
+                  .setDimension(dimValue.getIntLiteral())
+                  .setPosition(expression.get().getPosition())
+                  .build());
+          appendPos(typePos, dimValue.getPosition());
+        }
+      } else {
         if (peek().getKind() != Ast.Token.Kind.RBRACKET) {
           eatLineUntil(
               last,
               ImmutableSet.of(
                   Ast.Token.Kind.RBRACKET, Ast.Token.Kind.EQUALS, Ast.Token.Kind.COMMA));
         }
-      } else {
-        Ast.Value dimValue = expression.get().getValue();
-        if (dimValue.getLiteralCase() != Ast.Value.LiteralCase.INT_LITERAL) {
-          errAt("Array dimensions must be integer constants", lbrack);
-        } else {
-          builder
-              .addDimensionsBuilder()
-              .setDimension(dimValue.getIntLiteral())
-              .setPosition(expression.get().getPosition())
-              .build();
-          appendPos(builder.getPositionBuilder(), dimValue.getPosition());
-        }
       }
-      eatIfExpected("Expected closing ]", Ast.Token.Kind.RBRACKET, builder.getPositionBuilder());
+      eatIfExpected("Expected closing ]", Ast.Token.Kind.RBRACKET, typePos);
     }
-    appendPos(pos, builder.getPosition());
-    return Optional.of(builder.build());
+    appendPos(pos, typePos.build());
+    return Optional.of(type.setPosition(typePos).build());
   }
 
   private Optional<Ast.Identifier> identifier(String error, Ast.Pos.Builder pos) {
-    Ast.Identifier.Builder builder = Ast.Identifier.newBuilder();
-    Ast.Token name = eatIfExpected(error, Ast.Token.Kind.IDENTIFIER, builder.getPositionBuilder());
+    Ast.Token name = eatIfExpected(error, Ast.Token.Kind.IDENTIFIER, null);
     if (name == null) {
       return Optional.empty();
-    } else {
-      builder.setName(name.getText());
     }
-    appendPos(pos, builder.getPosition());
-    return Optional.of(builder.build());
+    appendPos(pos, name.getPosition());
+    return Optional.of(
+        Ast.Identifier.newBuilder()
+            .setName(name.getText())
+            .setPosition(name.getPosition())
+            .build());
   }
 
   /**
@@ -1023,12 +1039,32 @@ public final class Parser {
    * is unset, the beginning is also updated to that of {@code end}.
    */
   private static void appendPos(Ast.Pos.Builder begin, Ast.Pos end) {
+    if (begin == null) {
+      return;
+    }
     if (begin.getLine() == 0) {
       begin.setLine(end.getLine());
       begin.setCol(end.getCol());
       begin.setOffset(end.getOffset());
     }
     begin.setEndCol(end.getEndCol()).setEndLine(end.getEndLine()).setEndOffset(end.getEndOffset());
+  }
+
+  /**
+   * Merges two positions in the same way that {@link #appendPos(Ast.Pos.Builder, Ast.Pos)} does.
+   */
+  private static Ast.Pos mergePos(Ast.Pos start, Ast.Pos end) {
+    Ast.Pos.Builder begin = start.toBuilder();
+    if (begin.getLine() == 0) {
+      begin.setLine(end.getLine());
+      begin.setCol(end.getCol());
+      begin.setOffset(end.getOffset());
+    }
+    return begin
+        .setEndCol(end.getEndCol())
+        .setEndLine(end.getEndLine())
+        .setEndOffset(end.getEndOffset())
+        .build();
   }
 
   /**

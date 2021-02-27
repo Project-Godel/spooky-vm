@@ -1,8 +1,14 @@
 package se.jsannemo.spooky.compiler.parser;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.common.truth.Truth;
 import com.google.common.truth.extensions.proto.ProtoTruth;
 import com.google.protobuf.TextFormat;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import org.junit.Assert;
 import org.junit.Test;
 import se.jsannemo.spooky.compiler.Errors;
@@ -10,13 +16,6 @@ import se.jsannemo.spooky.compiler.ast.Ast;
 import se.jsannemo.spooky.compiler.testing.FailureMode;
 import se.jsannemo.spooky.compiler.testing.TestCase;
 import se.jsannemo.spooky.compiler.testing.TestCases;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public class ParserTest {
 
@@ -249,6 +248,11 @@ public class ParserTest {
 
     assertErr("func x{ x: Int[5] = {default...}; }", "Expected }");
     assertErr("func x{ x: Int[5] = {{...}}; }", "Expected }");
+  }
+
+  @Test
+  public void testFailing() {
+    assertErr("func main { for (i: Int = 0; i << 5; i++) ; }", "Unexpected <");
   }
 
   private static void assertOk(String s) {

@@ -37,12 +37,11 @@ public final class IrGen {
   }
 
   private Ir.Type irStruct(Prog.Struct astStruct) {
-    Ir.Type.Builder type = Ir.Type.newBuilder();
-    Ir.Struct.Builder struct = type.getStructBuilder();
+    Ir.Struct.Builder struct = Ir.Struct.newBuilder();
     // The AST structure list is dependency ordered, so registering the IR structs in the same order
     // is fine.
     astStruct.getFieldsList().forEach(t -> struct.addFields(irType(t)));
-    return type.build();
+    return Ir.Type.newBuilder().setStruct(struct).build();
   }
 
   private Ir.Type irType(Prog.Type t) {
@@ -52,7 +51,7 @@ public final class IrGen {
       for (int i = array.getDimensionsCount() - 1; i >= 0; i--) {
         base =
             Ir.Type.newBuilder()
-                .setArray(Ir.Array.newBuilder().setSize(array.getDimensions(i)).setType(base))
+                .setArray(Ir.Arr.newBuilder().setSize(array.getDimensions(i)).setType(base))
                 .build();
       }
       return base;

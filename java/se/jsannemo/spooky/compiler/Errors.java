@@ -1,9 +1,8 @@
 package se.jsannemo.spooky.compiler;
 
 import com.google.common.collect.ImmutableList;
-import se.jsannemo.spooky.compiler.ast.Ast;
-
 import java.util.ArrayList;
+import se.jsannemo.spooky.compiler.ast.Ast;
 
 public final class Errors {
 
@@ -28,7 +27,7 @@ public final class Errors {
 
     @Override
     public String toString() {
-      return position.getLine() + ":" + position.getCol() + ": " + msg;
+      return position.getOffset() + "-" + position.getEndOffset() + ": " + msg;
     }
   }
 }

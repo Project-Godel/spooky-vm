@@ -9,13 +9,14 @@ def maven_jar(name, artifact, version):
         j2cl = False,
     )
 
-def maven_j2cl_jar(name, artifact, version, annotation_only = False):
+def maven_j2cl_jar(name, artifact, version, deps = [], annotation_only = False):
     return struct(
         name = name,
         artifact = artifact,
         version = version,
         j2cl = True,
         annotation_only = annotation_only,
+        deps = deps,
     )
 
 def install_maven_jars(artifacts):
@@ -27,6 +28,7 @@ def install_maven_jars(artifacts):
                 annotation_only = value.annotation_only,
                 artifact = value.artifact + ":" + value.version,
                 server_urls = ["https://repo1.maven.org/maven2/"],
+                deps = value.deps,
             )
         else:
             artifacts_to_maven.append(value.artifact + ":" + value.version)
@@ -38,6 +40,17 @@ def install_maven_jars(artifacts):
         generate_compat_repositories = True,
     )
 
+def checker_maven():
+    VERSION = "2.5.3"
+    return [
+        maven_j2cl_jar(
+            name = "checkerframework-j2cl",
+            artifact = "org.checkerframework:checker-qual",
+            version = VERSION,
+            annotation_only = True,
+        ),
+    ]
+
 def errorprone_maven():
     VERSION = "2.3.4"
     return [
@@ -47,7 +60,7 @@ def errorprone_maven():
             version = VERSION,
         ),
         maven_j2cl_jar(
-            name = "com_googl_errorprone-j2cl",
+            name = "com_google_errorprone-j2cl",
             artifact = "com.google.errorprone:error_prone_annotations",
             annotation_only = True,
             version = VERSION,
@@ -89,8 +102,26 @@ def guava_maven():
         ),
         maven_j2cl_jar(
             name = "com_google_guava-j2cl",
-            artifact = "com.google.guava:guava",
+            artifact = "com.google.guava:guava-gwt",
             version = VERSION,
+            deps = [
+                "@com_google_elemental2//:elemental2-promise-j2cl",
+                "@com_google_j2cl//:jsinterop-annotations-j2cl",
+                "@com_google_errorprone-j2cl",
+                "@checkerframework-j2cl",
+                "@j2objc-j2cl",
+            ],
+        ),
+    ]
+
+def j2objc_maven():
+    VERSION = "1.3"
+    return [
+        maven_j2cl_jar(
+            name = "j2objc-j2cl",
+            version = VERSION,
+            annotation_only = True,
+            artifact = "com.google.j2objc:j2objc-annotations",
         ),
     ]
 
@@ -126,10 +157,12 @@ def truth_maven():
 
 def install_maven():
     maven_deps = []
+    maven_deps += checker_maven()
     maven_deps += errorprone_maven()
     maven_deps += flogger_maven()
     maven_deps += google_java_format_maven()
     maven_deps += guava_maven()
     maven_deps += junit_maven()
+    maven_deps += j2objc_maven()
     maven_deps += truth_maven()
     install_maven_jars(maven_deps)

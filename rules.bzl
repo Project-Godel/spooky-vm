@@ -1,11 +1,30 @@
 load("@rules_java//java:defs.bzl", "java_library", "java_proto_library", "java_test")
 load("@com_google_j2cl//build_defs:rules.bzl", "j2cl_library")
-load("@com_google_j2cl_protobuf//java/com/google/protobuf/contrib/j2cl:j2cl_proto.bzl", "new_j2cl_proto_library")
+load("@com_google_j2cl_protobuf//java/com/google/protobuf/contrib/immutablejs:immutable_js_proto_library.bzl", "immutable_js_proto_library")
+load("//:j2cl_proto.bzl", "j2cl_proto_library")
 
-def java_j2cl_proto_library(name, **kwargs):
-    pass
-    java_proto_library(name = name, **kwargs)
-    new_j2cl_proto_library(name = name + "-j2cl", **kwargs)
+def java_j2cl_proto_library(name, visibility = ["//visibility:private"], deps = [], **kwargs):
+    java_proto_library(name = name, deps = deps, visibility = visibility, **kwargs)
+    j2cl_proto_library(name = name + "-j2cl-src", deps = deps, **kwargs)
+    immutable_js_proto_library(
+        name = name + "-immutable",
+        deps = deps,
+    )
+    j2cl_library(
+        name = name + "-j2cl",
+        srcs = [":" + name + "-j2cl-src"],
+        visibility = visibility,
+        deps = [
+            "@com_google_j2cl//:jsinterop-annotations-j2cl",
+            "@com_google_j2cl_protobuf//third_party:jsinterop-base-j2cl",
+            "@com_google_j2cl_protobuf//third_party:j2cl_proto_runtime",
+            ":" + name + "-immutable",
+            "@com_google_j2cl_protobuf//java/com/google/protobuf/contrib/immutablejs:runtime",
+        ],
+        exports = [
+            ":" + name + "-immutable",
+        ],
+    )
 
 def java_j2cl_library(name, **kwargs):
     deps = kwargs.pop("deps", [])

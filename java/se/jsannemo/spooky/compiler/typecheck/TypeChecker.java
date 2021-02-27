@@ -1,6 +1,7 @@
 package se.jsannemo.spooky.compiler.typecheck;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -22,11 +23,14 @@ public final class TypeChecker {
   private final Errors err;
 
   private final HashMap<String, FuncData> externs = new HashMap<>();
+
   final HashMap<String, StructData> structs = new HashMap<>();
   final HashMap<Integer, StructData> structsIdx = new HashMap<>();
-  // Functions do not need any extra information regarding typechecking, so we only keep the index
-  // of the function in the programBuilder.functions list.
+
+  // Mapping from function name to an index in the funcs list.
   private final HashMap<String, Integer> funcIdx = new HashMap<>();
+  private final ArrayList<Prog.Func.Builder> funcs = new ArrayList<>();
+
   private final Prog.Program.Builder programBuilder = Prog.Program.newBuilder();
   private Scope scope = Scope.root();
 
@@ -45,23 +49,22 @@ public final class TypeChecker {
   private Prog.Program checkProgram(Ast.Program program) {
     // Structs must be registered first, since function parameters and return types may refer to
     // them.
-    registerStructs(programBuilder, program.getStructsList());
+    registerStructs(program.getStructsList());
 
     // Next, functions must be registered first, since global variables may reference them during
     // initialization.
     program.getExternsList().forEach(this::registerExtern);
-    List<Ast.Func> funcs = registerFunctions(programBuilder, program.getFunctionsList());
+    List<Ast.Func> funcs = registerFunctions(program.getFunctionsList());
 
     // Next, globals must be registered since function expressions can reference them.
-    createGlobalInit(programBuilder, program.getGlobalsList());
+    createGlobalInit(program.getGlobalsList());
 
     // Finally function bodies can be type checked.
-    checkFunctions(programBuilder, funcs);
+    checkFunctions(funcs);
     return programBuilder.build();
   }
 
-  private void registerStructs(
-      Prog.Program.Builder programBuilder, List<Ast.StructDecl> structsList) {
+  private void registerStructs(List<Ast.StructDecl> structsList) {
     ImmutableList.Builder<Ast.StructDecl> dedupBuilder = ImmutableList.builder();
     // First register all structs to be able to find them when checking fields.
     for (Ast.StructDecl struct : structsList) {
@@ -90,7 +93,7 @@ public final class TypeChecker {
       data.type = Types.struct(data.index);
       data.name = name;
       structsIdx.put(data.index, data);
-      Prog.Struct.Builder struct = programBuilder.addStructsBuilder();
+      Prog.Struct.Builder struct = Prog.Struct.newBuilder();
       for (Ast.StructField field : decl.getFieldsList()) {
         if (syntaxError(field.getType().getName().isEmpty())) {
           continue;
@@ -108,6 +111,7 @@ public final class TypeChecker {
         }
         struct.addFields(fieldType);
       }
+      programBuilder.addStructs(struct);
     }
   }
 
@@ -132,7 +136,7 @@ public final class TypeChecker {
     return returnType;
   }
 
-  private List<Ast.Func> registerFunctions(Prog.Program.Builder builder, List<Ast.Func> decls) {
+  private List<Ast.Func> registerFunctions(List<Ast.Func> decls) {
     ImmutableList.Builder<Ast.Func> funcsToCheck = ImmutableList.builder();
     for (Ast.Func func : decls) {
       Ast.FuncDecl decl = func.getDecl();
@@ -144,11 +148,11 @@ public final class TypeChecker {
         err.error(decl.getPosition(), "Function with this name is already defined.");
         continue;
       }
-      funcIdx.put(name, builder.getFunctionsCount());
-      builder
-          .addFunctionsBuilder()
-          .setReturnType(getDeclReturnType(decl))
-          .addAllParams(getDeclTypes(decl));
+      funcIdx.put(name, funcs.size());
+      funcs.add(
+          Prog.Func.newBuilder()
+              .setReturnType(getDeclReturnType(decl))
+              .addAllParams(getDeclTypes(decl)));
       funcsToCheck.add(func);
     }
     return funcsToCheck.build();
@@ -164,13 +168,13 @@ public final class TypeChecker {
               }
               return t;
             })
-        .collect(Collectors.toUnmodifiableList());
+        .collect(toImmutableList());
   }
 
-  private void createGlobalInit(Prog.Program.Builder builder, List<Ast.VarDecl> globalsList) {
-    Prog.Func.Builder func = builder.addFunctionsBuilder();
+  private void createGlobalInit(List<Ast.VarDecl> globalsList) {
+    Prog.Func.Builder func = Prog.Func.newBuilder();
     func.setReturnType(Types.VOID);
-    Prog.Block.Builder body = func.getBodyBuilder();
+    Prog.Block.Builder body = Prog.Block.newBuilder();
 
     // Register globals one at a time after they are initialized, to at least avoid direct
     // references to uninitialized globals. Circular references may still be possible since
@@ -186,10 +190,14 @@ public final class TypeChecker {
         continue;
       }
       Prog.VarRef varRef = Prog.VarRef.newBuilder().setGlobalIndex(i).build();
-      Prog.Expr refExpr = initVariable(varRef, body.addBodyBuilder().getExpressionBuilder(), decl);
-      builder.addGlobals(refExpr.getType());
+      Prog.Expr.Builder initExpr = Prog.Expr.newBuilder();
+      Prog.Expr refExpr = initVariable(varRef, initExpr, decl);
+      body.addBody(Prog.Statement.newBuilder().setExpression(initExpr));
+      programBuilder.addGlobals(refExpr.getType());
       scope.put(varName, refExpr);
     }
+    func.setBody(body);
+    funcs.add(func);
   }
 
   private Prog.Expr initVariable(Prog.VarRef ref, Prog.Expr.Builder builder, Ast.VarDecl decl) {
@@ -201,11 +209,13 @@ public final class TypeChecker {
     }
     Prog.Expr refExpr =
         Prog.Expr.newBuilder().setReference(ref).setType(varType).setLvalue(true).build();
-    builder.setType(varType).getAssignmentBuilder().setValue(value).setReference(refExpr);
+    builder
+        .setType(varType)
+        .setAssignment(Prog.Assignment.newBuilder().setValue(value).setReference(refExpr));
     return refExpr;
   }
 
-  private void checkFunctions(Prog.Program.Builder builder, List<Ast.Func> functions) {
+  private void checkFunctions(List<Ast.Func> functions) {
     boolean hasMain = false;
     for (Ast.Func func : functions) {
       String funcName = func.getDecl().getName().getName();
@@ -215,15 +225,17 @@ public final class TypeChecker {
           && func.getDecl().getParamsCount() == 0) {
         hasMain = true;
         // Add a call to main from init.
-        builder
-            .getFunctionsBuilder(0)
-            .getBodyBuilder()
-            .addBodyBuilder()
-            .getExpressionBuilder()
-            .getCallBuilder()
-            .setFunction(idx);
+        Prog.Func.Builder init = funcs.get(0);
+        init.setBody(
+            init.getBody()
+                .toBuilder()
+                .addBody(
+                    Prog.Statement.newBuilder()
+                        .setExpression(
+                            Prog.Expr.newBuilder()
+                                .setCall(Prog.FuncCall.newBuilder().setFunction(idx)))));
       }
-      Prog.Func.Builder funcBuilder = builder.getFunctionsBuilder(idx);
+      Prog.Func.Builder funcBuilder = funcs.get(idx);
       checkFunction(funcBuilder, func);
     }
     if (!hasMain) {
@@ -232,7 +244,8 @@ public final class TypeChecker {
   }
 
   private void checkFunction(Prog.Func.Builder funcBuilder, Ast.Func func) {
-    scope = scope.push(funcBuilder);
+    Prog.Block.Builder body = Prog.Block.newBuilder();
+    scope = scope.push(funcBuilder, body);
     List<Ast.FuncParam> params = func.getDecl().getParamsList();
     // Register function parameters
     for (int i = 0; i < params.size(); i++) {
@@ -249,11 +262,11 @@ public final class TypeChecker {
       scope.put(p.getName().getName(), refExpr);
     }
     checkStatement(func.getBody());
-    if ((scope.scope.getBodyCount() == 0
-            || !scope.scope.getBody(scope.scope.getBodyCount() - 1).hasReturnValue())
+    if ((body.getBodyCount() == 0 || !body.getBody(scope.scope.getBodyCount() - 1).hasReturnValue())
         && !funcBuilder.getReturnType().equals(Types.VOID)) {
       err.error(func.getPosition(), "Function does not return");
     }
+    funcBuilder.setBody(body);
     scope = scope.pop();
   }
 
@@ -297,8 +310,9 @@ public final class TypeChecker {
     }
     Prog.VarRef varRef =
         Prog.VarRef.newBuilder().setFunctionIndex(scope.function.getVariablesCount()).build();
-    Prog.Expr refExpr =
-        initVariable(varRef, scope.scope.addBodyBuilder().getExpressionBuilder(), decl);
+    Prog.Expr.Builder initExpr = Prog.Expr.newBuilder();
+    Prog.Expr refExpr = initVariable(varRef, initExpr, decl);
+    scope.scope.addBody(Prog.Statement.newBuilder().setExpression(initExpr).build());
     scope.put(name, refExpr);
     scope.function.addVariables(refExpr.getType());
   }
@@ -311,7 +325,7 @@ public final class TypeChecker {
     if (loop.hasInit()) {
       checkStatement(loop.getInit());
     }
-    Prog.Loop.Builder loopBuilder = scope.scope.addBodyBuilder().getLoopBuilder();
+    Prog.Loop.Builder loopBuilder = Prog.Loop.newBuilder();
     if (loop.hasCondition()) {
       Prog.Expr cond = expr(loop.getCondition());
       expectType(cond.getType(), Types.BOOLEAN, loop.getCondition().getPosition());
@@ -323,34 +337,43 @@ public final class TypeChecker {
               .setConstant(Prog.Constant.newBuilder().setBoolConst(true)));
     }
 
-    scope = scope.push(loopBuilder.getBodyBuilder());
+    Prog.Block.Builder bodyBuilder = Prog.Block.newBuilder();
+    scope = scope.push(bodyBuilder);
     checkStatement(loop.getBody());
     if (loop.hasIncrement()) {
       checkStatement(loop.getIncrement());
     }
+    loopBuilder.setBody(bodyBuilder);
     scope = scope.pop();
 
+    scope.scope.addBody(Prog.Statement.newBuilder().setLoop(loopBuilder));
     scope = scope.pop();
   }
 
   private void checkConditional(Ast.Conditional conditional) {
     Prog.Expr cond = expr(conditional.getCondition());
     expectType(cond.getType(), Types.BOOLEAN, conditional.getPosition());
-    Prog.Conditional.Builder condBuilder =
-        scope.scope.addBodyBuilder().getConditionalBuilder().setCondition(cond);
-    scope = scope.push(condBuilder.getBodyBuilder());
+    Prog.Conditional.Builder condBuilder = Prog.Conditional.newBuilder().setCondition(cond);
+
+    Prog.Block.Builder bodyBuilder = Prog.Block.newBuilder();
+    scope = scope.push(bodyBuilder);
     checkStatement(conditional.getBody());
+    condBuilder.setBody(bodyBuilder);
     scope = scope.pop();
+
     if (conditional.hasElseBody()) {
-      scope = scope.push(condBuilder.getElseBodyBuilder());
+      Prog.Block.Builder elseBodyBuilder = Prog.Block.newBuilder();
+      scope = scope.push(elseBodyBuilder);
       checkStatement(conditional.getElseBody());
+      condBuilder.setElseBody(bodyBuilder);
       scope = scope.pop();
     }
+
+    scope.scope.addBody(Prog.Statement.newBuilder().setConditional(condBuilder));
   }
 
   private void checkReturn(Ast.ReturnValue returnValue) {
-    Prog.Returns.Builder returnBuilder =
-        scope.function.getBodyBuilder().addBodyBuilder().getReturnValueBuilder();
+    Prog.Returns.Builder returnBuilder = Prog.Returns.newBuilder();
     Prog.Type functionReturnType = scope.function.getReturnType();
     if (returnValue.hasValue()) {
       if (functionReturnType.equals(Types.VOID)) {
@@ -363,10 +386,11 @@ public final class TypeChecker {
     } else if (!functionReturnType.equals(Types.VOID)) {
       err.error(returnValue.getPosition(), "Return missing value");
     }
+    scope.scope.addBody(Prog.Statement.newBuilder().setReturnValue(returnBuilder));
   }
 
   private void checkExpr(Ast.Expr expression) {
-    scope.function.getBodyBuilder().addBodyBuilder().setExpression(expr(expression));
+    scope.scope.addBody(Prog.Statement.newBuilder().setExpression(expr(expression)));
   }
 
   private Prog.Expr expr(Ast.Expr expr) {
@@ -392,11 +416,10 @@ public final class TypeChecker {
       case EXPR_NOT_SET:
       case ARRAY:
         syntaxError();
-        break;
+        return ERROR_EXPR;
       default:
         throw new IllegalStateException("Unimplemented expression?");
     }
-    throw new AssertionError("Unreachable");
   }
 
   private static final ImmutableMap<Ast.BinaryOp, Prog.BinaryOp> OP_CONV =
@@ -422,7 +445,7 @@ public final class TypeChecker {
     Prog.Expr right = expr(binary.getRight());
     Prog.Expr.Builder e = Prog.Expr.newBuilder();
     Prog.BinaryOp op = OP_CONV.get(binary.getOperator());
-    e.getBinaryBuilder().setLeft(left).setRight(right).setOperator(op);
+    e.setBinary(Prog.BinaryExpr.newBuilder().setLeft(left).setRight(right).setOperator(op));
     if (op == Prog.BinaryOp.ARRAY_ACCESS) {
       e.setLvalue(true);
     }
@@ -498,7 +521,7 @@ public final class TypeChecker {
 
   private Prog.Expr checkCall(Ast.FuncCall call) {
     List<Prog.Expr> paramVals =
-        call.getParamsList().stream().map(this::expr).collect(Collectors.toUnmodifiableList());
+        call.getParamsList().stream().map(this::expr).collect(toImmutableList());
     String name = call.getFunction().getName();
     if (syntaxError(name.isEmpty())) {
       return ERROR_EXPR;
@@ -514,7 +537,7 @@ public final class TypeChecker {
   }
 
   private Prog.Expr checkFunc(Ast.FuncCall call, int pos, List<Prog.Expr> paramVals) {
-    Prog.Func.Builder called = programBuilder.getFunctionsBuilder(pos);
+    Prog.Func.Builder called = funcs.get(pos);
     List<Prog.Type> callTypes =
         paramVals.stream().map(Prog.Expr::getType).collect(Collectors.toList());
     int functionParams = called.getParamsCount();
@@ -529,9 +552,10 @@ public final class TypeChecker {
         }
       }
     }
-    Prog.Expr.Builder builder = Prog.Expr.newBuilder().setType(called.getReturnType());
-    builder.getCallBuilder().setFunction(pos).addAllParams(paramVals);
-    return builder.build();
+    return Prog.Expr.newBuilder()
+        .setType(called.getReturnType())
+        .setCall(Prog.FuncCall.newBuilder().setFunction(pos).addAllParams(paramVals))
+        .build();
   }
 
   private Prog.Expr checkExtern(Ast.FuncCall call, FuncData funcData, List<Prog.Expr> paramVals) {
@@ -549,9 +573,13 @@ public final class TypeChecker {
         }
       }
     }
-    Prog.Expr.Builder builder = Prog.Expr.newBuilder().setType(funcData.returnType);
-    builder.getExternBuilder().setName(call.getFunction().getName()).addAllParams(paramVals);
-    return builder.build();
+    return Prog.Expr.newBuilder()
+        .setType(funcData.returnType)
+        .setExtern(
+            Prog.ExternCall.newBuilder()
+                .setName(call.getFunction().getName())
+                .addAllParams(paramVals))
+        .build();
   }
 
   private Prog.Expr checkAssignment(Ast.Assignment astAssignment) {
@@ -569,7 +597,7 @@ public final class TypeChecker {
 
     Prog.Expr.Builder expr = Prog.Expr.newBuilder().setType(reference.getType());
     Prog.Assignment.Builder assignment =
-        expr.getAssignmentBuilder().setReference(reference).setValue(val);
+        Prog.Assignment.newBuilder().setReference(reference).setValue(val);
 
     Ast.BinaryOp compoundOperator = astAssignment.getCompound();
     if (compoundOperator != Ast.BinaryOp.BINARY_OP_UNSPECIFIED) {
@@ -584,6 +612,7 @@ public final class TypeChecker {
         return ERROR_EXPR;
       }
     }
+    expr.setAssignment(assignment);
     return expr.build();
   }
 
@@ -621,7 +650,8 @@ public final class TypeChecker {
     List<Integer> inferredDimensions = new ArrayList<>(type.getArray().getDimensionsList());
     resolveInferred(value, inferredDimensions);
     Prog.Type.Builder inferredType = type.toBuilder();
-    inferredType.getArrayBuilder().clearDimensions().addAllDimensions(inferredDimensions);
+    inferredType.setArray(
+        inferredType.getArray().toBuilder().clearDimensions().addAllDimensions(inferredDimensions));
     type = inferredType.build();
     long totSize = Types.arraySize(type);
     if (totSize == 0) {
@@ -632,26 +662,21 @@ public final class TypeChecker {
       err.error(value.getPosition(), "Array size too large");
       return ERROR_EXPR;
     }
-    Prog.Expr.Builder expr = Prog.Expr.newBuilder();
-    expr.getArrayBuilder().setTotalSize((int) totSize);
-    expr.setType(inferredType);
-    arrayInitValues(
-        value,
-        type.getArray().getArrayOf(),
-        inferredDimensions,
-        expr.getArrayBuilder().getInitBuilder());
-    return expr.build();
+    Prog.ArrayInit.Init.Builder arrayInit =
+        arrayInitValues(value, type.getArray().getArrayOf(), inferredDimensions);
+    return Prog.Expr.newBuilder()
+        .setType(inferredType)
+        .setArray(Prog.ArrayInit.newBuilder().setTotalSize((int) totSize).setInit(arrayInit))
+        .build();
   }
 
-  private void arrayInitValues(
-      Ast.Expr value,
-      Prog.Type base,
-      List<Integer> dimensions,
-      Prog.ArrayInit.Init.Builder initBuilder) {
-    initBuilder.setDimension(dimensions.get(0));
+  private Prog.ArrayInit.Init.Builder arrayInitValues(
+      Ast.Expr value, Prog.Type base, List<Integer> dimensions) {
+    Prog.ArrayInit.Init.Builder initBuilder =
+        Prog.ArrayInit.Init.newBuilder().setDimension(dimensions.get(0));
     if (dimensions.size() == 1) {
       // Scalar array
-      Prog.ArrayInit.ScalarArray.Builder scalars = initBuilder.getScalarsBuilder();
+      Prog.ArrayInit.ScalarArray.Builder scalars = Prog.ArrayInit.ScalarArray.newBuilder();
       if (value.hasArray()) {
         Ast.ArrayLit array = value.getArray();
         List<Ast.Expr> valuesList = array.getValuesList();
@@ -678,17 +703,18 @@ public final class TypeChecker {
       } else {
         err.error(value.getPosition(), "Expected array");
       }
+      initBuilder.setScalars(scalars);
     } else {
       // Array-of-arrays
-      Prog.ArrayInit.SubArrays.Builder subarray = initBuilder.getSubarrayBuilder();
+      Prog.ArrayInit.SubArrays.Builder subarray = Prog.ArrayInit.SubArrays.newBuilder();
       List<Integer> subdims = dimensions.subList(1, dimensions.size());
       if (value.hasArray()) {
         Ast.ArrayLit array = value.getArray();
         List<Ast.Expr> valuesList = array.getValuesList();
-        valuesList.forEach(v -> arrayInitValues(v, base, subdims, subarray.addValuesBuilder()));
+        valuesList.forEach(v -> subarray.addValues(arrayInitValues(v, base, subdims)));
         if (array.getShouldFill()) {
           if (array.hasFill()) {
-            arrayInitValues(array.getFill(), base, subdims, subarray.getFillBuilder());
+            subarray.setFill(arrayInitValues(array.getFill(), base, subdims));
           }
           if (valuesList.size() > dimensions.get(0)) {
             err.error(value.getPosition(), "Expected at most " + dimensions.get(0) + " values");
@@ -697,11 +723,13 @@ public final class TypeChecker {
           err.error(value.getPosition(), "Expected " + dimensions.get(0) + " values");
         }
       } else if (value.hasDefaultInit()) {
-        arrayInitValues(value, base, subdims, subarray.getFillBuilder());
+        subarray.setFill(arrayInitValues(value, base, subdims));
       } else {
         err.error(value.getPosition(), "Expected subarray");
       }
+      initBuilder.setSubarray(subarray);
     }
+    return initBuilder;
   }
 
   private Prog.Expr defaultValue(Ast.Expr value, Prog.Type type) {
@@ -767,18 +795,16 @@ public final class TypeChecker {
       return ERROR_EXPR;
     }
     if (value.hasDefaultInit()) {
-      Prog.Expr.Builder def = Prog.Expr.newBuilder().setType(type);
-      Prog.StructInit.Builder struct = def.getStructBuilder();
+      Prog.StructInit.Builder struct = Prog.StructInit.newBuilder();
       List<Prog.Type> fieldTypes = programBuilder.getStructs(type.getStruct()).getFieldsList();
       for (int i = 0; i < fieldTypes.size(); i++) {
         struct.putValues(i, defaultValue(value, fieldTypes.get(i)));
       }
-      return def.build();
+      return Prog.Expr.newBuilder().setType(type).setStruct(struct).build();
     }
     if (value.hasStruct()) {
       StructData structData = structsIdx.get(type.getStruct());
-      Prog.Expr.Builder builder = Prog.Expr.newBuilder().setType(type);
-      Prog.StructInit.Builder struct = builder.getStructBuilder();
+      Prog.StructInit.Builder struct = Prog.StructInit.newBuilder();
       value
           .getStruct()
           .getValuesList()
@@ -801,14 +827,14 @@ public final class TypeChecker {
                   struct.putValues(fieldIdx, fieldValue);
                 }
               });
-      return builder.build();
+      return Prog.Expr.newBuilder().setType(type).setStruct(struct).build();
     }
     return expr(value);
   }
 
   private Prog.Expr checkReference(Ast.Identifier reference) {
     Optional<Prog.Expr> resolve = scope.resolve(reference.getName());
-    if (resolve.isEmpty()) {
+    if (!resolve.isPresent()) {
       err.error(reference.getPosition(), "No such variable");
       return ERROR_EXPR;
     }
@@ -821,7 +847,7 @@ public final class TypeChecker {
     Prog.Expr left = expr(conditional.getLeft());
     Prog.Expr right = expr(conditional.getRight());
     Optional<Prog.Type> common = Types.unify(left.getType(), right.getType());
-    if (common.isEmpty()) {
+    if (!common.isPresent()) {
       err.error(conditional.getPosition(), "Ternary subexpressions have incompatible type");
       return ERROR_EXPR;
     }
@@ -832,32 +858,32 @@ public final class TypeChecker {
   }
 
   private Prog.Expr checkValue(Ast.Value value) {
+    Prog.Constant.Builder constant = Prog.Constant.newBuilder();
     Prog.Expr.Builder b = Prog.Expr.newBuilder();
-    Prog.Constant.Builder builder = b.getConstantBuilder();
     switch (value.getLiteralCase()) {
       case BOOL_LITERAL:
-        builder.setBoolConst(value.getBoolLiteral());
+        constant.setBoolConst(value.getBoolLiteral());
         b.setType(Types.BOOLEAN);
         break;
       case INT_LITERAL:
-        builder.setIntConst(value.getIntLiteral());
+        constant.setIntConst(value.getIntLiteral());
         b.setType(Types.INT);
         break;
       case STRING_LITERAL:
-        builder.setStringConst(value.getStringLiteral());
+        constant.setStringConst(value.getStringLiteral());
         b.setType(Types.STRING);
         break;
       case CHAR_LITERAL:
-        builder.setCharConst(value.getCharLiteral());
+        constant.setCharConst(value.getCharLiteral());
         b.setType(Types.CHAR);
         break;
       case LITERAL_NOT_SET:
         syntaxError();
-        break;
+        return ERROR_EXPR;
       default:
         throw new IllegalStateException();
     }
-    return b.build();
+    return b.setConstant(constant).build();
   }
 
   private static final ImmutableMap<Ast.UnaryOp, Prog.UnaryOp> UNARY_OP_CONV =
@@ -872,8 +898,11 @@ public final class TypeChecker {
 
   private Prog.Expr checkUnary(Ast.UnaryExpr unary) {
     Prog.Expr val = expr(unary.getExpr());
-    Prog.Expr.Builder e = Prog.Expr.newBuilder().setType(val.getType());
-    e.getUnaryBuilder().setExpr(val).setOperator(UNARY_OP_CONV.get(unary.getOperator()));
+    Prog.UnaryExpr.Builder unaryBuilder =
+        Prog.UnaryExpr.newBuilder()
+            .setExpr(val)
+            .setOperator(UNARY_OP_CONV.get(unary.getOperator()));
+    Prog.Expr.Builder e = Prog.Expr.newBuilder().setType(val.getType()).setUnary(unaryBuilder);
     switch (unary.getOperator()) {
       case NEGATE:
         if (!expectType(val.getType(), Types.INT, unary.getExpr().getPosition())) {
@@ -900,7 +929,7 @@ public final class TypeChecker {
       case UNARY_OP_UNSPECIFIED:
       case UNRECOGNIZED:
         syntaxError();
-        break;
+        return ERROR_EXPR;
       default:
         throw new IllegalStateException();
     }
@@ -914,8 +943,8 @@ public final class TypeChecker {
     if (value.getType().equals(Types.ERROR)) {
       return value;
     }
-    Prog.Expr.Builder selected = Prog.Expr.newBuilder().setLvalue(true);
-    selected.getSelectBuilder().setValue(value);
+    Prog.Expr.Builder expr = Prog.Expr.newBuilder().setLvalue(true);
+    Prog.Select.Builder selectBuilder = Prog.Select.newBuilder().setValue(value);
     String name = select.getField().getName();
     if (syntaxError(name.isEmpty())) {
       return ERROR_EXPR;
@@ -926,11 +955,11 @@ public final class TypeChecker {
         if (!struct.fields.containsKey(name)) {
           err.error(
               select.getField().getPosition(), "No field " + name + " in struct " + struct.name);
-          selected.setType(Types.ERROR);
+          expr.setType(Types.ERROR);
         } else {
           Integer fieldIdx = struct.fields.get(name);
-          selected.getSelectBuilder().setField(fieldIdx);
-          selected.setType(programBuilder.getStructs(struct.index).getFields(fieldIdx));
+          selectBuilder.setField(fieldIdx);
+          expr.setType(programBuilder.getStructs(struct.index).getFields(fieldIdx));
         }
       } else {
         if (!value.getType().equals(Types.ERROR)) {
@@ -939,7 +968,7 @@ public final class TypeChecker {
         return ERROR_EXPR;
       }
     }
-    return selected.build();
+    return expr.setSelect(selectBuilder).build();
   }
 
   private Optional<StructData> resolveStruct(Prog.Type type) {
@@ -1036,8 +1065,8 @@ public final class TypeChecker {
     }
 
     @CheckReturnValue
-    public Scope push(Prog.Func.Builder function) {
-      return new Scope(this, function, function.getBodyBuilder());
+    public Scope push(Prog.Func.Builder function, Prog.Block.Builder scope) {
+      return new Scope(this, function, scope);
     }
 
     @CheckReturnValue

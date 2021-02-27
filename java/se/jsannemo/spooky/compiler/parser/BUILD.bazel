@@ -4,9 +4,6 @@ proto_library(
     name = "ast_proto",
     srcs = ["ast.proto"],
     visibility = ["//visibility:public"],
-    deps = [
-        "@com_google_protobuf//:empty_proto",
-    ],
 )
 
 java_j2cl_proto_library(
@@ -29,6 +26,5 @@ java_j2cl_library(
         "//java/se/jsannemo/spooky/compiler:common",
         "//java/se/jsannemo/spooky/util",
         "//third_party/guava",
-        "//third_party/protobuf:empty",
     ],
 )

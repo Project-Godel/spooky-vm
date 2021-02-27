@@ -10,6 +10,20 @@ http_archive(
 )
 
 http_archive(
+    name = "com_google_elemental2",
+    strip_prefix = "elemental2-master",
+    url = "https://github.com/google/elemental2/archive/master.zip",
+)
+
+load("@com_google_elemental2//build_defs:repository.bzl", "load_elemental2_repo_deps")
+
+load_elemental2_repo_deps()
+
+load("@com_google_elemental2//build_defs:workspace.bzl", "setup_elemental2_workspace")
+
+setup_elemental2_workspace()
+
+http_archive(
     name = "com_google_j2cl",
     strip_prefix = "j2cl-master",
     url = "https://github.com/google/j2cl/archive/master.zip",

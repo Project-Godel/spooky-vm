@@ -877,6 +877,14 @@ functions {
             end_offset: 297
           }
         }
+        position {
+          line: 15
+          col: 3
+          offset: 275
+          end_line: 15
+          end_col: 25
+          end_offset: 297
+        }
       }
       body {
         conditional {
@@ -991,6 +999,14 @@ functions {
             end_col: 25
             end_offset: 323
           }
+        }
+        position {
+          line: 16
+          col: 3
+          offset: 301
+          end_line: 16
+          end_col: 25
+          end_offset: 323
         }
       }
       body {
@@ -1107,6 +1123,14 @@ functions {
             end_offset: 348
           }
         }
+        position {
+          line: 17
+          col: 3
+          offset: 327
+          end_line: 17
+          end_col: 24
+          end_offset: 348
+        }
       }
       body {
         conditional {
@@ -1221,6 +1245,14 @@ functions {
             end_col: 24
             end_offset: 373
           }
+        }
+        position {
+          line: 18
+          col: 3
+          offset: 352
+          end_line: 18
+          end_col: 24
+          end_offset: 373
         }
       }
       position {

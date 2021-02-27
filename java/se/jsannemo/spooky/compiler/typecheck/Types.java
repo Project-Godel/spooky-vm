@@ -49,13 +49,9 @@ public final class Types {
     if (dim.isEmpty()) {
       return type;
     }
-    Prog.Type.Builder newType = Prog.Type.newBuilder();
-    Prog.Type.Array.Builder array = newType.getArrayBuilder().setArrayOf(type);
-    dim.forEach(
-        d ->
-            array.addDimensions(
-                d.getDimCase() == Ast.Type.ArrayDimension.DimCase.INFERRED ? 0 : d.getDimension()));
-    return newType.build();
+    Prog.Type.Array.Builder array = Prog.Type.Array.newBuilder().setArrayOf(type);
+    dim.forEach(d -> array.addDimensions(d.getDimension()));
+    return Prog.Type.newBuilder().setArray(array).build();
   }
 
   public static boolean isAssignable(Prog.Type to, Prog.Type from) {
@@ -160,12 +156,13 @@ public final class Types {
 
   public static Prog.Type inheritDims(Prog.Type typeToInfer, Prog.Type inferredType) {
     checkArgument(typeToInfer.hasArray() && inferredType.hasArray());
-    Prog.Type.Builder fixedDims = typeToInfer.toBuilder();
-    fixedDims
-        .getArrayBuilder()
-        .clearDimensions()
-        .addAllDimensions(inferredType.getArray().getDimensionsList());
-    return fixedDims.build();
+    Prog.Type.Array.Builder array =
+        typeToInfer
+            .getArray()
+            .toBuilder()
+            .clearDimensions()
+            .addAllDimensions(inferredType.getArray().getDimensionsList());
+    return typeToInfer.toBuilder().setArray(array).build();
   }
 
   public static Optional<Prog.Type> unify(Prog.Type left, Prog.Type right) {

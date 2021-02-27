@@ -8,10 +8,8 @@ java_library(
     ],
 )
 
-j2cl_library(
+alias(
     name = "errorprone-j2cl",
+    actual = "@com_google_errorprone-j2cl",
     visibility = ["//visibility:public"],
-    exports = [
-        "@com_googl_errorprone-j2cl",
-    ],
 )

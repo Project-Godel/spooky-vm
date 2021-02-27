@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package se.jsannemo.spooky.compiler.ir;
+
 option java_package = "se.jsannemo.spooky.compiler";
 option java_outer_classname = "Ir";
 
@@ -13,7 +15,7 @@ message Type {
   oneof storage {
     Scalar scalar = 1;
     Struct struct = 2;
-    Array array = 3;
+    Arr array = 3;
     Type prefix_array = 4;
     Type pointer = 5;
   }
@@ -28,7 +30,7 @@ message Struct {
   repeated Type fields = 1;
 }
 
-message Array {
+message Arr {
   Type type = 1;
   int32 size = 2;
 }
@@ -36,10 +38,10 @@ message Array {
 message Constant {
   oneof value {
     int32 int = 1;
-    Array unprefixed_array = 2;
-    Array prefixed_array = 3;
+    Arr unprefixed_array = 2;
+    Arr prefixed_array = 3;
   }
-  message Array {
+  message Arr {
     repeated int32 values = 1;
   }
 }

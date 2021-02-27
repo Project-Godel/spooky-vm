@@ -88,14 +88,15 @@ public class TypeCheckerTest {
   public void testReturns() {
     assertOk("func main { return; }");
     assertOk("func blah -> Int { return 1; } func main{}");
-    assertOk("func blah -> Int { if (true) return 1; } func main{}");
     assertOk("func blah -> Int { if (true) return 1; return 2; } func main{}");
-    assertOk("func blah -> Int { if (false) return 1; else return 2; } func main{}");
     assertOk("func blah -> Int { if (true) return 1; else return 2; return 3;} func main{}");
     assertOk("func blah -> String { return \"\"; } func main{}");
     assertOk("struct blah{} func blah -> blah { x: blah = default; return x; } func main{}");
     assertOk("func blah -> Int[2] { x: Int[2] = [...]; return x; } func main{}");
 
+    assertErr(
+        "func blah -> Int { if (false) return 1; else return 2; } func main{}", "does not return");
+    assertErr("func blah -> Int { if (true) return 1; } func main{}", "does not return");
     assertErr("func blah { return 1; } func main{}", "Return with value in void function");
     assertErr("func blah -> Int { return; } func main{}", "Return missing value");
     assertErr("func blah -> Int { } func main{}", "Function does not return");
@@ -249,6 +250,18 @@ public class TypeCheckerTest {
     assertErr("func hej {} func main { heja(); }", "not found");
     assertErr("func hej -> Int { return 0; } func main { x: Boolean = hej(); }", "not assignable");
     assertErr("func hej(x: Int) { } func main { x: Boolean = true; hej(x); }", "not assignable");
+  }
+
+  @Test
+  public void testFailing() {
+    assertNoCrash("func main { for (i: Int = 0; i << 5; i++) ; }");
+  }
+
+  private static void assertNoCrash(String s) {
+    Ast.Program parse = Parser.parse(Tokenizer.create(s), new Errors());
+    assertThat(parse.getValid()).isFalse();
+    Errors tcErrors = new Errors();
+    TypeChecker.typeCheck(parse, tcErrors);
   }
 
   private static void assertOk(String s) {

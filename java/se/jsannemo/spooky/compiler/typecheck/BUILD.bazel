@@ -1,5 +1,4 @@
 load("@//:rules.bzl", "java_j2cl_library", "java_j2cl_proto_library")
-load("@com_google_j2cl_protobuf//java/com/google/protobuf/contrib/j2cl:j2cl_proto.bzl", "new_j2cl_proto_library")
 
 proto_library(
     name = "checked_proto",
@@ -7,14 +6,8 @@ proto_library(
     visibility = ["//visibility:public"],
 )
 
-java_proto_library(
+java_j2cl_proto_library(
     name = "checked_java_proto",
-    visibility = ["//visibility:public"],
-    deps = [":checked_proto"],
-)
-
-new_j2cl_proto_library(
-    name = "checked_java_proto-j2cl",
     visibility = ["//visibility:public"],
     deps = [":checked_proto"],
 )

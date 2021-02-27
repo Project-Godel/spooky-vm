@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-option java_package = "se.jsannemo.spooky.compiler.ast";
+package se.jsannemo.spooky.compiler.parser;
 
-import "google/protobuf/empty.proto";
+option java_package = "se.jsannemo.spooky.compiler.ast";
 
 // A character range in a source file. Lines and columns are 1-indexed, while the offset
 // is a zero-indexed byte offset in the entire file. Since Spooky only supports ASCII, this is the same
@@ -263,10 +263,7 @@ message Type {
   Pos position = 3;
 
   message ArrayDimension {
-    oneof dim {
-      int32 dimension = 1;
-      google.protobuf.Empty inferred = 2;
-    }
+    int32 dimension = 1;
     Pos position = 3;
   }
 }
