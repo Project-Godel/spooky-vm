@@ -11,7 +11,7 @@ func isPrime(n: Int) -> Boolean {
   return true;
 }
 
-func main {
+func main() {
   for (n: Int = 90; n < 100; n = n + 1) {
     printInt(n);
     print(' ');

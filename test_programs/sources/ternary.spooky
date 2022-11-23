@@ -1,0 +1,13 @@
+extern printInt(i: Int)
+
+eight: Int = 8;
+
+func oddeven(n: Int) -> Int {
+    return n % 2 == 0 ? -eight : -9;
+}
+
+func main() {
+  for (n: Int = 0; !(n >= 10); n++) {
+    printInt(oddeven(n));
+  }
+}

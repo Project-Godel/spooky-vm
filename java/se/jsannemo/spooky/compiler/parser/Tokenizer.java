@@ -1,33 +1,36 @@
 package se.jsannemo.spooky.compiler.parser;
 
-import com.google.common.collect.ImmutableMap;
-import se.jsannemo.spooky.compiler.ast.Ast;
-
 import static com.google.common.base.Preconditions.checkArgument;
+
+import com.google.common.collect.ImmutableMap;
+import se.jsannemo.spooky.compiler.ast.SourcePos;
+import se.jsannemo.spooky.compiler.ast.SourceRange;
+import se.jsannemo.spooky.compiler.ast.Token;
+import se.jsannemo.spooky.compiler.ast.TokenKind;
 
 /**
  * Streaming tokenizer of Spooky source code.
  *
- * <p>Invalid tokens are generally pushed as {@link Ast.Token.Kind#UNEXPECTED} tokens. Some errors,
- * such as invalid escape characters in strings, are not pushed as unexpected tokens. They are only
+ * <p>Invalid tokens are generally pushed as {@link TokenKind#UNEXPECTED} tokens. Some errors, such
+ * as invalid escape characters in strings, are not pushed as unexpected tokens. They are only
  * reported as an error. Since tokenization is lazy, all errors may not be added until the token
  * stream is exhausted.
  */
 public final class Tokenizer {
 
-  private static final ImmutableMap<String, Ast.Token.Kind> KEYWORDS =
-      ImmutableMap.<String, Ast.Token.Kind>builder()
-          .put("true", Ast.Token.Kind.TRUE)
-          .put("else", Ast.Token.Kind.ELSE)
-          .put("extern", Ast.Token.Kind.EXTERN)
-          .put("false", Ast.Token.Kind.FALSE)
-          .put("for", Ast.Token.Kind.FOR)
-          .put("func", Ast.Token.Kind.FUNC)
-          .put("if", Ast.Token.Kind.IF)
-          .put("return", Ast.Token.Kind.RETURN)
-          .put("while", Ast.Token.Kind.WHILE)
-          .put("struct", Ast.Token.Kind.STRUCT)
-          .put("default", Ast.Token.Kind.DEFAULT)
+  private static final ImmutableMap<String, TokenKind> KEYWORDS =
+      ImmutableMap.<String, TokenKind>builder()
+          .put("true", TokenKind.TRUE)
+          .put("else", TokenKind.ELSE)
+          .put("extern", TokenKind.EXTERN)
+          .put("false", TokenKind.FALSE)
+          .put("for", TokenKind.FOR)
+          .put("func", TokenKind.FUNC)
+          .put("if", TokenKind.IF)
+          .put("return", TokenKind.RETURN)
+          .put("while", TokenKind.WHILE)
+          .put("struct", TokenKind.STRUCT)
+          .put("default", TokenKind.DEFAULT)
           .build();
 
   private final char[] input;
@@ -41,24 +44,24 @@ public final class Tokenizer {
   private int eatLine = 1;
   private int eatCol = 1;
   // Position and text of the current token being constructed.
-  private Ast.Pos tokPos;
-  private StringBuilder tokText;
+  private SourcePos tokPos;
+  private StringBuilder tokText = new StringBuilder();
 
-  private Tokenizer(String input) {
+  private Tokenizer(char[] input) {
     checkArgument(input != null);
-    this.input = input.toCharArray();
+    this.input = input;
   }
 
   /**
    * Returns the next token in the stream. If there are no more tokens available, {@link
-   * se.jsannemo.spooky.compiler.ast.Ast.Token.Kind#EOF} tokens will be returned.
+   * se.jsannemo.spooky.compiler.ast.TokenKind#EOF} tokens will be returned.
    */
-  public Ast.Token next() {
+  public Token next() {
     ignoreBefore();
-    tokPos = Ast.Pos.newBuilder().setLine(line).setCol(col).setOffset(pos).build();
+    tokPos = SourcePos.of(line, col, pos);
     tokText = new StringBuilder();
     if (end()) {
-      return token(Ast.Token.Kind.EOF);
+      return token(TokenKind.EOF);
     }
     // Special characters
     char nx = eat();
@@ -84,15 +87,15 @@ public final class Tokenizer {
       case '&':
         if (peek() == '&') {
           eat();
-          return token(Ast.Token.Kind.AND);
+          return token(TokenKind.AND);
         }
-        return token(Ast.Token.Kind.UNEXPECTED);
+        return token(TokenKind.UNEXPECTED);
       case '|':
         if (peek() == '|') {
           eat();
-          return token(Ast.Token.Kind.OR);
+          return token(TokenKind.OR);
         }
-        return token(Ast.Token.Kind.UNEXPECTED);
+        return token(TokenKind.UNEXPECTED);
       case '"':
         return stringLiteral();
       case '\'':
@@ -100,25 +103,25 @@ public final class Tokenizer {
       case '.':
         return dot();
       case ',':
-        return token(Ast.Token.Kind.COMMA);
+        return token(TokenKind.COMMA);
       case ';':
-        return token(Ast.Token.Kind.SEMICOLON);
+        return token(TokenKind.SEMICOLON);
       case ':':
-        return token(Ast.Token.Kind.COLON);
+        return token(TokenKind.COLON);
       case '?':
-        return token(Ast.Token.Kind.QUESTION);
+        return token(TokenKind.QUESTION);
       case '[':
-        return token(Ast.Token.Kind.LBRACKET);
+        return token(TokenKind.LBRACKET);
       case ']':
-        return token(Ast.Token.Kind.RBRACKET);
+        return token(TokenKind.RBRACKET);
       case '(':
-        return token(Ast.Token.Kind.LPAREN);
+        return token(TokenKind.LPAREN);
       case ')':
-        return token(Ast.Token.Kind.RPAREN);
+        return token(TokenKind.RPAREN);
       case '{':
-        return token(Ast.Token.Kind.LBRACE);
+        return token(TokenKind.LBRACE);
       case '}':
-        return token(Ast.Token.Kind.RBRACE);
+        return token(TokenKind.RBRACE);
     }
     if ('0' <= nx && nx <= '9') {
       return intLit();
@@ -126,24 +129,24 @@ public final class Tokenizer {
     if (nx == '_' || isAlpha(nx)) {
       return idOrKeyword();
     }
-    return token(Ast.Token.Kind.UNEXPECTED);
+    return token(TokenKind.UNEXPECTED);
   }
 
-  private Ast.Token dot() {
+  private Token dot() {
     if (peek(0) != '.' || peek(1) != '.') {
-      return token(Ast.Token.Kind.DOT);
+      return token(TokenKind.DOT);
     }
     eat();
     eat();
-    return token(Ast.Token.Kind.ELLIPSIS);
+    return token(TokenKind.ELLIPSIS);
   }
 
-  private Ast.Token stringLiteral() {
+  private Token stringLiteral() {
     while (peek() != '\"') {
       int nx = eat();
       // Strings are not multiline, so we treat a newline in a string as an unterminated string
       if (end() || nx == '\n') {
-        return token(Ast.Token.Kind.UNTERMINATED_STRING_LIT);
+        return token(TokenKind.UNTERMINATED_STRING_LIT);
       }
       // An \x escape character; eat next character too.
       if (nx == '\\') {
@@ -151,15 +154,15 @@ public final class Tokenizer {
       }
     }
     eat(); // Eat remaining "
-    return token(Ast.Token.Kind.STRING_LIT);
+    return token(TokenKind.STRING_LIT);
   }
 
-  private Ast.Token charLit() {
+  private Token charLit() {
     while (peek() != '\'') {
       int nx = eat();
       // Chars are not multiline, so we treat a newline in a string as an unterminated char literal
       if (end() || nx == '\n') {
-        return token(Ast.Token.Kind.UNTERMINATED_CHAR_LIT);
+        return token(TokenKind.UNTERMINATED_CHAR_LIT);
       }
       // An \x escape character; eat next character too.
       if (nx == '\\') {
@@ -167,109 +170,109 @@ public final class Tokenizer {
       }
     }
     eat(); // Eat remaining '
-    return token(Ast.Token.Kind.CHAR_LIT);
+    return token(TokenKind.CHAR_LIT);
   }
 
-  private Ast.Token idOrKeyword() {
+  private Token idOrKeyword() {
     while (isAlpha(peek()) || isDigit(peek()) || peek() == '_') {
       eat();
     }
-    Ast.Token.Kind keyword = KEYWORDS.get(tokText.toString());
+    TokenKind keyword = KEYWORDS.get(tokText.toString());
     if (keyword != null) {
       return token(keyword);
     }
-    return token(Ast.Token.Kind.IDENTIFIER);
+    return token(TokenKind.IDENTIFIER);
   }
 
-  private Ast.Token intLit() {
+  private Token intLit() {
     while (isDigit(peek())) {
       eat();
     }
-    return token(Ast.Token.Kind.INT_LIT);
+    return token(TokenKind.INT_LIT);
   }
 
-  private Ast.Token plus() {
+  private Token plus() {
     if (peek() == '+') {
       eat();
-      return token(Ast.Token.Kind.INCREMENT);
+      return token(TokenKind.INCREMENT);
     }
     if (peek() == '=') {
       eat();
-      return token(Ast.Token.Kind.PLUS_EQUALS);
+      return token(TokenKind.PLUS_EQUALS);
     }
-    return token(Ast.Token.Kind.PLUS);
+    return token(TokenKind.PLUS);
   }
 
-  private Ast.Token minus() {
+  private Token minus() {
     if (peek() == '-') {
       eat();
-      return token(Ast.Token.Kind.DECREMENT);
+      return token(TokenKind.DECREMENT);
     }
     if (peek() == '=') {
       eat();
-      return token(Ast.Token.Kind.MINUS_EQUALS);
+      return token(TokenKind.MINUS_EQUALS);
     }
     if (peek() == '>') {
       eat();
-      return token(Ast.Token.Kind.ARROW);
+      return token(TokenKind.ARROW);
     }
-    return token(Ast.Token.Kind.MINUS);
+    return token(TokenKind.MINUS);
   }
 
-  private Ast.Token asterisk() {
+  private Token asterisk() {
     if (peek() == '=') {
       eat();
-      return token(Ast.Token.Kind.TIMES_EQUALS);
+      return token(TokenKind.TIMES_EQUALS);
     }
-    return token(Ast.Token.Kind.ASTERISK);
+    return token(TokenKind.ASTERISK);
   }
 
-  private Ast.Token slash() {
+  private Token slash() {
     if (peek() == '=') {
       eat();
-      return token(Ast.Token.Kind.DIV_EQUALS);
+      return token(TokenKind.DIV_EQUALS);
     }
-    return token(Ast.Token.Kind.SLASH);
+    return token(TokenKind.SLASH);
   }
 
-  private Ast.Token percent() {
+  private Token percent() {
     if (peek() == '=') {
       eat();
-      return token(Ast.Token.Kind.MOD_EQUALS);
+      return token(TokenKind.MOD_EQUALS);
     }
-    return token(Ast.Token.Kind.PERCENT);
+    return token(TokenKind.PERCENT);
   }
 
-  private Ast.Token exclaim() {
+  private Token exclaim() {
     if (peek() == '=') {
       eat();
-      return token(Ast.Token.Kind.NOT_EQUALS);
+      return token(TokenKind.NOT_EQUALS);
     }
-    return token(Ast.Token.Kind.EXCLAIM);
+    return token(TokenKind.EXCLAIM);
   }
 
-  private Ast.Token less() {
+  private Token less() {
     if (peek() == '=') {
       eat();
-      return token(Ast.Token.Kind.LESS_EQUALS);
+      return token(TokenKind.LESS_EQUALS);
     }
-    return token(Ast.Token.Kind.LESS);
+    return token(TokenKind.LESS);
   }
 
-  private Ast.Token greater() {
+  private Token greater() {
     if (peek() == '=') {
       eat();
-      return token(Ast.Token.Kind.GREATER_EQUALS);
+      return token(TokenKind.GREATER_EQUALS);
     }
-    return token(Ast.Token.Kind.GREATER);
+    return token(TokenKind.GREATER);
   }
 
-  private Ast.Token eq() {
+  private Token eq() {
     if (peek() == '=') {
       eat();
-      return token(Ast.Token.Kind.EQUALS);
+      return token(TokenKind.EQUALS);
     }
-    return token(Ast.Token.Kind.ASSIGN);
+    return token(TokenKind.ASSIGN);
   }
 
   // Eats any characters that should be ignored between tokens.
@@ -324,12 +327,11 @@ public final class Tokenizer {
     return pos == input.length;
   }
 
-  private Ast.Token token(Ast.Token.Kind kind) {
-    return Ast.Token.newBuilder()
-        .setKind(kind)
-        .setPosition(tokPos.toBuilder().setEndCol(eatCol).setEndLine(eatLine).setEndOffset(eatPos))
-        .setText(tokText.toString())
-        .build();
+  private Token token(TokenKind kind) {
+    return Token.create(
+        kind,
+        tokText.toString(),
+        SourceRange.between(tokPos, SourcePos.of(eatLine, eatCol, eatPos)));
   }
 
   private static boolean isAlpha(int nx) {
@@ -341,6 +343,6 @@ public final class Tokenizer {
   }
 
   public static Tokenizer create(String input) {
-    return new Tokenizer(input);
+    return new Tokenizer(input.toCharArray());
   }
 }

@@ -1,9 +1,30 @@
 package se.jsannemo.spooky.vm;
 
-import com.google.common.collect.ImmutableMap;
+import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.collect.ImmutableMap;
 import java.io.PrintStream;
-import java.util.concurrent.ThreadLocalRandom;
+import se.jsannemo.spooky.vm.code.Executable;
+import se.jsannemo.spooky.vm.code.Instructions;
+import se.jsannemo.spooky.vm.code.Instructions.Add;
+import se.jsannemo.spooky.vm.code.Instructions.Address;
+import se.jsannemo.spooky.vm.code.Instructions.BitAnd;
+import se.jsannemo.spooky.vm.code.Instructions.BitOr;
+import se.jsannemo.spooky.vm.code.Instructions.Const;
+import se.jsannemo.spooky.vm.code.Instructions.Div;
+import se.jsannemo.spooky.vm.code.Instructions.Equals;
+import se.jsannemo.spooky.vm.code.Instructions.Extern;
+import se.jsannemo.spooky.vm.code.Instructions.Halt;
+import se.jsannemo.spooky.vm.code.Instructions.Jump;
+import se.jsannemo.spooky.vm.code.Instructions.JumpAddress;
+import se.jsannemo.spooky.vm.code.Instructions.JumpN;
+import se.jsannemo.spooky.vm.code.Instructions.LessEquals;
+import se.jsannemo.spooky.vm.code.Instructions.LessThan;
+import se.jsannemo.spooky.vm.code.Instructions.Mod;
+import se.jsannemo.spooky.vm.code.Instructions.Move;
+import se.jsannemo.spooky.vm.code.Instructions.Mul;
+import se.jsannemo.spooky.vm.code.Instructions.NotEquals;
+import se.jsannemo.spooky.vm.code.Instructions.Sub;
 
 /**
  * A virtual machine, executing parsed Spooky code.
@@ -23,16 +44,20 @@ public final class SpookyVm {
    */
   private int ip;
 
-  // Performance bookkeeping.
+  private final PrintStream stdOut;
   private int instructions = 0;
   private int maxMemory = -1;
 
   private SpookyVm(
-      Executable executable, ImmutableMap<String, ExternCall> externs, int memoryCells) {
+      Executable executable,
+      ImmutableMap<String, ExternCall> externs,
+      int memoryCells,
+      PrintStream stdOut) {
     this.externs = externs;
     this.curExecutable = executable;
     this.ip = 0;
     this.memory = new int[memoryCells];
+    this.stdOut = stdOut;
   }
 
   /**
@@ -46,82 +71,80 @@ public final class SpookyVm {
    */
   public boolean executeInstruction() throws VmException {
     // Halt VM in case if an out-of-bounds instruction.
-    if (ip < 0 || ip >= curExecutable.getCodeCount()) {
+    if (ip < 0 || ip >= curExecutable.text().size()) {
       throw new VmException("Instruction pointer out-of-bounds");
     }
     instructions++;
-    Instruction ins = curExecutable.getCode(ip++);
-    switch (ins.getInsCase()) {
-      case MOVE:
-        Move mov = ins.getMove();
-        setM(mov.getTarget(), getM(mov.getSource()));
-        break;
-      case ADD:
-        Add add = ins.getAdd();
-        setM(add.getTarget(), getM(add.getOp1()) + getM(add.getOp2()));
-        break;
-      case SUB:
-        Sub sub = ins.getSub();
-        setM(sub.getTarget(), getM(sub.getOp1()) - getM(sub.getOp2()));
-        break;
-      case MUL:
-        Mul mul = ins.getMul();
-        setM(mul.getTarget(), getM(mul.getOp1()) * getM(mul.getOp2()));
-        break;
-      case DIV:
-        Div div = ins.getDiv();
-        int denominator = getM(div.getOp2());
-        if (denominator == 0) {
-          throw new VmException("Division by zero");
-        }
-        setM(div.getTarget(), getM(div.getOp1()) / denominator);
-        break;
-      case MOD:
-        Mod mod = ins.getMod();
-        int modDenom = getM(mod.getOp2());
-        if (modDenom == 0) {
-          throw new VmException("Division by zero");
-        }
-        setM(mod.getTarget(), getM(mod.getOp1()) % modDenom);
-        break;
-      case LESS:
-        LessThan lt = ins.getLess();
-        setM(lt.getTarget(), getM(lt.getOp1()) < getM(lt.getOp2()) ? 1 : 0);
-        break;
-      case LEQ:
-        LessEquals leq = ins.getLeq();
-        setM(leq.getTarget(), getM(leq.getOp1()) <= getM(leq.getOp2()) ? 1 : 0);
-        break;
-      case EQ:
-        Equals eq = ins.getEq();
-        setM(eq.getTarget(), getM(eq.getOp1()) == getM(eq.getOp2()) ? 1 : 0);
-        break;
-      case NEQ:
-        NotEquals neq = ins.getNeq();
-        setM(neq.getTarget(), getM(neq.getOp1()) != getM(neq.getOp2()) ? 1 : 0);
-        break;
-      case OR:
-        BitOr or = ins.getOr();
-        setM(or.getTarget(), getM(or.getOp1()) | getM(or.getOp2()));
-        break;
-      case AND:
-        BitAnd and = ins.getAnd();
-        setM(and.getTarget(), getM(and.getOp1()) & getM(and.getOp2()));
-        break;
-      case JMP:
-        Jump jmp = ins.getJmp();
-        if ((getM(jmp.getFlag()) != 0) == jmp.getNonzero()) {
-          ip = getM(jmp.getAddr());
-        }
-        break;
-      case EXTERN:
-        Extern ext = ins.getExtern();
-        callExtern(ext.getName());
-        break;
-      case HALT:
-        return false;
-      default:
-        throw new IllegalArgumentException("Invalid operation in VM: " + ins);
+    Instructions.Instruction ins = curExecutable.text().get(ip++);
+    checkState(ins.isExecutable());
+    if (ins instanceof Instructions.Move) {
+      Move mov = (Move) ins;
+      setM(mov.target(), getM(mov.source()));
+    } else if (ins instanceof Const) {
+      Const cnst = (Const) ins;
+      setM(cnst.target(), cnst.value());
+    } else if (ins instanceof Add) {
+      Add add = (Add) ins;
+      setM(add.target(), getM(add.op1()) + getM(add.op2()));
+    } else if (ins instanceof Sub) {
+      Sub sub = (Sub) ins;
+      setM(sub.target(), getM(sub.op1()) - getM(sub.op2()));
+    } else if (ins instanceof Mul) {
+      Mul mul = (Mul) ins;
+      setM(mul.target(), getM(mul.op1()) * getM(mul.op2()));
+    } else if (ins instanceof Div) {
+      Div div = (Div) ins;
+      int denominator = getM(div.op2());
+      if (denominator == 0) {
+        throw new VmException("Division by zero");
+      }
+      setM(div.target(), getM(div.op1()) / denominator);
+    } else if (ins instanceof Mod) {
+      Mod mod = (Mod) ins;
+      int denominator = getM(mod.op2());
+      if (denominator == 0) {
+        throw new VmException("Division by zero");
+      }
+      setM(mod.target(), getM(mod.op1()) % denominator);
+    } else if (ins instanceof LessThan) {
+      LessThan lt = (LessThan) ins;
+      setM(lt.target(), getM(lt.op1()) < getM(lt.op2()) ? 1 : 0);
+    } else if (ins instanceof LessEquals) {
+      LessEquals leq = (LessEquals) ins;
+      setM(leq.target(), getM(leq.op1()) <= getM(leq.op2()) ? 1 : 0);
+    } else if (ins instanceof Equals) {
+      Equals eq = (Equals) ins;
+      setM(eq.target(), getM(eq.op1()) == getM(eq.op2()) ? 1 : 0);
+    } else if (ins instanceof NotEquals) {
+      NotEquals neq = (NotEquals) ins;
+      setM(neq.target(), getM(neq.op1()) != getM(neq.op2()) ? 1 : 0);
+    } else if (ins instanceof BitOr) {
+      BitOr or = (BitOr) ins;
+      setM(or.target(), getM(or.op1()) | getM(or.op2()));
+    } else if (ins instanceof BitAnd) {
+      BitAnd and = (BitAnd) ins;
+      setM(and.target(), getM(and.op1()) & getM(and.op2()));
+    } else if (ins instanceof Jump) {
+      Jump jmp = (Jump) ins;
+      if (getM(jmp.flag()) == 0) {
+        ip = jmp.addr();
+      }
+    } else if (ins instanceof JumpN) {
+      JumpN jmp = (JumpN) ins;
+      if (getM(jmp.flag()) != 0) {
+        ip = jmp.addr();
+        System.out.println("JNZ jump to " + ip + " of " + curExecutable.text().size());
+      }
+    } else if (ins instanceof JumpAddress) {
+      JumpAddress jmp = (JumpAddress) ins;
+      ip = getM(jmp.addr());
+    } else if (ins instanceof Extern) {
+      Extern ext = (Extern) ins;
+      callExtern(ext.name());
+    } else if (ins instanceof Halt) {
+      return false;
+    } else {
+      throw new IllegalArgumentException("Invalid operation in VM: " + ins);
     }
     return true;
   }
@@ -146,8 +169,8 @@ public final class SpookyVm {
       maxMemory = Math.max(pos, maxMemory);
       return memory[pos];
     }
-    if (-this.curExecutable.getDataCount() <= pos && pos < 0) {
-      return this.curExecutable.getData(-(pos + 1));
+    if (-this.curExecutable.data().size() <= pos && pos < 0) {
+      return this.curExecutable.data().get(-(pos + 1));
     }
     throw new VmException("Memory position " + pos + " is out of bounds");
   }
@@ -173,11 +196,11 @@ public final class SpookyVm {
   }
 
   private int resolveAddress(Address addr) throws VmException {
-    int sp = getM(0);
-    int a = getM(addr.getA() + (addr.getASp() ? sp : 0));
-    int b = addr.getW() * getM(addr.getB() + (addr.getBSp() ? sp : 0));
-    int c = addr.getC();
-    return a + b + c;
+    return getM(addr.baseAddr()) + addr.offset();
+  }
+
+  public PrintStream getStdOut() {
+    return stdOut;
   }
 
   /** Returns a new builder for {@link SpookyVm} instances. */
@@ -200,10 +223,12 @@ public final class SpookyVm {
     private final Executable executable;
     private final ImmutableMap.Builder<String, ExternCall> externBuilder = ImmutableMap.builder();
     private int memoryCells;
+    private PrintStream stdOut;
 
     private Builder(Executable executable) {
       this.executable = executable;
       memoryCells = 0;
+      stdOut = System.out;
     }
 
     /** Make available an external call named {@code name} invoking {@code callback} when called. */
@@ -213,10 +238,10 @@ public final class SpookyVm {
     }
 
     /** Add the external calls that the standard library provides. */
-    public Builder addStdLib(PrintStream stdOut) {
-      externBuilder.put("random", Calls.retInt(() -> ThreadLocalRandom.current().nextInt()));
-      externBuilder.put("print", Calls.getInt(ch -> stdOut.print((char) (int) ch)));
-      externBuilder.put("printInt", Calls.getInt(stdOut::print));
+    public Builder addStdLib() {
+      externBuilder.put("random", StdLib::random);
+      externBuilder.put("print", StdLib::printChar);
+      externBuilder.put("printInt", StdLib::printInt);
       return this;
     }
 
@@ -227,7 +252,12 @@ public final class SpookyVm {
     }
 
     public SpookyVm build() {
-      return new SpookyVm(executable, externBuilder.build(), memoryCells);
+      return new SpookyVm(executable, externBuilder.build(), memoryCells, stdOut);
+    }
+
+    public Builder setStdOut(PrintStream writer) {
+      this.stdOut = writer;
+      return this;
     }
   }
 }

@@ -1,6 +1,0 @@
-extern printInt(i: Int)
-
-
-func main() {
-    printInt(42);
-}

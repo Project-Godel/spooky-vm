@@ -1,0 +1,38 @@
+load("@//:rules.bzl", "java_j2cl_library")
+
+java_j2cl_library(
+    name = "ast",
+    srcs = [
+        "ArrayLit.java",
+        "Assignment.java",
+        "BinaryExpr.java",
+        "BinaryOp.java",
+        "Block.java",
+        "Conditional.java",
+        "Expression.java",
+        "Func.java",
+        "FuncCall.java",
+        "FuncDecl.java",
+        "Identifier.java",
+        "Loop.java",
+        "Program.java",
+        "ReturnValue.java",
+        "Select.java",
+        "SourcePos.java",
+        "SourceRange.java",
+        "Statement.java",
+        "Ternary.java",
+        "Token.java",
+        "TokenKind.java",
+        "Type.java",
+        "UnaryExpr.java",
+        "UnaryOp.java",
+        "Value.java",
+        "VarDecl.java",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//third_party:autovalue",
+        "//third_party:guava",
+    ],
+)

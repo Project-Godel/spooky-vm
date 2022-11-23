@@ -1,12 +1,11 @@
 extern printInt(i: Int)
-extern echo(i: Int) -> Int
 
-func getTwo -> Int {
-  return 2;
+func get(i: Int) -> Int {
+  return i;
 }
 
-x: Int = echo(4);
-y: Int = getTwo();
+x: Int = get(4);
+y: Int = get(2);
 
 func main() {
   printInt(x);

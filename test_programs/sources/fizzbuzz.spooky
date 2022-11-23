@@ -1,7 +1,7 @@
 extern printInt(i: Int)
 
 func main() {
-  for (i: Int = 1; i <= 15; i = i + 1) {
+  for (i: Int = 1; i <= 15; ++i) {
       if (i % 3 == 0 && i % 5 == 0) {
         printInt(12);
       } else if (i % 3 == 0) {

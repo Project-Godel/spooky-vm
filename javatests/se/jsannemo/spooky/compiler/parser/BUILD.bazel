@@ -1,22 +1,12 @@
-load("//:rules.bzl", "junit_tests")
-
-junit_tests(
-    name = "tests",
+java_test(
+    name = "ParserTest",
     srcs = [
         "ParserTest.java",
-        "TokenizerTest.java",
-    ],
-    data = [
-        "//test_programs",
     ],
     deps = [
         "//java/se/jsannemo/spooky/compiler:common",
         "//java/se/jsannemo/spooky/compiler/parser",
-        "//java/se/jsannemo/spooky/compiler/parser:ast_java_proto",
-        "//java/se/jsannemo/spooky/compiler/testing",
-        "//java/se/jsannemo/spooky/compiler/testing:testcases_java_proto",
-        "//third_party/junit",
-        "//third_party/truth",
-        "@com_google_protobuf//:protobuf_java",
+        "//third_party:junit",
+        "//third_party:truth",
     ],
 )

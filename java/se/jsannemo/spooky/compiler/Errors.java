@@ -2,13 +2,13 @@ package se.jsannemo.spooky.compiler;
 
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
-import se.jsannemo.spooky.compiler.ast.Ast;
+import se.jsannemo.spooky.compiler.ast.SourceRange;
 
 public final class Errors {
 
   private final ArrayList<Error> errors = new ArrayList<>();
 
-  public void error(Ast.Pos pos, String message) {
+  public void error(SourceRange pos, String message) {
     errors.add(new Error(pos, message));
   }
 
@@ -17,17 +17,17 @@ public final class Errors {
   }
 
   public static class Error {
-    final Ast.Pos position;
+    final SourceRange position;
     final String msg;
 
-    Error(Ast.Pos position, String msg) {
+    Error(SourceRange position, String msg) {
       this.position = position;
       this.msg = msg;
     }
 
     @Override
     public String toString() {
-      return position.getOffset() + "-" + position.getEndOffset() + ": " + msg;
+      return position.from().line() + ":" + position.from().col() + ": " + msg;
     }
   }
 }

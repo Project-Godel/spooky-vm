@@ -1,1 +1,2 @@
-build --incompatible_run_shell_command_string=false
+build --java_language_version=15
+run --java_runtime_version=15

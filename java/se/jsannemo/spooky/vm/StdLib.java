@@ -1,33 +1,26 @@
 package se.jsannemo.spooky.vm;
 
-import se.jsannemo.spooky.compiler.ABI;
+import java.util.Random;
 
 /**
- * {@link StdLib} provides the Spooky standard library with utility methods to implement extern
+ * {@link StdLib} provides the Spooky standard library and utility methods to implement extern
  * functions with the same calling convention.
  */
 public final class StdLib {
 
+  private static final Random RANDOM = new Random();
+
   private StdLib() {}
 
-  /**
-   * Returns the argument with offset {@code offset} from the back, starting from 0.
-   *
-   * @throws VmException if the stack pointer or the argument is out of bounds.
-   */
-  public static int getArg(SpookyVm vm, int offset) throws VmException {
-    int sp = vm.getM(ABI.STACK_PTR_ADDR);
-    return vm.getM(sp - 1 - offset);
+  static void random(SpookyVm vm) throws VmException {
+    CallingConvention.setReturn(vm, 0, RANDOM.nextInt());
   }
 
-  /**
-   * Set the return value of a call to {@code value}, where the parameters of the call had size
-   * {@code argSize}.
-   *
-   * @throws VmException if not enough stack is reserved for the return value.
-   */
-  public static void setReturn(SpookyVm vm, int argSize, int value) throws VmException {
-    int sp = vm.getM(ABI.STACK_PTR_ADDR);
-    vm.setM(sp - 1 - argSize, value);
+  static void printChar(SpookyVm vm) throws VmException {
+    vm.getStdOut().print((char) CallingConvention.getArg(vm, 0));
+  }
+
+  static void printInt(SpookyVm vm) throws VmException {
+    vm.getStdOut().print(CallingConvention.getArg(vm, 0));
   }
 }

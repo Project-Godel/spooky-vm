@@ -4,43 +4,42 @@
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 # http://www.apache.org/licenses/LICENSE-2.0
 
-set -e
-
-RELEASE=1.7
+RELEASE=1.15.0
 JAR_NAME="google-java-format-${RELEASE}-all-deps.jar"
-RELEASES_URL=https://github.com/google/google-java-format/releases/download
-JAR_URL="${RELEASES_URL}/google-java-format-${RELEASE}/${JAR_NAME}"
+RELEASES_URL=https://repo1.maven.org/maven2/com/google/googlejavaformat/google-java-format
+JAR_URL="${RELEASES_URL}/${RELEASE}/${JAR_NAME}"
 
 CACHE_DIR="$HOME/.cache/google-java-format-git-pre-commit-hook"
 JAR_FILE="$CACHE_DIR/$JAR_NAME"
 JAR_DOWNLOAD_FILE="${JAR_FILE}.tmp"
 JAR_PGP_ASC_FILE="${JAR_FILE}.asc"
-PGP_SIGN_KEY_ID=E77417AC194160A3FABD04969A259C7EE636C5ED
+PGP_SIGN_KEY_ID=EE0CA873074092F806F59B65D364ABAA39A47320
 
 if [[ ! -f "$JAR_FILE" ]]
 then
     mkdir -p "$CACHE_DIR"
     curl -L "$JAR_URL" -o "$JAR_DOWNLOAD_FILE"
+
+    # Downloaded from: "${JAR_URL}.asc"
     cat >"$JAR_PGP_ASC_FILE" <<EOF
 -----BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE53QXrBlBYKP6vQSWmiWcfuY2xe0FAlw2hwoACgkQmiWcfuY2
-xe22Ww//YIHLWoQApuSmLdq4A1fcNOYbSpm6J9I2J1i2VoK84XSXP1XJTWsoYNbx
-Y3Xx6I8p28AxH7LOWcdtds9enbF06blzz+1CxuSxvN32M7DDursiihsUYU9wmZVU
-7V1ZYBtaYTYYw8C5U+UchcIVJrHdG9KrAiBcn1s76gigNAtCYV/1PyryupS1wcDZ
-bdj48mI6adcnIpV+9D9W4rLuXw2Hg+ewktXTj3HYqkg+5Nvc/zP9ueBvqEsyh5Iz
-3+69egblhuN7gRaEWarlYfJ2n/kF9T/UMAkQrWD8+9cOgUcgTHkNADNOLpmDH6t7
-OYvZhgwQT920ZJgGP8e3DGyvMxBMxlr19ciTT19HL5qglyhFm/SeHvFdpaHkIjb9
-CmASWrlkALdEv2gPx+m79EJifyK5tYtViZgLhfjwYkS/opw5TfJX0+Ngh9ehgune
-c6TgEIzRQAEQ/9QoVk2crGT/lhXnJI3Zid7cSP2/fRdui91KaKGi9qFvXyJf7XKI
-vH0De+e3yZN/GXLYyQSUzmdQU8HMF9iuc81CT1ANgU+e9HU5k9FWSPHrA3gN7CKt
-/a3qIsIBpcdKe9zcPxSoEqRzVNept4IhszgiIVxZPNrPShzCRbS1sGURoOTbSFSP
-+aKWNFoswX/RANGQVajOyfF5mJ3lB4N0u2eI0HIR3NzNx0HN+2Q=
-=+/96
+iQIzBAABCgAdFiEE7gyocwdAkvgG9Ztl02SrqjmkcyAFAmImOGEACgkQ02Srqjmk
+cyCSXQ//f5cRQNbJhLmHASjRCRFMIe4+dcNd8l+Wy4izsfWctNs+Wj+p/Fnog3y6
+J0gY6B/BXB0Y/xZ7xeHhZU2xgWsgCwsTpOyWQw2sCmZV6Bnhvtjw0mxFfuJt1PRk
+UMfL8FvalF51rJUBpVcQeRojouccAFnOCMY4KwclWMOwWG1adfjUjrakEbkbHUpB
+ohxEYdTvwWkG72A/i0fSS2C0pQybzDWzvv/CweFaIB37cavwOuA2iDYZZC1400it
+lofa+zwvpey6CbPZzhESyDycFwriCE5v5txbGmkdNFWMnisDyTnprxVewnm2LHI7
+uFenMmT66G7ASNYqbdFWsMtyBhTGRlWWMb0ldxVhZkA6GN2diJHime/iHXR9GS1u
+S/uPkbTvp5HnSZjutV6z2X2smN+jJm3GBHNgp+prko8eg5n7wHudh5s616yCzE/L
+6ca7en1oH5TbH/9bLLVRNUw5DDlm51wf/pbRuecLYo27LbUjTUKZbhwHK0wV8F0d
+vDdno+j2U8KJ4rpifTHJAEnsUcrHvI8siJ7ADnEBnDl9xH+BTKZdS7rKe/vq96LG
+NilQ5b4qku7K1VhP1d+/sqXS2UKZmWLWaeJfvI+hj7R619Sn3xNM97sv5c5BYjv8
+FPXpXxWWHJ2T0iM4y+yRVRXFyP+owOFCc1jmVXlEgSErZbqHTCA=
+=oWka
 -----END PGP SIGNATURE-----
 EOF
 
-    if ! gpg --list-keys "$PGP_SIGN_KEY_ID" > /dev/null 2>&1
+    if ! gpg --list-keys "$PGP_SIGN_KEY_ID"
     then
         gpg --keyserver hkps://keyserver.ubuntu.com --recv-key "$PGP_SIGN_KEY_ID"
     fi
@@ -52,9 +51,14 @@ changed_java_files=$(git diff --cached --name-only --diff-filter=ACMR | grep ".*
 if [[ -n "$changed_java_files" ]]
 then
     echo "Reformatting Java files: $changed_java_files"
-    if ! java -jar "$JAR_FILE" --replace --set-exit-if-changed $changed_java_files
+    if ! java   --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
+                --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED \
+                --add-exports jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
+                --add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
+                --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
+                -jar "$JAR_FILE" --replace --set-exit-if-changed $changed_java_files
     then
-        echo "Some files were changed, aborting commit!" >&2
+        echo "An error occured, aborting commit!" >&2
         exit 1
     fi
 else

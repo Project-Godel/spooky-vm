@@ -1,0 +1,7 @@
+extern printInt(i: Int)
+
+res: Int = 1;
+
+func main() {
+    printInt(res);
+}

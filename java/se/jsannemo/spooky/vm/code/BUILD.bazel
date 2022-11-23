@@ -1,0 +1,20 @@
+load("@//:rules.bzl", "java_j2cl_library")
+
+java_j2cl_library(
+    name = "code",
+    srcs = [
+        "ByteStreamIterator.java",
+        "Executable.java",
+        "ExecutableParser.java",
+        "InstructionException.java",
+        "InstructionTokenizer.java",
+        "Instructions.java",
+        "OpCode.java",
+        "Serialization.java",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//third_party:autovalue",
+        "//third_party:guava",
+    ],
+)

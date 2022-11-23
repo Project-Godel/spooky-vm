@@ -1,0 +1,20 @@
+java_test(
+    name = "FullProgramTest",
+    srcs = [
+        "FullProgramTest.java",
+    ],
+    data = [
+        "//test_programs/sources",
+    ],
+    deps = [
+        "//java/se/jsannemo/spooky/compiler:common",
+        "//java/se/jsannemo/spooky/compiler/ast",
+        "//java/se/jsannemo/spooky/compiler/codegen",
+        "//java/se/jsannemo/spooky/compiler/ir",
+        "//java/se/jsannemo/spooky/compiler/parser",
+        "//java/se/jsannemo/spooky/vm",
+        "//java/se/jsannemo/spooky/vm/code",
+        "//third_party:junit",
+        "//third_party:truth",
+    ],
+)

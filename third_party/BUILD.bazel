@@ -1,0 +1,92 @@
+load("@//:rules.bzl", "java_j2cl_library")
+
+java_library(
+    name = "errorprone",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_errorprone_error_prone_annotations",
+    ],
+)
+
+alias(
+    name = "errorprone-j2cl",
+    actual = "@com_google_errorprone-j2cl",
+    visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "guava",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_guava_guava",
+    ],
+)
+
+alias(
+    name = "guava-j2cl",
+    actual = "@com_google_guava-j2cl",
+    visibility = ["//visibility:public"],
+)
+
+java_library(
+    name = "junit",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:junit_junit",
+    ],
+)
+
+java_library(
+    name = "truth",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_truth_extensions_truth_java8_extension",
+        "@maven//:com_google_truth_truth",
+    ],
+)
+
+java_library(
+    name = "autovalue-processor",
+    visibility = ["//visibility:public"],
+    exports = [
+        "@maven//:com_google_auto_value_auto_value",
+    ],
+)
+
+java_plugin(
+    name = "auto_value_plugin",
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
+    deps = [
+        ":autovalue-processor",
+    ],
+)
+
+java_plugin(
+    name = "auto_oneof_plugin",
+    processor_class = "com.google.auto.value.processor.AutoOneOfProcessor",
+    deps = [
+        ":autovalue-processor",
+    ],
+)
+
+java_library(
+    name = "autovalue-annotations",
+    exports = [
+        "@maven//:com_google_auto_value_auto_value_annotations",
+    ],
+)
+
+alias(
+    name = "autovalue-annotations-j2cl",
+    actual = "@com_google_auto_value_auto_value_annotations-j2cl",
+)
+
+java_j2cl_library(
+    name = "autovalue",
+    exported_plugins = [
+        ":auto_value_plugin",
+        ":auto_oneof_plugin",
+    ],
+    visibility = ["//visibility:public"],
+    exports = [":autovalue-annotations"],
+)

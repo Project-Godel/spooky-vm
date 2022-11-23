@@ -1,5 +1,6 @@
 package se.jsannemo.spooky.compiler.parser;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.util.Arrays;
@@ -8,7 +9,32 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 import se.jsannemo.spooky.compiler.Errors;
-import se.jsannemo.spooky.compiler.ast.Ast;
+import se.jsannemo.spooky.compiler.ast.ArrayLit;
+import se.jsannemo.spooky.compiler.ast.Assignment;
+import se.jsannemo.spooky.compiler.ast.BinaryExpr;
+import se.jsannemo.spooky.compiler.ast.BinaryOp;
+import se.jsannemo.spooky.compiler.ast.Block;
+import se.jsannemo.spooky.compiler.ast.Conditional;
+import se.jsannemo.spooky.compiler.ast.Expression;
+import se.jsannemo.spooky.compiler.ast.Func;
+import se.jsannemo.spooky.compiler.ast.FuncCall;
+import se.jsannemo.spooky.compiler.ast.FuncDecl;
+import se.jsannemo.spooky.compiler.ast.Identifier;
+import se.jsannemo.spooky.compiler.ast.Loop;
+import se.jsannemo.spooky.compiler.ast.Program;
+import se.jsannemo.spooky.compiler.ast.ReturnValue;
+import se.jsannemo.spooky.compiler.ast.Select;
+import se.jsannemo.spooky.compiler.ast.SourcePos;
+import se.jsannemo.spooky.compiler.ast.SourceRange;
+import se.jsannemo.spooky.compiler.ast.Statement;
+import se.jsannemo.spooky.compiler.ast.Ternary;
+import se.jsannemo.spooky.compiler.ast.Token;
+import se.jsannemo.spooky.compiler.ast.TokenKind;
+import se.jsannemo.spooky.compiler.ast.Type;
+import se.jsannemo.spooky.compiler.ast.UnaryExpr;
+import se.jsannemo.spooky.compiler.ast.UnaryOp;
+import se.jsannemo.spooky.compiler.ast.Value;
+import se.jsannemo.spooky.compiler.ast.VarDecl;
 import se.jsannemo.spooky.util.CircularQueue;
 
 /**
@@ -17,719 +43,604 @@ import se.jsannemo.spooky.util.CircularQueue;
  */
 public final class Parser {
 
-  private static final ImmutableSet<Ast.Token.Kind> STATEMENT_FAILURE_ENDS =
-      ImmutableSet.of(Ast.Token.Kind.SEMICOLON, Ast.Token.Kind.RBRACE, Ast.Token.Kind.LBRACE);
-  private static final ImmutableSet<Ast.Token.Kind> COND_FAILURE_ENDS =
+  /** When a statement parse fails, tokens are ignored until one of the following are reached. */
+  private static final ImmutableSet<TokenKind> STATEMENT_FAILURE_ENDS =
+      ImmutableSet.of(TokenKind.SEMICOLON, TokenKind.RBRACE, TokenKind.LBRACE);
+  /** When a condition parse fails, tokens are ignored until one of the following are reached. */
+  private static final ImmutableSet<TokenKind> COND_FAILURE_ENDS =
+      ImmutableSet.of(TokenKind.SEMICOLON, TokenKind.RBRACE, TokenKind.LBRACE, TokenKind.RPAREN);
+  /** When an expression parse fails, tokens are ignored until one of the following are reached. */
+  private static final ImmutableSet<TokenKind> EXPRESSION_FAILURE_ENDS =
       ImmutableSet.of(
-          Ast.Token.Kind.SEMICOLON,
-          Ast.Token.Kind.RBRACE,
-          Ast.Token.Kind.LBRACE,
-          Ast.Token.Kind.RPAREN);
-  private static final ImmutableSet<Ast.Token.Kind> EXPRESSION_FAILURE_ENDS =
-      ImmutableSet.of(
-          Ast.Token.Kind.SEMICOLON,
-          Ast.Token.Kind.COMMA,
-          Ast.Token.Kind.RBRACE,
-          Ast.Token.Kind.LBRACE,
-          Ast.Token.Kind.RBRACKET,
-          Ast.Token.Kind.RPAREN);
+          TokenKind.SEMICOLON,
+          TokenKind.COMMA,
+          TokenKind.RBRACE,
+          TokenKind.LBRACE,
+          TokenKind.RBRACKET,
+          TokenKind.RPAREN);
 
-  private final Tokenizer toks;
-  private final Errors err;
-  private final CircularQueue<Ast.Token> lookahead = CircularQueue.withCapacity(3);
-  private final Ast.Program.Builder program = Ast.Program.newBuilder().setValid(true);
+  private final Tokenizer tokens;
+  private final CircularQueue<Token> lookahead = CircularQueue.withCapacity(3);
+  private final Errors errors;
+  private final Program.Builder program = Program.builder().setValid(true);
   // The last token that was eat()en.
-  private Ast.Token last;
+  private Token last;
 
-  private Parser(Tokenizer toks, Errors err) {
-    this.toks = toks;
-    this.err = err;
+  private Parser(Tokenizer tokens, Errors errors) {
+    this.tokens = tokens;
+    this.errors = errors;
   }
 
-  private Ast.Program parse() {
-    while (peek().getKind() != Ast.Token.Kind.EOF) {
+  private Program parse() {
+    while (peek().kind() != TokenKind.EOF) {
       topLevel(program);
     }
     return program.build();
   }
 
-  private void topLevel(Ast.Program.Builder program) {
+  private void topLevel(Program.Builder program) {
     boolean errored = false;
     while (true) {
-      Ast.Token.Kind nx = peek().getKind();
-      if (nx == Ast.Token.Kind.EOF) {
+      TokenKind nx = peek().kind();
+      if (nx == TokenKind.EOF) {
         return;
-      } else if (nx == Ast.Token.Kind.FUNC) {
-        func().ifPresent(program::addFunctions);
+      } else if (nx == TokenKind.FUNC) {
+        func().ifPresent(program::addFunction);
         continue;
-      } else if (nx == Ast.Token.Kind.EXTERN) {
-        extern().ifPresent(program::addExterns);
+      } else if (nx == TokenKind.EXTERN) {
+        extern().ifPresent(program::addExtern);
         continue;
-      } else if (nx == Ast.Token.Kind.STRUCT) {
-        struct().ifPresent(program::addStructs);
-        continue;
-      } else if (nx == Ast.Token.Kind.IDENTIFIER) {
-        if (peek(1).getKind() == Ast.Token.Kind.COLON) {
-          Optional<Ast.Statement> var = varDecl();
-          var.ifPresent(statement -> program.addGlobals(statement.getDecl()));
+      } else if (nx == TokenKind.IDENTIFIER) {
+        if (peek(1).kind() == TokenKind.COLON) {
+          Optional<Statement> var = varDecl();
+          var.ifPresent(statement -> program.addGlobal(statement.varDecl()));
           finishLine();
           continue;
         }
       }
       // We only want to error out for the first invalid top-level token.
       if (!errored) {
-        errPeek("Expected func, extern or variable declaration.");
+        errPeek("expected func, extern or variable declaration.");
         errored = true;
       }
-      eat(null);
+      eat();
     }
   }
 
-  private Optional<Ast.StructDecl> struct() {
-    Ast.Pos.Builder pos = Ast.Pos.newBuilder();
-    Ast.StructDecl.Builder struct = Ast.StructDecl.newBuilder();
-    eat(pos);
-    Optional<Ast.Identifier> name = identifier("Expected struct name", pos);
-    name.ifPresent(struct::setName);
-    if (peek().getKind() == Ast.Token.Kind.LBRACE) {
-      eat(pos);
-      while (peek().getKind() == Ast.Token.Kind.IDENTIFIER) {
-        Ast.Pos.Builder fieldPos = Ast.Pos.newBuilder();
-        Ast.StructField.Builder field = Ast.StructField.newBuilder();
-        field.setName(identifier("Expected struct field name", fieldPos).get());
-        if (eatIfExpected("Expected :", Ast.Token.Kind.COLON, fieldPos) == null) {
-          eatLineUntil(last, STATEMENT_FAILURE_ENDS);
-          continue;
-        }
-        Optional<Ast.Type> type = type(fieldPos);
-        type.ifPresent(field::setType);
-        finishLine();
-        field.setPosition(fieldPos);
-        struct.addFields(field);
-        appendPos(pos, field.getPosition());
-      }
-      if (eatIfExpected("Expected }", Ast.Token.Kind.RBRACE, pos) == null) {
-        eatUntil(Ast.Token.Kind.RBRACE);
-        if (peek().getKind() == Ast.Token.Kind.RBRACE) {
-          eat(null);
-        }
-      }
-    } else if (name.isPresent()) {
-      errPeek("Expected {");
-    }
-    return Optional.of(struct.setPosition(pos).build());
-  }
-
-  private Optional<Ast.FuncDecl> decl(Ast.Token kw) {
-    Ast.Pos.Builder declPos = Ast.Pos.newBuilder();
-    Ast.FuncDecl.Builder decl = Ast.FuncDecl.newBuilder();
-    if (kw != null) {
-      appendPos(declPos, kw.getPosition());
-    }
-    Optional<Ast.Identifier> name = identifier("Expected function name", declPos);
-    name.ifPresent(decl::setName);
-    if (peek().getKind() == Ast.Token.Kind.LPAREN) {
-      eat(declPos);
-      parameterList(decl);
-      if (eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, declPos) == null) {
-        eatLine(last);
-      }
-    }
-    if (peek().getKind() == Ast.Token.Kind.ARROW) {
-      eat(declPos);
-      type(declPos).ifPresent(decl::setReturnType);
-    }
-    decl.setPosition(declPos);
-    return Optional.of(decl.build());
-  }
-
-  private void parameterList(Ast.FuncDecl.Builder builder) {
-    while (peek().getKind() == Ast.Token.Kind.IDENTIFIER) {
-      Ast.Pos.Builder paramPos = Ast.Pos.newBuilder();
-      Ast.FuncParam.Builder param = Ast.FuncParam.newBuilder();
-      param.setName(identifier("Expected parameter name", paramPos).get());
-      eatIfExpected("Expected :", Ast.Token.Kind.COLON, paramPos);
-      Optional<Ast.Type> type = type(paramPos);
-      type.ifPresent(param::setType);
-      if (peek().getKind() == Ast.Token.Kind.COMMA) {
-        eat(paramPos);
-      }
-      param.setPosition(paramPos);
-      builder.addParams(param);
-      builder.setPosition(mergePos(builder.getPosition(), param.getPosition()));
-    }
-  }
-
-  private Optional<Ast.FuncDecl> extern() {
-    return decl(eatIfExpected("Expected extern", Ast.Token.Kind.EXTERN, null));
-  }
-
-  private Optional<Ast.Func> func() {
-    Optional<Ast.FuncDecl> maybeDecl =
-        decl(eatIfExpected("Expected 'func'", Ast.Token.Kind.FUNC, null));
-    if (!maybeDecl.isPresent()) {
+  private Optional<FuncDecl> decl(TokenKind expectedKeyword) {
+    Token kw = eatIfExpected("expected " + expectedKeyword.name(), expectedKeyword);
+    if (kw == null) {
       return Optional.empty();
     }
-    Ast.FuncDecl decl = maybeDecl.get();
-    Ast.Pos.Builder funcPos = decl.getPosition().toBuilder();
-    ;
-    Ast.Func.Builder func = Ast.Func.newBuilder().setDecl(decl);
-    Optional<Ast.Statement> body = block();
-    body.ifPresent(
-        b -> {
-          func.setBody(b);
-          appendPos(funcPos, b.getPosition());
-        });
-    return Optional.of(func.setPosition(funcPos).build());
+    SourceRange pos = kw.pos();
+    Optional<Identifier> name = identifier("expected function name");
+    Token lpar = eatIfExpected("expected (", TokenKind.LPAREN);
+    if (lpar == null) {
+      eatLine(last);
+      return Optional.empty();
+    }
+    ImmutableList<FuncDecl.FuncParam> params = parameterList();
+    Token rpar = eatIfExpected("expected )", TokenKind.RPAREN);
+    if (rpar == null) {
+      eatLine(last);
+      return Optional.empty();
+    }
+    pos = pos.extend(rpar.pos());
+    Optional<Type> returnType = Optional.empty();
+    if (peek().kind() == TokenKind.ARROW) {
+      eat();
+      returnType = type();
+      if (returnType.isPresent()) {
+        pos = pos.extend(returnType.get().pos());
+      }
+    }
+    return Optional.of(
+        FuncDecl.create(
+            name.orElse(missingIdentifier(kw.pos().to(), lpar.pos().from())),
+            params,
+            returnType,
+            pos));
   }
 
-  private Optional<Ast.Statement> block() {
-    Ast.Pos.Builder blockPos = Ast.Pos.newBuilder();
-    Ast.Block.Builder block = Ast.Block.newBuilder();
-    Ast.Token lbrace = eatIfExpected("Expected block", Ast.Token.Kind.LBRACE, blockPos);
+  private ImmutableList<FuncDecl.FuncParam> parameterList() {
+    ImmutableList.Builder<FuncDecl.FuncParam> builder = ImmutableList.builder();
+    while (peek().kind() == TokenKind.IDENTIFIER) {
+      Optional<Identifier> nameOpt = identifier("expected parameter name");
+      if (eatIfExpected("expected :", TokenKind.COLON) == null) {
+        eatLineUntil(last, EXPRESSION_FAILURE_ENDS);
+      } else {
+        Optional<Type> typeOpt = type();
+        if (nameOpt.isPresent() && typeOpt.isPresent()) {
+          Type type = typeOpt.get();
+          Identifier name = nameOpt.get();
+          builder.add(FuncDecl.FuncParam.create(name, type, name.pos().extend(type.pos())));
+        }
+      }
+      if (peek().kind() == TokenKind.COMMA) {
+        eat();
+      }
+    }
+    return builder.build();
+  }
+
+  private Optional<FuncDecl> extern() {
+    return decl(TokenKind.EXTERN);
+  }
+
+  private Optional<Func> func() {
+    Optional<FuncDecl> maybeDecl = decl(TokenKind.FUNC);
+    if (maybeDecl.isEmpty()) {
+      return Optional.empty();
+    }
+    FuncDecl decl = maybeDecl.get();
+    Optional<Statement> bodyOpt = block();
+    if (bodyOpt.isEmpty()) {
+      return Optional.empty();
+    }
+    Statement body = bodyOpt.get();
+    return Optional.of(Func.create(decl, body, decl.pos().extend(body.pos())));
+  }
+
+  private Optional<Statement> block() {
+    Token lbrace = eatIfExpected("expected block", TokenKind.LBRACE);
     if (lbrace == null) {
       return Optional.empty();
     }
+    ImmutableList.Builder<Statement> statements = ImmutableList.builder();
+    SourceRange pos = lbrace.pos();
     while (true) {
-      Ast.Token nx = peek();
-      if (nx.getKind() == Ast.Token.Kind.RBRACE) {
-        eat(blockPos);
+      Token nx = peek();
+      if (nx.kind() == TokenKind.RBRACE) {
+        pos = pos.extend(eat().pos());
         break;
       }
-      if (nx.getKind() == Ast.Token.Kind.EOF) {
+      if (nx.kind() == TokenKind.EOF) {
         errAt("Unterminated block", lbrace);
         break;
       }
-      Optional<Ast.Statement> st = statement();
-      if (!st.isPresent()) {
-        break;
+      Optional<Statement> st = statement();
+      if (st.isEmpty()) {
+        eatUntil(TokenKind.RBRACE);
+        return Optional.empty();
       }
-      appendPos(blockPos, st.get().getPosition());
-      block.addBody(st.get());
+      statements.add(st.get());
     }
-    block.setPosition(blockPos);
-    return Optional.of(
-        Ast.Statement.newBuilder().setBlock(block).setPosition(block.getPosition()).build());
+    return Optional.of(Statement.ofBlock(Block.create(statements.build(), pos)));
   }
 
-  private Optional<Ast.Statement> statement() {
-    Ast.Token.Kind nx = peek().getKind();
-    if (nx == Ast.Token.Kind.SEMICOLON) {
-      Ast.Pos.Builder pos = Ast.Pos.newBuilder();
-      eat(pos);
-      return Optional.of(
-          Ast.Statement.newBuilder()
-              .setBlock(Ast.Block.newBuilder().setPosition(pos))
-              .setPosition(pos)
-              .build());
-    } else if (nx == Ast.Token.Kind.IF) {
+  private Optional<Statement> statement() {
+    TokenKind nx = peek().kind();
+    if (nx == TokenKind.SEMICOLON) {
+      // ; is allowed to end null-statements
+      Token semi = eat();
+      return Optional.of(Statement.ofBlock(Block.empty(semi.pos())));
+    } else if (nx == TokenKind.IF) {
       return conditional();
-    } else if (nx == Ast.Token.Kind.FOR) {
+    } else if (nx == TokenKind.FOR) {
       return forLoop();
-    } else if (nx == Ast.Token.Kind.WHILE) {
+    } else if (nx == TokenKind.WHILE) {
       return whileLoop();
-    } else if (nx == Ast.Token.Kind.RETURN) {
+    } else if (nx == TokenKind.RETURN) {
       return returnStmt();
-    } else if (nx == Ast.Token.Kind.LBRACE) {
+    } else if (nx == TokenKind.LBRACE) {
       return block();
-    } else if (nx == Ast.Token.Kind.IDENTIFIER && peek(1).getKind() == Ast.Token.Kind.COLON) {
-      Optional<Ast.Statement> statement = varDecl();
+    } else if (nx == TokenKind.IDENTIFIER && peek(1).kind() == TokenKind.COLON) {
+      Optional<Statement> statement = varDecl();
       finishLine();
       return statement;
     } else {
-      Optional<Ast.Statement> statement = exprStatement();
+      Optional<Statement> statement = exprStatement();
       finishLine();
       return statement;
     }
   }
 
-  private Optional<Ast.Statement> varDecl() {
-    Ast.Pos.Builder declPos = Ast.Pos.newBuilder();
-    Ast.VarDecl.Builder declBuilder = Ast.VarDecl.newBuilder();
-    Optional<Ast.Identifier> name = identifier("Expected variable name", declPos);
-    if (!name.isPresent()) {
+  private Optional<Statement> varDecl() {
+    Optional<Identifier> nameOpt = identifier("expected variable name");
+    if (nameOpt.isEmpty()) {
       return Optional.empty();
     }
-    declBuilder.setName(name.get());
-    if (eatIfExpected("Expected :", Ast.Token.Kind.COLON, declPos) != null) {
-      type(declPos).ifPresent(declBuilder::setType);
+    Identifier name = nameOpt.get();
+    if (eatIfExpected("expected :", TokenKind.COLON) == null) {
+      eatLine(last);
+      return Optional.empty();
     }
-    if (eatIfExpected("Expected =", Ast.Token.Kind.ASSIGN, declPos) != null) {
-      initVal()
-          .ifPresent(
-              ex -> {
-                declBuilder.setInit(ex);
-                appendPos(declPos, ex.getPosition());
-              });
+    Optional<Type> type = type();
+    if (type.isEmpty()) {
+      eatLine(last);
+      return Optional.empty();
     }
-    declBuilder.setPosition(declPos);
+    if (eatIfExpected("expected =", TokenKind.ASSIGN) == null) {
+      eatLine(last);
+      return Optional.empty();
+    }
+    Optional<Expression> value = initVal();
+    if (value.isEmpty()) {
+      eatLine(last);
+      return Optional.empty();
+    }
+    Expression init = value.get();
     return Optional.of(
-        Ast.Statement.newBuilder().setDecl(declBuilder).setPosition(declPos).build());
+        Statement.ofVarDecl(
+            VarDecl.create(nameOpt.get(), type.get(), init, name.pos().extend(init.pos()))));
   }
 
-  private Optional<Ast.Expr> initVal() {
-    if (peek().getKind() == Ast.Token.Kind.DEFAULT) {
-      return Optional.of(defaultInit());
+  private Optional<Expression> initVal() {
+    // TODO: Reenable when arrays supported
+    /*
+    if (peek().kind() == TokenKind.LBRACKET) {
+      return arrayInit();
     }
-    if (peek().getKind() == Ast.Token.Kind.LBRACE) {
-      return Optional.of(structInit());
-    }
-    if (peek().getKind() == Ast.Token.Kind.LBRACKET) {
-      return Optional.of(arrayInit());
-    }
+     */
     return expression();
   }
 
-  private Ast.Expr defaultInit() {
-    Ast.Pos.Builder pos = Ast.Pos.newBuilder();
-    eatIfExpected("Expected {", Ast.Token.Kind.DEFAULT, pos);
-    return Ast.Expr.newBuilder()
-        .setDefaultInit(Ast.DefaultInit.newBuilder().setPosition(pos))
-        .setPosition(pos)
-        .build();
-  }
-
-  private Ast.Expr structInit() {
-    Ast.StructLit.Builder struct = Ast.StructLit.newBuilder();
-    Ast.Pos.Builder structPos = Ast.Pos.newBuilder();
-    eatIfExpected("Expected {", Ast.Token.Kind.LBRACE, structPos);
-    while (peek().getKind() == Ast.Token.Kind.IDENTIFIER) {
-      boolean err = false;
-      boolean done = false;
-      Ast.FieldInit.Builder field = Ast.FieldInit.newBuilder();
-      Ast.Pos.Builder fieldPos = Ast.Pos.newBuilder();
-      field.setField(identifier("Expected identifier", fieldPos).get());
-      if (eatIfExpected("Expected :", Ast.Token.Kind.COLON, fieldPos) != null) {
-        Optional<Ast.Expr> value = initVal();
-        if (value.isPresent()) {
-          Ast.Expr e = value.get();
-          field.setValue(e);
-          appendPos(fieldPos, e.getPosition());
-          if (peek().getKind() == Ast.Token.Kind.COMMA) {
-            eat(structPos);
-          } else {
-            done = true;
-          }
-        } else {
-          err = true;
-        }
-      } else {
-        err = true;
-      }
-      if (err) {
-        eatLineUntil(last, ImmutableSet.of(Ast.Token.Kind.COMMA, Ast.Token.Kind.RBRACE));
-      }
-      field.setPos(fieldPos);
-      struct.addValues(field);
-      if (done) {
+  private Optional<Expression> arrayInit() {
+    Token lbrack = eatIfExpected("expected [", TokenKind.LBRACKET);
+    if (lbrack == null) {
+      eatLineUntil(last, ImmutableSet.of(TokenKind.RBRACE));
+      return Optional.empty();
+    }
+    ImmutableList.Builder<Expression> values = ImmutableList.builder();
+    while (peek().kind() != TokenKind.RBRACKET) {
+      Optional<Expression> val = initVal();
+      if (val.isEmpty()) {
+        eatLineUntil(last, ImmutableSet.of(TokenKind.RBRACE));
         break;
       }
-    }
-    if (eatIfExpected("Expected }", Ast.Token.Kind.RBRACE, structPos) == null) {
-      eatUntil(Ast.Token.Kind.RBRACE);
-      if (peek().getKind() == Ast.Token.Kind.RBRACE) {
-        eat(null);
-      }
-    }
-    struct.setPosition(structPos);
-    return Ast.Expr.newBuilder().setStruct(struct).setPosition(structPos).build();
-  }
-
-  private Ast.Expr arrayInit() {
-    Ast.ArrayLit.Builder array = Ast.ArrayLit.newBuilder();
-    Ast.Pos.Builder arrayPos = Ast.Pos.newBuilder();
-    eatIfExpected("Expected [", Ast.Token.Kind.LBRACKET, arrayPos);
-    while (peek().getKind() != Ast.Token.Kind.RBRACKET) {
-      boolean isFill = peek().getKind() == Ast.Token.Kind.ELLIPSIS;
-      if (isFill) {
-        eat(arrayPos);
-        array.setShouldFill(true);
-        if (peek().getKind() == Ast.Token.Kind.RBRACKET) {
-          break;
-        }
-      }
-      Optional<Ast.Expr> val = initVal();
-      if (val.isPresent()) {
-        Ast.Expr initExpr = val.get();
-        if (isFill) {
-          array.setFill(initExpr);
-        } else {
-          array.addValues(initExpr);
-        }
-        appendPos(arrayPos, initExpr.getPosition());
-      }
-      if (!val.isPresent() || isFill) {
+      values.add(val.get());
+      if (peek().kind() != TokenKind.COMMA) {
         break;
       }
-      if (peek().getKind() != Ast.Token.Kind.COMMA) {
-        break;
-      }
-      eat(arrayPos);
+      eat();
     }
-    eatIfExpected("Expected ]", Ast.Token.Kind.RBRACKET, arrayPos);
-    array.setPosition(arrayPos);
-    return Ast.Expr.newBuilder().setArray(array).setPosition(arrayPos).build();
+    Token rbrack = eatIfExpected("expected ]", TokenKind.RBRACKET);
+    if (rbrack == null) {
+      eatLineUntil(last, EXPRESSION_FAILURE_ENDS);
+      return Optional.empty();
+    }
+    return Optional.of(
+        Expression.ofArray(ArrayLit.create(values.build(), lbrack.pos().extend(rbrack.pos()))));
   }
 
-  private Optional<Ast.Statement> returnStmt() {
-    Ast.Pos.Builder returnPos = Ast.Pos.newBuilder();
-    Ast.ReturnValue.Builder returnBuilder = Ast.ReturnValue.newBuilder();
-    Ast.Token retTok = eatIfExpected("Expected return", Ast.Token.Kind.RETURN, returnPos);
+  private Optional<Statement> returnStmt() {
+    Token retTok = eatIfExpected("expected return", TokenKind.RETURN);
     if (retTok == null) {
       return Optional.empty();
     }
-    if (peek().getKind() != Ast.Token.Kind.SEMICOLON) {
-      expression()
-          .ifPresent(
-              expr -> {
-                returnBuilder.setValue(expr);
-                appendPos(returnPos, expr.getPosition());
-              });
+    if (peek().kind() == TokenKind.SEMICOLON) {
+      return Optional.of(
+          Statement.ofReturnValue(ReturnValue.create(Optional.empty(), retTok.pos())));
     }
-    finishLine();
-    returnBuilder.setPosition(returnPos);
+    Optional<Expression> valueOpt = expression();
+    if (valueOpt.isEmpty()) {
+      return Optional.empty();
+    }
+    Expression value = valueOpt.get();
+    Token token = eatIfExpected("expected ;", TokenKind.SEMICOLON);
     return Optional.of(
-        Ast.Statement.newBuilder().setReturnValue(returnBuilder).setPosition(returnPos).build());
+        Statement.ofReturnValue(
+            ReturnValue.create(
+                Optional.of(value), retTok.pos().extend(value.pos()).extend(token))));
   }
 
-  private Optional<Ast.Statement> whileLoop() {
-    Ast.Loop.Builder loop = Ast.Loop.newBuilder();
-    Ast.Pos.Builder loopPos = Ast.Pos.newBuilder();
-    if (eatIfExpected("Expected while", Ast.Token.Kind.WHILE, loopPos) == null) {
+  private Optional<Statement> whileLoop() {
+    Token whileTok = eatIfExpected("expected while", TokenKind.WHILE);
+    if (whileTok == null) {
       return Optional.empty();
     }
-    if (peek().getKind() == Ast.Token.Kind.LPAREN) {
-      eat(loopPos);
-      expression()
-          .ifPresent(
-              expr -> {
-                loop.setCondition(expr);
-                appendPos(loopPos, expr.getPosition());
-              });
-      eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, loopPos);
-    }
-    statement()
-        .ifPresent(
-            s -> {
-              loop.setBody(s);
-              appendPos(loopPos, s.getPosition());
-            });
-    loop.setPosition(loopPos);
-    return Optional.of(Ast.Statement.newBuilder().setLoop(loop).setPosition(loopPos).build());
-  }
-
-  private Optional<Ast.Statement> forLoop() {
-    Ast.Loop.Builder loop = Ast.Loop.newBuilder();
-    Ast.Pos.Builder loopPos = Ast.Pos.newBuilder();
-    if (eatIfExpected("Expected for", Ast.Token.Kind.FOR, loopPos) == null) {
-      return Optional.empty();
-    }
-    if (eatIfExpected("Expected (", Ast.Token.Kind.LPAREN, loopPos) != null) {
-      if (peek().getKind() != Ast.Token.Kind.SEMICOLON) {
-        Optional<Ast.Statement> init = simpleStatement();
-        if (init.isPresent()) {
-          Ast.Statement s = init.get();
-          loop.setInit(s);
-          appendPos(loopPos, s.getPosition());
-        } else {
-          eatLineUntil(last, COND_FAILURE_ENDS);
-        }
-      }
-      eatIfExpected("Expected ;", Ast.Token.Kind.SEMICOLON, loopPos);
-
-      if (peek().getKind() != Ast.Token.Kind.SEMICOLON) {
-        Optional<Ast.Expr> cond = expression();
-        if (cond.isPresent()) {
-          Ast.Expr e = cond.get();
-          loop.setCondition(e);
-          appendPos(loopPos, e.getPosition());
-        } else {
-          eatLineUntil(last, COND_FAILURE_ENDS);
-        }
-      }
-      eatIfExpected("Expected ;", Ast.Token.Kind.SEMICOLON, loopPos);
-
-      if (peek().getKind() != Ast.Token.Kind.RPAREN) {
-        Optional<Ast.Statement> inc = exprStatement();
-        if (inc.isPresent()) {
-          Ast.Statement s = inc.get();
-          loop.setIncrement(s);
-          appendPos(loopPos, s.getPosition());
-        } else {
-          eatLineUntil(last, COND_FAILURE_ENDS);
-        }
-      }
-      eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, loopPos);
-    } else {
+    if (eatIfExpected("expected (", TokenKind.LPAREN) == null) {
       eatLineUntil(last, STATEMENT_FAILURE_ENDS);
+      return Optional.empty();
     }
-    statement()
-        .ifPresent(
-            s -> {
-              loop.setBody(s);
-              appendPos(loopPos, s.getPosition());
-            });
-    loop.setPosition(loopPos);
-    return Optional.of(Ast.Statement.newBuilder().setLoop(loop).setPosition(loopPos).build());
+    Optional<Expression> cond = expression();
+    if (!cond.isPresent()) {
+      eatLineUntil(last, COND_FAILURE_ENDS);
+    }
+    eatIfExpected("expected )", TokenKind.RPAREN);
+    Optional<Statement> bodyOpt = statement();
+    if (bodyOpt.isEmpty()) {
+      return Optional.empty();
+    }
+
+    Statement body = bodyOpt.get();
+    Loop.Builder loop = Loop.builder().setBody(body).setPos(whileTok.pos().extend(body.pos()));
+    cond.ifPresent(loop::setCondition);
+    loop.setBody(body);
+    return Optional.of(Statement.ofLoop(loop.build()));
   }
 
-  private Optional<Ast.Statement> simpleStatement() {
-    if (peek().getKind() == Ast.Token.Kind.IDENTIFIER
-        && peek(1).getKind() == Ast.Token.Kind.COLON) {
+  private Optional<Statement> forLoop() {
+    Token forTok = eatIfExpected("expected for", TokenKind.FOR);
+    if (forTok == null) {
+      return Optional.empty();
+    }
+    Token lpar = eatIfExpected("expected (", TokenKind.LPAREN);
+    if (lpar == null) {
+      eatLineUntil(last, STATEMENT_FAILURE_ENDS);
+      return Optional.empty();
+    }
+    Optional<Statement> init = Optional.empty();
+    if (peek().kind() != TokenKind.SEMICOLON) {
+      init = simpleStatement();
+      if (init.isEmpty()) {
+        eatLineUntil(last, COND_FAILURE_ENDS);
+      }
+    }
+    eatIfExpected("expected ;", TokenKind.SEMICOLON);
+    Optional<Expression> cond = Optional.empty();
+    if (peek().kind() != TokenKind.SEMICOLON) {
+      cond = expression();
+      if (cond.isEmpty()) {
+        eatLineUntil(last, COND_FAILURE_ENDS);
+      }
+    }
+    eatIfExpected("expected ;", TokenKind.SEMICOLON);
+    Optional<Statement> increment = Optional.empty();
+    if (peek().kind() != TokenKind.RPAREN) {
+      increment = exprStatement();
+      if (increment.isEmpty()) {
+        eatLineUntil(last, COND_FAILURE_ENDS);
+      }
+    }
+    eatIfExpected("expected )", TokenKind.RPAREN);
+    Optional<Statement> bodyOpt = statement();
+    if (bodyOpt.isEmpty()) {
+      return Optional.empty();
+    }
+
+    Statement body = bodyOpt.get();
+    Loop.Builder loop = Loop.builder().setBody(body).setPos(forTok.pos().extend(body.pos()));
+    init.ifPresent(loop::setInit);
+    cond.ifPresent(loop::setCondition);
+    increment.ifPresent(loop::setIncrement);
+    loop.setBody(body);
+    return Optional.of(Statement.ofLoop(loop.build()));
+  }
+
+  private Optional<Statement> simpleStatement() {
+    if (peek().kind() == TokenKind.IDENTIFIER && peek(1).kind() == TokenKind.COLON) {
       return varDecl();
     }
     return exprStatement();
   }
 
-  private Optional<Ast.Statement> conditional() {
-    Ast.Pos.Builder condPos = Ast.Pos.newBuilder();
-    Ast.Conditional.Builder cond = Ast.Conditional.newBuilder();
-    if (eatIfExpected("Expected if", Ast.Token.Kind.IF, condPos) == null) {
+  private Optional<Statement> conditional() {
+    Token ifTok = eatIfExpected("expected if", TokenKind.IF);
+    if (ifTok == null) {
       return Optional.empty();
     }
-    if (eatIfExpected("Expected (", Ast.Token.Kind.LPAREN, condPos) != null) {
-      expression()
-          .ifPresent(
-              e -> {
-                cond.setCondition(e);
-                appendPos(condPos, e.getPosition());
-              });
-      eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, condPos);
+    if (eatIfExpected("expected (", TokenKind.LPAREN) == null) {
+      eatLine(last);
     }
-    statement()
-        .ifPresent(
-            s -> {
-              cond.setBody(s);
-              appendPos(condPos, s.getPosition());
-            });
-    if (peek().getKind() == Ast.Token.Kind.ELSE) {
-      eat(condPos);
-      statement()
-          .ifPresent(
-              s -> {
-                cond.setElseBody(s);
-                appendPos(condPos, s.getPosition());
-              });
+    Optional<Expression> cond = expression();
+    if (eatIfExpected("expected )", TokenKind.RPAREN) == null) {
+      eatLine(last);
     }
-    cond.setPosition(condPos);
-    return Optional.of(
-        Ast.Statement.newBuilder().setConditional(cond).setPosition(condPos).build());
-  }
-
-  private Optional<Ast.Statement> exprStatement() {
-    Optional<Ast.Expr> maybeExpr = expression();
-    if (!maybeExpr.isPresent()) {
+    Optional<Statement> body = statement();
+    Optional<Statement> elseBody = Optional.empty();
+    if (peek().kind() == TokenKind.ELSE) {
+      eat();
+      elseBody = statement();
+    }
+    if (cond.isEmpty() || body.isEmpty()) {
       return Optional.empty();
     }
-    Ast.Expr expr = maybeExpr.get();
+    Expression condExpr = cond.get();
+    SourceRange range = condExpr.pos();
+    Statement bodyStmt = body.get();
+    if (elseBody.isPresent()) {
+      range.extend(elseBody.get().pos());
+    } else {
+      range.extend(bodyStmt.pos());
+    }
     return Optional.of(
-        Ast.Statement.newBuilder().setExpression(expr).setPosition(expr.getPosition()).build());
+        Statement.ofConditional(Conditional.create(condExpr, bodyStmt, elseBody, range)));
   }
 
-  private Optional<Ast.Expr> expression() {
+  private Optional<Statement> exprStatement() {
+    Optional<Expression> maybeExpr = expression();
+    if (maybeExpr.isEmpty()) {
+      return Optional.empty();
+    }
+    Expression expr = maybeExpr.get();
+    return Optional.of(Statement.ofExpression(expr));
+  }
+
+  private Optional<Expression> expression() {
     return assignment();
   }
 
-  private static final ImmutableMap<Ast.Token.Kind, Ast.BinaryOp> assignments =
-      ImmutableMap.<Ast.Token.Kind, Ast.BinaryOp>builder()
-          .put(Ast.Token.Kind.PLUS_EQUALS, Ast.BinaryOp.ADD)
-          .put(Ast.Token.Kind.MINUS_EQUALS, Ast.BinaryOp.SUBTRACT)
-          .put(Ast.Token.Kind.DIV_EQUALS, Ast.BinaryOp.DIVIDE)
-          .put(Ast.Token.Kind.TIMES_EQUALS, Ast.BinaryOp.MULTIPLY)
-          .put(Ast.Token.Kind.MOD_EQUALS, Ast.BinaryOp.MODULO)
-          .put(Ast.Token.Kind.ASSIGN, Ast.BinaryOp.BINARY_OP_UNSPECIFIED)
+  private static final ImmutableMap<TokenKind, BinaryOp> assignments =
+      ImmutableMap.<TokenKind, BinaryOp>builder()
+          .put(TokenKind.PLUS_EQUALS, BinaryOp.ADD)
+          .put(TokenKind.MINUS_EQUALS, BinaryOp.SUBTRACT)
+          .put(TokenKind.DIV_EQUALS, BinaryOp.DIVIDE)
+          .put(TokenKind.TIMES_EQUALS, BinaryOp.MULTIPLY)
+          .put(TokenKind.MOD_EQUALS, BinaryOp.MODULO)
           .build();
 
-  private Optional<Ast.Expr> assignment() {
-    Optional<Ast.Expr> lhs = ternary();
-    if (lhs.isPresent() && assignments.containsKey(peek().getKind())) {
-      Ast.Assignment.Builder assign = Ast.Assignment.newBuilder().setReference(lhs.get());
-      Ast.Pos.Builder assignPos = Ast.Pos.newBuilder();
-      Ast.Token opTok = eat(assignPos);
-      Optional<Ast.Expr> rhs = assignment();
-      rhs.ifPresent(
-          ex -> {
-            appendPos(assignPos, ex.getPosition());
-            assign.setValue(rhs.get());
-          });
-      Ast.BinaryOp op = assignments.get(opTok.getKind());
-      assign.setCompound(op);
-      assign.setPosition(assignPos);
+  private Optional<Expression> assignment() {
+    Optional<Expression> lhs = ternary();
+    System.out.println("Assignment LHS: " + lhs + " " + peek());
+    if (lhs.isPresent()
+        && (peek().kind() == TokenKind.ASSIGN || assignments.containsKey(peek().kind()))) {
+      Expression reference = lhs.get();
+      Token opTok = eat();
+      Optional<BinaryOp> op = Optional.ofNullable(assignments.get(opTok.kind()));
+      Optional<Expression> rhs = assignment();
+      if (rhs.isEmpty()) {
+        return Optional.empty();
+      }
+      Expression value = rhs.get();
       return Optional.of(
-          Ast.Expr.newBuilder().setPosition(assignPos).setAssignment(assign).build());
+          Expression.ofAssignment(
+              Assignment.create(reference, value, op, reference.pos().extend(value.pos()))));
     }
     return lhs;
   }
 
-  private Optional<Ast.Expr> ternary() {
-    Optional<Ast.Expr> e = orExpr();
-    if (e.isPresent() && peek().getKind() == Ast.Token.Kind.QUESTION) {
-      Ast.Expr cond = e.get();
-      Ast.Pos.Builder ternPos = cond.getPosition().toBuilder();
-      Ast.Ternary.Builder ternary = Ast.Ternary.newBuilder().setCond(cond);
-      eat(ternPos);
-
-      Optional<Ast.Expr> e1 = ternary();
-      e1.ifPresent(
-          ex -> {
-            ternary.setLeft(ex);
-            appendPos(ternPos, ex.getPosition());
-          });
-
-      eatIfExpected("Expected :", Ast.Token.Kind.COLON, ternPos);
-
-      Optional<Ast.Expr> e2 = ternary();
-      e2.ifPresent(
-          ex -> {
-            ternary.setRight(ex);
-            appendPos(ternPos, ex.getPosition());
-          });
-      ternary.setPosition(ternPos);
+  private Optional<Expression> ternary() {
+    Optional<Expression> e = orExpr();
+    if (e.isPresent() && peek().kind() == TokenKind.QUESTION) {
+      Expression cond = e.get();
+      eat();
+      Optional<Expression> leftOpt = ternary();
+      if (leftOpt.isEmpty()) {
+        return Optional.empty();
+      }
+      if (eatIfExpected("expected :", TokenKind.COLON) == null) {
+        return Optional.empty();
+      }
+      Optional<Expression> rightOpt = ternary();
+      if (rightOpt.isEmpty()) {
+        return Optional.empty();
+      }
+      Expression right = rightOpt.get();
       return Optional.of(
-          Ast.Expr.newBuilder().setConditional(ternary).setPosition(ternPos).build());
+          Expression.ofConditional(
+              Ternary.create(cond, leftOpt.get(), right, cond.pos().extend(right.pos()))));
     }
     return e;
   }
 
-  private static final ImmutableMap<Ast.Token.Kind, Ast.BinaryOp> binOps =
-      ImmutableMap.<Ast.Token.Kind, Ast.BinaryOp>builder()
-          .put(Ast.Token.Kind.OR, Ast.BinaryOp.OR)
-          .put(Ast.Token.Kind.AND, Ast.BinaryOp.AND)
-          .put(Ast.Token.Kind.PLUS, Ast.BinaryOp.ADD)
-          .put(Ast.Token.Kind.MINUS, Ast.BinaryOp.SUBTRACT)
-          .put(Ast.Token.Kind.SLASH, Ast.BinaryOp.DIVIDE)
-          .put(Ast.Token.Kind.ASTERISK, Ast.BinaryOp.MULTIPLY)
-          .put(Ast.Token.Kind.PERCENT, Ast.BinaryOp.MODULO)
-          .put(Ast.Token.Kind.EQUALS, Ast.BinaryOp.EQUALS)
-          .put(Ast.Token.Kind.NOT_EQUALS, Ast.BinaryOp.NOT_EQUALS)
-          .put(Ast.Token.Kind.LESS, Ast.BinaryOp.LESS_THAN)
-          .put(Ast.Token.Kind.GREATER, Ast.BinaryOp.GREATER_THAN)
-          .put(Ast.Token.Kind.LESS_EQUALS, Ast.BinaryOp.LESS_EQUALS)
-          .put(Ast.Token.Kind.GREATER_EQUALS, Ast.BinaryOp.GREATER_EQUALS)
+  private static final ImmutableMap<TokenKind, BinaryOp> BIN_OPS =
+      ImmutableMap.<TokenKind, BinaryOp>builder()
+          .put(TokenKind.OR, BinaryOp.OR)
+          .put(TokenKind.AND, BinaryOp.AND)
+          .put(TokenKind.PLUS, BinaryOp.ADD)
+          .put(TokenKind.MINUS, BinaryOp.SUBTRACT)
+          .put(TokenKind.SLASH, BinaryOp.DIVIDE)
+          .put(TokenKind.ASTERISK, BinaryOp.MULTIPLY)
+          .put(TokenKind.PERCENT, BinaryOp.MODULO)
+          .put(TokenKind.EQUALS, BinaryOp.EQUALS)
+          .put(TokenKind.NOT_EQUALS, BinaryOp.NOT_EQUALS)
+          .put(TokenKind.LESS, BinaryOp.LESS_THAN)
+          .put(TokenKind.GREATER, BinaryOp.GREATER_THAN)
+          .put(TokenKind.LESS_EQUALS, BinaryOp.LESS_EQUALS)
+          .put(TokenKind.GREATER_EQUALS, BinaryOp.GREATER_EQUALS)
           .build();
 
-  private Optional<Ast.Expr> leftAssociative(
-      Supplier<Optional<Ast.Expr>> next, Ast.Token.Kind... opKinds) {
-    Optional<Ast.Expr> e = next.get();
-    while (e.isPresent() && Arrays.stream(opKinds).anyMatch(t -> t == peek().getKind())) {
-      Ast.Expr lhs = e.get();
-      Ast.Pos.Builder binPos = lhs.getPosition().toBuilder();
-      Ast.BinaryExpr.Builder binary = Ast.BinaryExpr.newBuilder().setLeft(lhs);
-
-      Ast.Token.Kind opKind = eat(binPos).getKind();
-      binary.setOperator(binOps.get(opKind));
-
-      Optional<Ast.Expr> rhs = next.get();
-      rhs.ifPresent(
-          ex -> {
-            binary.setRight(ex);
-            appendPos(binPos, ex.getPosition());
-          });
-      binary.setPosition(binPos);
-      e = Optional.of(Ast.Expr.newBuilder().setBinary(binary).setPosition(binPos).build());
+  private Optional<Expression> leftAssociative(
+      Supplier<Optional<Expression>> next, TokenKind... opKinds) {
+    Optional<Expression> e = next.get();
+    while (e.isPresent() && Arrays.stream(opKinds).anyMatch(t -> t == peek().kind())) {
+      Expression lhs = e.get();
+      TokenKind opKind = eat().kind();
+      Optional<Expression> rhsOpt = next.get();
+      if (rhsOpt.isEmpty()) {
+        return Optional.empty();
+      }
+      Expression rhs = rhsOpt.get();
+      e =
+          Optional.of(
+              Expression.ofBinary(
+                  BinaryExpr.create(lhs, rhs, BIN_OPS.get(opKind), lhs.pos().extend(rhs.pos()))));
     }
     return e;
   }
 
-  private Optional<Ast.Expr> orExpr() {
-    return leftAssociative(this::andExpr, Ast.Token.Kind.OR);
+  private Optional<Expression> orExpr() {
+    return leftAssociative(this::andExpr, TokenKind.OR);
   }
 
-  private Optional<Ast.Expr> andExpr() {
-    return leftAssociative(this::equalityExpr, Ast.Token.Kind.AND);
+  private Optional<Expression> andExpr() {
+    return leftAssociative(this::equalityExpr, TokenKind.AND);
   }
 
-  private Optional<Ast.Expr> equalityExpr() {
-    return leftAssociative(this::cmpExpr, Ast.Token.Kind.EQUALS, Ast.Token.Kind.NOT_EQUALS);
+  private Optional<Expression> equalityExpr() {
+    return leftAssociative(this::cmpExpr, TokenKind.EQUALS, TokenKind.NOT_EQUALS);
   }
 
-  private Optional<Ast.Expr> cmpExpr() {
+  private Optional<Expression> cmpExpr() {
     return leftAssociative(
         this::addExpr,
-        Ast.Token.Kind.LESS,
-        Ast.Token.Kind.LESS_EQUALS,
-        Ast.Token.Kind.GREATER,
-        Ast.Token.Kind.GREATER_EQUALS);
+        TokenKind.LESS,
+        TokenKind.LESS_EQUALS,
+        TokenKind.GREATER,
+        TokenKind.GREATER_EQUALS);
   }
 
-  private Optional<Ast.Expr> addExpr() {
-    return leftAssociative(this::mulExpr, Ast.Token.Kind.PLUS, Ast.Token.Kind.MINUS);
+  private Optional<Expression> addExpr() {
+    return leftAssociative(this::mulExpr, TokenKind.PLUS, TokenKind.MINUS);
   }
 
-  private Optional<Ast.Expr> mulExpr() {
-    return leftAssociative(
-        this::unaryExpr, Ast.Token.Kind.SLASH, Ast.Token.Kind.ASTERISK, Ast.Token.Kind.PERCENT);
+  private Optional<Expression> mulExpr() {
+    return leftAssociative(this::unaryExpr, TokenKind.SLASH, TokenKind.ASTERISK, TokenKind.PERCENT);
   }
 
-  private static final ImmutableMap<Ast.Token.Kind, Ast.UnaryOp> unaryOps =
+  private static final ImmutableMap<TokenKind, UnaryOp> UNARY_OPS =
       ImmutableMap.of(
-          Ast.Token.Kind.MINUS, Ast.UnaryOp.NEGATE,
-          Ast.Token.Kind.EXCLAIM, Ast.UnaryOp.NOT,
-          Ast.Token.Kind.INCREMENT, Ast.UnaryOp.PREFIX_INCREMENT,
-          Ast.Token.Kind.DECREMENT, Ast.UnaryOp.PREFIX_DECREMENT);
+          TokenKind.MINUS,
+          UnaryOp.NEGATE,
+          TokenKind.EXCLAIM,
+          UnaryOp.NOT,
+          TokenKind.INCREMENT,
+          UnaryOp.PREFIX_INCREMENT,
+          TokenKind.DECREMENT,
+          UnaryOp.PREFIX_DECREMENT);
 
-  private Optional<Ast.Expr> unaryExpr() {
-    if (peek().getKind() == Ast.Token.Kind.MINUS && peek(1).getKind() == Ast.Token.Kind.INT_LIT) {
+  private Optional<Expression> unaryExpr() {
+    if (peek().kind() == TokenKind.MINUS && peek(1).kind() == TokenKind.INT_LIT) {
       // Was actually negative constant, not unary operator
-      Ast.Value.Builder value = Ast.Value.newBuilder();
-      Ast.Pos.Builder valPos = Ast.Pos.newBuilder();
-      eat(valPos);
-      String text = eat(valPos).getText();
+      SourceRange pos = eat().pos();
+      Token intLit = eat();
+      String text = intLit.text();
       int lit = 0;
       try {
         lit = Integer.parseInt("-" + text);
       } catch (NumberFormatException nfe) {
         errLast("Integer " + text + " out of range");
+        return Optional.empty();
       }
-      value.setIntLiteral(lit).setPosition(valPos);
-      return Optional.of(Ast.Expr.newBuilder().setValue(value).setPosition(valPos).build());
-    } else if (unaryOps.containsKey(peek().getKind())) {
-      Ast.UnaryExpr.Builder unary =
-          Ast.UnaryExpr.newBuilder().setOperator(unaryOps.get(peek().getKind()));
-      Ast.Pos.Builder unaryPos = Ast.Pos.newBuilder();
-      eat(unaryPos);
-      unaryExpr()
-          .ifPresent(
-              ex -> {
-                unary.setExpr(ex);
-                appendPos(unaryPos, ex.getPosition());
-              });
-      unary.setPosition(unaryPos);
-      return Optional.of(Ast.Expr.newBuilder().setUnary(unary).setPosition(unaryPos).build());
+      return Optional.of(Expression.ofValue(Value.ofIntLit(lit, pos.extend(intLit.pos()))));
+    } else if (UNARY_OPS.containsKey(peek().kind())) {
+      Token tok = eat();
+      UnaryOp op = UNARY_OPS.get(tok.kind());
+      Optional<Expression> expression = unaryExpr();
+      if (expression.isPresent()) {
+        Expression operand = expression.get();
+        return Optional.of(
+            Expression.ofUnary(UnaryExpr.create(operand, op, tok.pos().extend(operand.pos()))));
+      }
+      return Optional.empty();
     }
     return unary2Expr();
   }
 
-  private Optional<Ast.Expr> unary2Expr() {
-    Optional<Ast.Expr> e;
-    if (peek().getKind() != Ast.Token.Kind.IDENTIFIER) {
+  private Optional<Expression> unary2Expr() {
+    Optional<Expression> e;
+    if (peek().kind() != TokenKind.IDENTIFIER) {
       e = literal();
-    } else if (peek(1).getKind() == Ast.Token.Kind.LPAREN) {
-      e = Optional.of(funcCall(Optional.empty()));
+    } else if (peek(1).kind() == TokenKind.LPAREN) {
+      e = funcCall();
     } else {
       e = reference();
     }
-    while (true) {
-      Ast.Token.Kind next = peek().getKind();
-      if (next == Ast.Token.Kind.INCREMENT && e.isPresent()) {
-        // TODO
-        eat(null);
-      } else if (next == Ast.Token.Kind.DECREMENT && e.isPresent()) {
-        // TODO
-        eat(null);
-      } else if (next == Ast.Token.Kind.LBRACKET && e.isPresent()) {
-        e = Optional.of(arrayIndex(e.get()));
-      } else if (next == Ast.Token.Kind.DOT
-          && peek(1).getKind() == Ast.Token.Kind.IDENTIFIER
-          && e.isPresent()) {
-        eat(null);
-        if (peek(1).getKind() == Ast.Token.Kind.LPAREN) {
-          e = Optional.of(funcCall(e));
-        } else {
-          e = Optional.of(select(e.get()));
-        }
-      } else if (next == Ast.Token.Kind.LPAREN) {
-        errPeek("Expected function name");
+    while (e.isPresent()) {
+      Expression lhs = e.get();
+      TokenKind next = peek().kind();
+      if (next == TokenKind.INCREMENT) {
+        Token t = eat();
+        e =
+            Optional.of(
+                Expression.ofUnary(
+                    UnaryExpr.create(lhs, UnaryOp.POSTFIX_INCREMENT, lhs.pos().extend(t.pos()))));
+      } else if (next == TokenKind.DECREMENT) {
+        Token t = eat();
+        e =
+            Optional.of(
+                Expression.ofUnary(
+                    UnaryExpr.create(lhs, UnaryOp.POSTFIX_DECREMENT, lhs.pos().extend(t.pos()))));
+      } else if (false && next == TokenKind.LBRACKET) {
+        // TODO: reenable when arrays are supported
+        e = arrayIndex(e.get());
+      } else if (false && next == TokenKind.DOT && peek(1).kind() == TokenKind.IDENTIFIER) {
+        // TODO: reenable when structs are supported
+        eat();
+        e = select(e.get());
+      } else if (next == TokenKind.LPAREN) {
+        errPeek("expected function name");
         eatLineUntil(last, STATEMENT_FAILURE_ENDS);
         break;
       } else {
@@ -739,127 +650,137 @@ public final class Parser {
     return e;
   }
 
-  private Ast.Expr arrayIndex(Ast.Expr lhs) {
-    Ast.Pos.Builder accessPos = lhs.getPosition().toBuilder();
-    Ast.BinaryExpr.Builder arrayAccess =
-        Ast.BinaryExpr.newBuilder().setOperator(Ast.BinaryOp.ARRAY_ACCESS).setLeft(lhs);
-    eat(accessPos);
-    Optional<Ast.Expr> rhs = expression();
-    rhs.ifPresent(
-        ex -> {
-          arrayAccess.setRight(ex);
-          appendPos(accessPos, ex.getPosition());
-        });
-    eatIfExpected("Expected ]", Ast.Token.Kind.RBRACKET, accessPos);
-    arrayAccess.setPosition(accessPos);
-    return Ast.Expr.newBuilder().setBinary(arrayAccess).setPosition(accessPos).build();
-  }
-
-  private Ast.Expr funcCall(Optional<Ast.Expr> lhs) {
-    Ast.FuncCall.Builder call = Ast.FuncCall.newBuilder();
-    Ast.Pos.Builder callPos = Ast.Pos.newBuilder();
-    lhs.ifPresent(
-        ex -> {
-          call.setCalledOn(ex);
-          appendPos(callPos, ex.getPosition());
-        });
-    Ast.Identifier funcName = identifier("Expected identifier", callPos).get();
-    eat(callPos); // The following LPAREN
-    call.setFunction(funcName);
-    while (peek().getKind() != Ast.Token.Kind.RPAREN) {
-      Optional<Ast.Expr> param = expression();
-      if (!param.isPresent()) {
-        break;
-      }
-      Ast.Expr val = param.get();
-      appendPos(callPos, val.getPosition());
-      call.addParams(val);
-      if (peek().getKind() != Ast.Token.Kind.COMMA) {
-        break;
-      }
-      eat(callPos);
+  private Optional<Expression> arrayIndex(Expression lhs) {
+    eat(); // [
+    Optional<Expression> rhs = expression();
+    if (rhs.isEmpty()) {
+      return Optional.empty();
     }
-    eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, callPos);
-    call.setPosition(callPos);
-    return Ast.Expr.newBuilder().setCall(call).setPosition(callPos).build();
+    Token token = eatIfExpected("expected ]", TokenKind.RBRACKET);
+    if (token == null) {
+      return Optional.empty();
+    }
+    return Optional.of(
+        Expression.ofBinary(
+            BinaryExpr.create(
+                lhs, rhs.get(), BinaryOp.ARRAY_ACCESS, lhs.pos().extend(token.pos()))));
   }
 
-  private Ast.Expr select(Ast.Expr lhs) {
-    Ast.Pos.Builder selectPos = lhs.getPosition().toBuilder();
-    Ast.Select.Builder select = Ast.Select.newBuilder().setCalledOn(lhs);
-    select.setField(identifier("Expected identifier", selectPos).get());
-    return Ast.Expr.newBuilder().setSelect(select).setPosition(selectPos).build();
+  private Optional<Expression> funcCall() {
+    Identifier funcName =
+        identifier("expected identifier")
+            .orElseThrow(
+                () ->
+                    new IllegalStateException(
+                        "funcCall() must only be called when an identifier has been peeked"));
+    eat(); // The following LPAREN
+    ImmutableList.Builder<Expression> params = ImmutableList.builder();
+    while (peek().kind() != TokenKind.RPAREN) {
+      Optional<Expression> param = expression();
+      if (param.isEmpty()) {
+        eatLineUntil(last, ImmutableSet.of(TokenKind.RPAREN));
+        return Optional.empty();
+      }
+      params.add(param.get());
+      if (peek().kind() != TokenKind.COMMA) {
+        break;
+      }
+      eat();
+    }
+    eatIfExpected("expected )", TokenKind.RPAREN);
+    return Optional.of(
+        Expression.ofCall(
+            FuncCall.create(funcName, params.build(), funcName.pos().extend(last.pos()))));
   }
 
-  private Optional<Ast.Expr> reference() {
-    if (peek().getKind() == Ast.Token.Kind.IDENTIFIER) {
-      Ast.Identifier identifier = identifier("Expected identifier", null).get();
+  private Optional<Expression> select(Expression operand) {
+    Optional<Identifier> fieldOpt = identifier("expected identifier");
+    if (fieldOpt.isPresent()) {
+      Identifier field = fieldOpt.get();
       return Optional.of(
-          Ast.Expr.newBuilder()
-              .setReference(identifier)
-              .setPosition(identifier.getPosition())
-              .build());
+          Expression.ofSelect(Select.create(operand, field, operand.pos().extend(field.pos()))));
     }
-    errPeek("Invalid expression start " + peek().getText());
     return Optional.empty();
   }
 
-  private Optional<Ast.Expr> literal() {
-    Ast.Value.Builder value = Ast.Value.newBuilder();
-    Ast.Pos.Builder valuePos = Ast.Pos.newBuilder();
-    if (peek().getKind() == Ast.Token.Kind.TRUE) {
-      eat(valuePos);
-      value.setBoolLiteral(true);
-    } else if (peek().getKind() == Ast.Token.Kind.FALSE) {
-      eat(valuePos);
-      value.setBoolLiteral(false);
-    } else if (peek().getKind() == Ast.Token.Kind.INT_LIT) {
-      int lit = 0;
-      String text = eat(valuePos).getText();
-      try {
-        lit = Integer.parseInt(text);
-      } catch (NumberFormatException nfe) {
-        errLast("Integer " + text + " out of range");
-      }
-      value.setIntLiteral(lit);
-    } else if (peek().getKind() == Ast.Token.Kind.UNTERMINATED_CHAR_LIT) {
+  private Optional<Expression> reference() {
+    Optional<Identifier> identifier = identifier("expected identifier");
+    return identifier.map(Expression::ofReference);
+  }
+
+  private Optional<Expression> literal() {
+    if (peek().kind() == TokenKind.TRUE) {
+      return Optional.of(Expression.ofValue(Value.ofBoolLit(true, eat().pos())));
+    } else if (peek().kind() == TokenKind.FALSE) {
+      return Optional.of(Expression.ofValue(Value.ofBoolLit(false, eat().pos())));
+    } else if (peek().kind() == TokenKind.INT_LIT) {
+      return intLit().map(Expression::ofValue);
+    } else if (peek().kind() == TokenKind.UNTERMINATED_CHAR_LIT) {
       errPeek("Unterminated character literal");
-      eat(valuePos);
-      value.setCharLiteral(0);
-    } else if (peek().getKind() == Ast.Token.Kind.UNTERMINATED_STRING_LIT) {
+      eat();
+      return Optional.empty();
+    } else if (peek().kind() == TokenKind.UNTERMINATED_STRING_LIT) {
       errPeek("Unterminated string literal");
-      eat(valuePos);
-      value.setStringLiteral("");
-    } else if (peek().getKind() == Ast.Token.Kind.CHAR_LIT) {
-      String content = eat(valuePos).getText();
-      content = content.substring(1, content.length() - 1); // Strip ''
-      content = unescape(content);
-      if (content.length() != 1) {
-        errLast("Invalid character literal");
-      }
-      if (!content.isEmpty()) {
-        value.setCharLiteral(content.charAt(0));
-      }
-    } else if (peek().getKind() == Ast.Token.Kind.STRING_LIT) {
-      String content = eat(valuePos).getText();
-      content = content.substring(1, content.length() - 1); // Strip ""
-      content = unescape(content);
-      value.setStringLiteral(content);
+      eat();
+      return Optional.empty();
+    } else if (peek().kind() == TokenKind.CHAR_LIT) {
+      return charLit().map(Expression::ofValue);
+    } else if (peek().kind() == TokenKind.STRING_LIT) {
+      return stringLit().map(Expression::ofValue);
     } else {
       return parenthesized();
     }
-    value.setPosition(valuePos);
-    return Optional.of(Ast.Expr.newBuilder().setValue(value).setPosition(valuePos).build());
   }
 
-  private Optional<Ast.Expr> parenthesized() {
-    if (peek().getKind() == Ast.Token.Kind.LPAREN) {
-      eat(null);
-      Optional<Ast.Expr> ret = expression();
-      eatIfExpected("Expected )", Ast.Token.Kind.RPAREN, null);
+  public Optional<Value> intLit() {
+    Token intLit = eatIfExpected("expected integer literal", TokenKind.INT_LIT);
+    if (intLit == null) {
+      return Optional.empty();
+    }
+    String text = intLit.text();
+    try {
+      int lit = Integer.parseInt(text);
+      return Optional.of(Value.ofIntLit(lit, intLit.pos()));
+    } catch (NumberFormatException nfe) {
+      errLast("Integer " + text + " out of range");
+      return Optional.empty();
+    }
+  }
+
+  public Optional<Value> charLit() {
+    Token charLit = eatIfExpected("expected character literal", TokenKind.CHAR_LIT);
+    if (charLit == null) {
+      return Optional.empty();
+    }
+    String content = charLit.text();
+    content = content.substring(1, content.length() - 1); // Strip ''
+    content = unescape(content);
+    if (content.length() != 1) {
+      errLast("Invalid character literal");
+      return Optional.empty();
+    }
+    return Optional.of(Value.ofCharLit(content.charAt(0), charLit.pos()));
+  }
+
+  public Optional<Value> stringLit() {
+    Token stringLit = eatIfExpected("expected string literal", TokenKind.STRING_LIT);
+    if (stringLit == null) {
+      return Optional.empty();
+    }
+    String content = stringLit.text();
+    content = content.substring(1, content.length() - 1); // Strip ""
+    content = unescape(content);
+    return Optional.of(Value.ofStringLit(content, stringLit.pos()));
+  }
+
+  private Optional<Expression> parenthesized() {
+    if (peek().kind() == TokenKind.LPAREN) {
+      eat();
+      Optional<Expression> ret = expression();
+      eatIfExpected("expected )", TokenKind.RPAREN);
       return ret;
     }
-    errPeek("Unexpected " + peek().getText());
+    errPeek("unexpected " + peek().text());
     eatLineUntil(peek(), EXPRESSION_FAILURE_ENDS);
     return Optional.empty();
   }
@@ -886,74 +807,49 @@ public final class Parser {
     return sb.toString();
   }
 
-  private Optional<Ast.Type> type(Ast.Pos.Builder pos) {
-    Ast.Type.Builder type = Ast.Type.newBuilder();
-    Ast.Pos.Builder typePos = Ast.Pos.newBuilder();
-    Optional<Ast.Identifier> nameOpt = identifier("Expected type name", typePos);
-    if (!nameOpt.isPresent()) {
+  private Optional<Type> type() {
+    Optional<Identifier> nameOpt = identifier("expected type name");
+    if (nameOpt.isEmpty()) {
       return Optional.empty();
     }
-    type.setName(nameOpt.get().getName());
-    while (peek().getKind() == Ast.Token.Kind.LBRACKET) {
-      System.out.println("Is array!");
-      Ast.Token lbrack = eat(typePos);
-      if (peek().getKind() == Ast.Token.Kind.RBRACKET) {
-        eat(typePos);
-        type.addDimensions(
-            Ast.Type.ArrayDimension.newBuilder().setDimension(0).setPosition(lbrack.getPosition()));
-        continue;
-      }
-      Optional<Ast.Expr> expression = expression();
-      if (expression.isPresent()) {
-        Ast.Value dimValue = expression.get().getValue();
-        if (dimValue.getLiteralCase() != Ast.Value.LiteralCase.INT_LITERAL) {
-          errAt("Array dimensions must be integer constants", lbrack);
-        } else {
-          type.addDimensions(
-              Ast.Type.ArrayDimension.newBuilder()
-                  .setDimension(dimValue.getIntLiteral())
-                  .setPosition(expression.get().getPosition())
-                  .build());
-          appendPos(typePos, dimValue.getPosition());
-        }
+
+    // TODO: reenable when arrays work
+    // Parse [1][2][3] array dimensions
+    ImmutableList.Builder<Type.ArrayDimension> dims = ImmutableList.builder();
+    while (false && peek().kind() == TokenKind.LBRACKET) {
+      eat();
+      Optional<Value> dimOpt = intLit();
+      if (dimOpt.isEmpty()) {
+        errAt("expected array dimension", last);
       } else {
-        if (peek().getKind() != Ast.Token.Kind.RBRACKET) {
-          eatLineUntil(
-              last,
-              ImmutableSet.of(
-                  Ast.Token.Kind.RBRACKET, Ast.Token.Kind.EQUALS, Ast.Token.Kind.COMMA));
-        }
+        Value.IntLit value = dimOpt.get().intLit();
+        dims.add(Type.ArrayDimension.fixed(value.value(), value.pos()));
       }
-      eatIfExpected("Expected closing ]", Ast.Token.Kind.RBRACKET, typePos);
+      if (peek().kind() != TokenKind.RBRACKET) {
+        eatLineUntil(last, ImmutableSet.of(TokenKind.RBRACKET, TokenKind.EQUALS, TokenKind.COMMA));
+      }
+      eatIfExpected("expected closing ]", TokenKind.RBRACKET);
     }
-    appendPos(pos, typePos.build());
-    return Optional.of(type.setPosition(typePos).build());
+    Identifier name = nameOpt.get();
+    return Optional.of(Type.array(name.text(), dims.build(), name.pos().extend(last.pos())));
   }
 
-  private Optional<Ast.Identifier> identifier(String error, Ast.Pos.Builder pos) {
-    Ast.Token name = eatIfExpected(error, Ast.Token.Kind.IDENTIFIER, null);
+  private Optional<Identifier> identifier(String error) {
+    Token name = eatIfExpected(error, TokenKind.IDENTIFIER);
     if (name == null) {
       return Optional.empty();
     }
-    appendPos(pos, name.getPosition());
-    return Optional.of(
-        Ast.Identifier.newBuilder()
-            .setName(name.getText())
-            .setPosition(name.getPosition())
-            .build());
+    return Optional.of(Identifier.create(name.text(), name.pos()));
   }
 
-  /**
-   * Consumes the next token if it was of kind {@code kind}, otherwise adding an error for the
-   * token.
-   */
-  private Ast.Token eatIfExpected(String errorMsg, Ast.Token.Kind kind, Ast.Pos.Builder pos) {
-    Ast.Token t = peek();
-    if (t.getKind() != kind) {
+  /** Consumes the next token if it was of kind {@code kind}, otherwise logging {@code errorMsg}. */
+  private Token eatIfExpected(String errorMsg, TokenKind kind) {
+    Token t = peek();
+    if (t.kind() != kind) {
       errPeek(errorMsg);
       return null;
     }
-    eat(pos);
+    eat();
     return t;
   }
 
@@ -961,38 +857,39 @@ public final class Parser {
    * When expecting a ; to finish a statement, consume the remainder of the line if there was no ;
    */
   private void finishLine() {
-    if (eatIfExpected("Expected ;", Ast.Token.Kind.SEMICOLON, null) == null) {
+    if (eatIfExpected("expected ;", TokenKind.SEMICOLON) == null) {
       eatLineUntil(last, STATEMENT_FAILURE_ENDS);
-      if (peek().getKind() == Ast.Token.Kind.SEMICOLON) {
-        eat(null);
+      if (peek().kind() == TokenKind.SEMICOLON) {
+        eat();
       }
     }
   }
 
   /** Eats all tokens on the same line as that of {@code tok}. */
-  private void eatLine(Ast.Token tok) {
-    eatLineUntil(tok, Collections.EMPTY_SET);
+  private void eatLine(Token tok) {
+    eatLineUntil(tok, Collections.emptySet());
   }
 
   /**
-   * Eats all tokens on the same line as that of {@code tok}, or until {@code kind is encountered}.
+   * Eats all tokens on the same line as that of {@code tok}, or until one of {@code kinds} is
+   * encountered.
    */
-  private void eatLineUntil(Ast.Token tok, Set<Ast.Token.Kind> kinds) {
-    while (peek().getKind() != Ast.Token.Kind.EOF
-        && !kinds.contains(peek().getKind())
-        && peek().getPosition().getLine() == tok.getPosition().getLine()) {
-      eat(null);
+  private void eatLineUntil(Token tok, Set<TokenKind> kinds) {
+    while (peek().kind() != TokenKind.EOF
+        && !kinds.contains(peek().kind())
+        && peek().pos().from().line() == tok.pos().from().line()) {
+      eat();
     }
   }
 
-  private void eatUntil(Ast.Token.Kind kind) {
-    while (peek().getKind() != Ast.Token.Kind.EOF && peek().getKind() != kind) {
-      eat(null);
+  private void eatUntil(TokenKind kind) {
+    while (peek().kind() != TokenKind.EOF && peek().kind() != kind) {
+      eat();
     }
   }
 
-  private void errAt(String msg, Ast.Token tok) {
-    err.error(tok.getPosition(), msg);
+  private void errAt(String msg, Token tok) {
+    errors.error(tok.pos(), msg);
     program.setValid(false);
   }
 
@@ -1010,73 +907,37 @@ public final class Parser {
    * Returns the token {@code offset} tokens from the next one in the stream, so that peek(0) is the
    * next token of the stream.
    */
-  private Ast.Token peek(int offset) {
+  private Token peek(int offset) {
     while (lookahead.size() <= offset) {
-      lookahead.add(toks.next());
+      lookahead.add(tokens.next());
     }
     return lookahead.get(offset);
   }
 
   /** Returns the next token of the stream. */
-  private Ast.Token peek() {
+  private Token peek() {
     return peek(0);
   }
 
   /**
-   * Returns and consumes the next token of the stream, updating the end of the provided {@code pos}
-   * to include the token.
+   * Returns and consumes the next token of the stream, updating the end of the provided {@code
+   * sourceRange} to include the token.
    */
-  private Ast.Token eat(Ast.Pos.Builder pos) {
-    Ast.Token ret = last = lookahead.empty() ? toks.next() : lookahead.poll();
-    if (pos != null) {
-      appendPos(pos, ret.getPosition());
-    }
-    return ret;
+  private Token eat() {
+    return last = lookahead.empty() ? tokens.next() : lookahead.poll();
+  }
+
+  private static Identifier missingIdentifier(SourcePos from, SourcePos to) {
+    return Identifier.create("<missing>", SourceRange.between(from, to));
   }
 
   /**
-   * Updates the position {@code begin} with the end of the position {@code end}. If {@code begin}
-   * is unset, the beginning is also updated to that of {@code end}.
-   */
-  private static void appendPos(Ast.Pos.Builder begin, Ast.Pos end) {
-    if (begin == null) {
-      return;
-    }
-    if (begin.getLine() == 0) {
-      begin.setLine(end.getLine());
-      begin.setCol(end.getCol());
-      begin.setOffset(end.getOffset());
-    }
-    begin.setEndCol(end.getEndCol()).setEndLine(end.getEndLine()).setEndOffset(end.getEndOffset());
-  }
-
-  /**
-   * Merges two positions in the same way that {@link #appendPos(Ast.Pos.Builder, Ast.Pos)} does.
-   */
-  private static Ast.Pos mergePos(Ast.Pos start, Ast.Pos end) {
-    Ast.Pos.Builder begin = start.toBuilder();
-    if (begin.getLine() == 0) {
-      begin.setLine(end.getLine());
-      begin.setCol(end.getCol());
-      begin.setOffset(end.getOffset());
-    }
-    return begin
-        .setEndCol(end.getEndCol())
-        .setEndLine(end.getEndLine())
-        .setEndOffset(end.getEndOffset())
-        .build();
-  }
-
-  /**
-   * Parses a Spooky program using the given token source. The returned {@link Ast.Program} is only
-   * valid if no errors were added; however, it may still be passed to the {@link
-   * se.jsannemo.spooky.compiler.typecheck.TypeChecker} even if there were syntax errors. In this
-   * case, a best-effort type-checking will be performed.
+   * Parses a Spooky program using the given token source. The returned {@link Program} is only
+   * valid if no errors were added.
    *
-   * <p>The provided {@link Tokenizer} is always fully exhausted after a call to {@link
-   * #parse(Tokenizer, Errors)}.
+   * <p>The provided {@link Tokenizer} is always fully exhausted after parsing.
    */
-  public static Ast.Program parse(Tokenizer toks, Errors err) {
+  public static Program parse(Tokenizer toks, Errors err) {
     return new Parser(toks, err).parse();
   }
 }

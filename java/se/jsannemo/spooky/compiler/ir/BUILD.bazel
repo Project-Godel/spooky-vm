@@ -1,28 +1,23 @@
-load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library")
-load("@//:rules.bzl", "java_j2cl_library", "java_j2cl_proto_library")
-
-proto_library(
-    name = "ir_proto",
-    srcs = ["ir.proto"],
-    visibility = ["//visibility:public"],
-)
-
-java_j2cl_proto_library(
-    name = "ir_java_proto",
-    visibility = ["//visibility:public"],
-    deps = [":ir_proto"],
-)
+load("@//:rules.bzl", "java_j2cl_library")
 
 java_j2cl_library(
     name = "ir",
     srcs = [
-        "IrGen.java",
+        "IrAddr.java",
+        "IrFunction.java",
+        "IrIpAddr.java",
+        "IrProgram.java",
+        "IrStatement.java",
+        "IrType.java",
+        "IrValue.java",
+        "ToIr.java",
     ],
     visibility = ["//visibility:public"],
     deps = [
-        ":ir_java_proto",
         "//java/se/jsannemo/spooky/compiler:common",
-        "//java/se/jsannemo/spooky/compiler/typecheck:checked_java_proto",
-        "//third_party/guava",
+        "//java/se/jsannemo/spooky/compiler/ast",
+        "//java/se/jsannemo/spooky/vm",
+        "//third_party:autovalue",
+        "//third_party:guava",
     ],
 )
