@@ -49,10 +49,15 @@ public abstract class IrAddr {
 
   @Override
   public String toString() {
-    return switch (kind()) {
-      case ABS_DATA -> "DT[" + absData() + "]";
-      case ABS_STACK -> "[" + absStack() + "]";
-      case REL_SP -> "[SP+" + relSp() + "]";
-    };
+    switch (kind()) {
+      case ABS_DATA:
+        return "DT[" + absData() + "]";
+      case ABS_STACK:
+        return "[" + absStack() + "]";
+      case REL_SP:
+        return "[SP+" + relSp() + "]";
+      default:
+        throw new IllegalArgumentException();
+    }
   }
 }

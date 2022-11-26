@@ -1,5 +1,7 @@
 package se.jsannemo.spooky.compiler.parser;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -8,8 +10,8 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+import jsinterop.annotations.JsMethod;
 import se.jsannemo.spooky.compiler.Errors;
-import se.jsannemo.spooky.compiler.ast.ArrayLit;
 import se.jsannemo.spooky.compiler.ast.Assignment;
 import se.jsannemo.spooky.compiler.ast.BinaryExpr;
 import se.jsannemo.spooky.compiler.ast.BinaryOp;
@@ -59,6 +61,11 @@ public final class Parser {
           TokenKind.RBRACKET,
           TokenKind.RPAREN);
 
+  private static final ImmutableSet<TokenKind> TYPES =
+      // TODO: float support
+      ImmutableSet.of(
+          TokenKind.INT, TokenKind.BOOL, TokenKind.CHAR, TokenKind.STRUCT, TokenKind.VOID);
+
   private final Tokenizer tokens;
   private final CircularQueue<Token> lookahead = CircularQueue.withCapacity(3);
   private final Errors errors;
@@ -84,21 +91,14 @@ public final class Parser {
       TokenKind nx = peek().kind();
       if (nx == TokenKind.EOF) {
         return;
-      } else if (nx == TokenKind.FUNC) {
-        func().ifPresent(program::addFunction);
+      } else if (TYPES.contains(nx)) {
+        declaration(program);
         continue;
       } else if (nx == TokenKind.EXTERN) {
         extern().ifPresent(program::addExtern);
         continue;
-      } else if (nx == TokenKind.IDENTIFIER) {
-        if (peek(1).kind() == TokenKind.COLON) {
-          Optional<Statement> var = varDecl();
-          var.ifPresent(statement -> program.addGlobal(statement.varDecl()));
-          finishLine();
-          continue;
-        }
       }
-      // We only want to error out for the first invalid top-level token.
+      // We only want to error out for the first invalid top-level token to avoid noise.
       if (!errored) {
         errPeek("expected func, extern or variable declaration.");
         errored = true;
@@ -107,12 +107,28 @@ public final class Parser {
     }
   }
 
-  private Optional<FuncDecl> decl(TokenKind expectedKeyword) {
-    Token kw = eatIfExpected("expected " + expectedKeyword.name(), expectedKeyword);
-    if (kw == null) {
+  private void declaration(Program.Builder program) {
+    // All declarations are <type> <name>  followed by = for globals or ( for functions
+    if (peek(2).kind() == TokenKind.ASSIGN) {
+      varDecl().ifPresent(statement -> program.addGlobal(statement.varDecl()));
+      eatIfExpected("expected ;", TokenKind.SEMICOLON);
+    } else if (peek(2).kind() == TokenKind.LPAREN) {
+      func().ifPresent(program::addFunction);
+    } else {
+      Token type = eat();
+      eatLine(type);
+      errAt("expected function or global declaration", type);
+    }
+  }
+
+  private Optional<FuncDecl> funcDecl() {
+    Optional<Type> returnTypeOpt = type();
+    if (returnTypeOpt.isEmpty()) {
+      eatLine(last);
       return Optional.empty();
     }
-    SourceRange pos = kw.pos();
+    Type returnType = returnTypeOpt.get();
+    SourceRange pos = returnType.pos();
     Optional<Identifier> name = identifier("expected function name");
     Token lpar = eatIfExpected("expected (", TokenKind.LPAREN);
     if (lpar == null) {
@@ -126,17 +142,9 @@ public final class Parser {
       return Optional.empty();
     }
     pos = pos.extend(rpar.pos());
-    Optional<Type> returnType = Optional.empty();
-    if (peek().kind() == TokenKind.ARROW) {
-      eat();
-      returnType = type();
-      if (returnType.isPresent()) {
-        pos = pos.extend(returnType.get().pos());
-      }
-    }
     return Optional.of(
         FuncDecl.create(
-            name.orElse(missingIdentifier(kw.pos().to(), lpar.pos().from())),
+            name.orElse(missingIdentifier(returnType.pos().to(), lpar.pos().from())),
             params,
             returnType,
             pos));
@@ -144,17 +152,19 @@ public final class Parser {
 
   private ImmutableList<FuncDecl.FuncParam> parameterList() {
     ImmutableList.Builder<FuncDecl.FuncParam> builder = ImmutableList.builder();
-    while (peek().kind() == TokenKind.IDENTIFIER) {
-      Optional<Identifier> nameOpt = identifier("expected parameter name");
-      if (eatIfExpected("expected :", TokenKind.COLON) == null) {
-        eatLineUntil(last, EXPRESSION_FAILURE_ENDS);
-      } else {
-        Optional<Type> typeOpt = type();
-        if (nameOpt.isPresent() && typeOpt.isPresent()) {
+    while (TYPES.contains(peek().kind())) {
+      Optional<Type> typeOpt = type();
+      if (typeOpt.isPresent()) {
+        Optional<Identifier> nameOpt = identifier("expected parameter name");
+        if (nameOpt.isPresent()) {
           Type type = typeOpt.get();
           Identifier name = nameOpt.get();
           builder.add(FuncDecl.FuncParam.create(name, type, name.pos().extend(type.pos())));
+        } else {
+          eatLineUntil(last, EXPRESSION_FAILURE_ENDS);
         }
+      } else {
+        eatLineUntil(last, EXPRESSION_FAILURE_ENDS);
       }
       if (peek().kind() == TokenKind.COMMA) {
         eat();
@@ -164,11 +174,12 @@ public final class Parser {
   }
 
   private Optional<FuncDecl> extern() {
-    return decl(TokenKind.EXTERN);
+    checkState(eat().kind() == TokenKind.EXTERN);
+    return funcDecl();
   }
 
   private Optional<Func> func() {
-    Optional<FuncDecl> maybeDecl = decl(TokenKind.FUNC);
+    Optional<FuncDecl> maybeDecl = funcDecl();
     if (maybeDecl.isEmpty()) {
       return Optional.empty();
     }
@@ -224,7 +235,7 @@ public final class Parser {
       return returnStmt();
     } else if (nx == TokenKind.LBRACE) {
       return block();
-    } else if (nx == TokenKind.IDENTIFIER && peek(1).kind() == TokenKind.COLON) {
+    } else if (TYPES.contains(peek().kind())) {
       Optional<Statement> statement = varDecl();
       finishLine();
       return statement;
@@ -236,20 +247,16 @@ public final class Parser {
   }
 
   private Optional<Statement> varDecl() {
-    Optional<Identifier> nameOpt = identifier("expected variable name");
-    if (nameOpt.isEmpty()) {
-      return Optional.empty();
-    }
-    Identifier name = nameOpt.get();
-    if (eatIfExpected("expected :", TokenKind.COLON) == null) {
-      eatLine(last);
-      return Optional.empty();
-    }
     Optional<Type> type = type();
     if (type.isEmpty()) {
       eatLine(last);
       return Optional.empty();
     }
+    Optional<Identifier> nameOpt = identifier("expected variable name");
+    if (nameOpt.isEmpty()) {
+      return Optional.empty();
+    }
+    Identifier name = nameOpt.get();
     if (eatIfExpected("expected =", TokenKind.ASSIGN) == null) {
       eatLine(last);
       return Optional.empty();
@@ -266,41 +273,7 @@ public final class Parser {
   }
 
   private Optional<Expression> initVal() {
-    // TODO: Reenable when arrays supported
-    /*
-    if (peek().kind() == TokenKind.LBRACKET) {
-      return arrayInit();
-    }
-     */
     return expression();
-  }
-
-  private Optional<Expression> arrayInit() {
-    Token lbrack = eatIfExpected("expected [", TokenKind.LBRACKET);
-    if (lbrack == null) {
-      eatLineUntil(last, ImmutableSet.of(TokenKind.RBRACE));
-      return Optional.empty();
-    }
-    ImmutableList.Builder<Expression> values = ImmutableList.builder();
-    while (peek().kind() != TokenKind.RBRACKET) {
-      Optional<Expression> val = initVal();
-      if (val.isEmpty()) {
-        eatLineUntil(last, ImmutableSet.of(TokenKind.RBRACE));
-        break;
-      }
-      values.add(val.get());
-      if (peek().kind() != TokenKind.COMMA) {
-        break;
-      }
-      eat();
-    }
-    Token rbrack = eatIfExpected("expected ]", TokenKind.RBRACKET);
-    if (rbrack == null) {
-      eatLineUntil(last, EXPRESSION_FAILURE_ENDS);
-      return Optional.empty();
-    }
-    return Optional.of(
-        Expression.ofArray(ArrayLit.create(values.build(), lbrack.pos().extend(rbrack.pos()))));
   }
 
   private Optional<Statement> returnStmt() {
@@ -334,7 +307,7 @@ public final class Parser {
       return Optional.empty();
     }
     Optional<Expression> cond = expression();
-    if (!cond.isPresent()) {
+    if (cond.isEmpty()) {
       eatLineUntil(last, COND_FAILURE_ENDS);
     }
     eatIfExpected("expected )", TokenKind.RPAREN);
@@ -399,7 +372,7 @@ public final class Parser {
   }
 
   private Optional<Statement> simpleStatement() {
-    if (peek().kind() == TokenKind.IDENTIFIER && peek(1).kind() == TokenKind.COLON) {
+    if (TYPES.contains(peek().kind())) {
       return varDecl();
     }
     return exprStatement();
@@ -462,7 +435,6 @@ public final class Parser {
 
   private Optional<Expression> assignment() {
     Optional<Expression> lhs = ternary();
-    System.out.println("Assignment LHS: " + lhs + " " + peek());
     if (lhs.isPresent()
         && (peek().kind() == TokenKind.ASSIGN || assignments.containsKey(peek().kind()))) {
       Expression reference = lhs.get();
@@ -633,10 +605,10 @@ public final class Parser {
                 Expression.ofUnary(
                     UnaryExpr.create(lhs, UnaryOp.POSTFIX_DECREMENT, lhs.pos().extend(t.pos()))));
       } else if (false && next == TokenKind.LBRACKET) {
-        // TODO: reenable when arrays are supported
+        // TODO: enable when arrays are supported
         e = arrayIndex(e.get());
       } else if (false && next == TokenKind.DOT && peek(1).kind() == TokenKind.IDENTIFIER) {
-        // TODO: reenable when structs are supported
+        // TODO: enable when structs are supported
         eat();
         e = select(e.get());
       } else if (next == TokenKind.LPAREN) {
@@ -725,7 +697,8 @@ public final class Parser {
       return Optional.empty();
     } else if (peek().kind() == TokenKind.CHAR_LIT) {
       return charLit().map(Expression::ofValue);
-    } else if (peek().kind() == TokenKind.STRING_LIT) {
+    } else if (false && peek().kind() == TokenKind.STRING_LIT) {
+      // TODO: enable when string literals are supported
       return stringLit().map(Expression::ofValue);
     } else {
       return parenthesized();
@@ -808,14 +781,25 @@ public final class Parser {
   }
 
   private Optional<Type> type() {
-    Optional<Identifier> nameOpt = identifier("expected type name");
-    if (nameOpt.isEmpty()) {
+    if (!TYPES.contains(peek().kind())) {
+      errAt("expected type", peek());
       return Optional.empty();
     }
+    Token typeToken = eat();
+    Type type;
+    if (typeToken.kind() == TokenKind.STRUCT) {
+      Optional<Identifier> structName = identifier("expected struct name");
+      if (structName.isEmpty()) {
+        return Optional.empty();
+      }
+      type = Type.normal(structName.get().text(), typeToken.pos().extend(structName.get().pos()));
+    } else {
+      type = Type.normal(typeToken.text(), typeToken.pos());
+    }
 
-    // TODO: reenable when arrays work
     // Parse [1][2][3] array dimensions
     ImmutableList.Builder<Type.ArrayDimension> dims = ImmutableList.builder();
+    // TODO: enable when arrays are supported
     while (false && peek().kind() == TokenKind.LBRACKET) {
       eat();
       Optional<Value> dimOpt = intLit();
@@ -830,8 +814,12 @@ public final class Parser {
       }
       eatIfExpected("expected closing ]", TokenKind.RBRACKET);
     }
-    Identifier name = nameOpt.get();
-    return Optional.of(Type.array(name.text(), dims.build(), name.pos().extend(last.pos())));
+    ImmutableList<Type.ArrayDimension> arrayDims = dims.build();
+    if (arrayDims.isEmpty()) {
+      return Optional.of(type);
+    } else {
+      return Optional.of(Type.array(type.name(), arrayDims, typeToken.pos().extend(last.pos())));
+    }
   }
 
   private Optional<Identifier> identifier(String error) {
@@ -937,6 +925,7 @@ public final class Parser {
    *
    * <p>The provided {@link Tokenizer} is always fully exhausted after parsing.
    */
+  @JsMethod
   public static Program parse(Tokenizer toks, Errors err) {
     return new Parser(toks, err).parse();
   }

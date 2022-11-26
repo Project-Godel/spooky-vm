@@ -3,7 +3,7 @@ package se.jsannemo.spooky.util;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
-/** An array-backed, fixed capacity circular queue that supports random access. */
+/** An array-backed, <strong>fixed capacity</strong> circular queue that supports random access. */
 public final class CircularQueue<T> {
   // The index of the first element in the queue.
   private int head = 0;
@@ -54,6 +54,7 @@ public final class CircularQueue<T> {
     return ret;
   }
 
+  /** Returns whether the queue is empty or not. */
   public boolean empty() {
     return size == 0;
   }

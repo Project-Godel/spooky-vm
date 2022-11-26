@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import jsinterop.annotations.JsType;
 
 /** Data classes for all the supported instructions. */
 public final class Instructions {
@@ -27,6 +28,7 @@ public final class Instructions {
   /**
    * Parent class for instructions. Instances can be created using the specific instruction type.
    */
+  @JsType
   public abstract static class Instruction {
     private Instruction() {}
 

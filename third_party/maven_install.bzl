@@ -41,7 +41,7 @@ def install_maven_jars(artifacts):
     )
 
 def checker_maven():
-    VERSION = "2.5.3"
+    VERSION = "3.27.0"
     return [
         maven_j2cl_jar(
             name = "checkerframework-j2cl",
@@ -52,7 +52,7 @@ def checker_maven():
     ]
 
 def errorprone_maven():
-    VERSION = "2.3.4"
+    VERSION = "2.16"
     return [
         maven_jar(
             name = "errorprone",
@@ -67,18 +67,8 @@ def errorprone_maven():
         ),
     ]
 
-def google_java_format_maven():
-    VERSION = "1.9"
-    return [
-        maven_jar(
-            name = "google-java-format",
-            artifact = "com.google.googlejavaformat:google-java-format",
-            version = VERSION,
-        ),
-    ]
-
 def autovalue_maven():
-    VERSION = "1.9"
+    VERSION = "1.10.1"
     return [
         maven_jar(
             name = "auto-value",
@@ -98,7 +88,7 @@ def autovalue_maven():
     ]
 
 def guava_maven():
-    VERSION = "29.0-jre"
+    VERSION = "30.1.1-jre"
     return [
         maven_jar(
             name = "guava",
@@ -141,7 +131,7 @@ def junit_maven():
     ]
 
 def truth_maven():
-    VERSION = "1.0.1"
+    VERSION = "1.1.3"
     return [
         maven_jar(
             name = "truth",
@@ -155,14 +145,31 @@ def truth_maven():
         ),
     ]
 
+def jsinterop_maven():
+    VERSION = "2.0.0"
+    return [
+        maven_j2cl_jar(
+            name = "jsinterop",
+            version = VERSION,
+            annotation_only = True,
+            artifact = "com.google.jsinterop:jsinterop-annotations",
+        ),
+        maven_j2cl_jar(
+            name = "jsinterop-j2cl",
+            version = VERSION,
+            annotation_only = True,
+            artifact = "com.google.jsinterop:jsinterop-annotations",
+        ),
+    ]
+
 def install_maven():
     maven_deps = []
     maven_deps += autovalue_maven()
     maven_deps += checker_maven()
     maven_deps += errorprone_maven()
-    maven_deps += google_java_format_maven()
     maven_deps += guava_maven()
     maven_deps += junit_maven()
     maven_deps += j2objc_maven()
     maven_deps += truth_maven()
+    maven_deps += jsinterop_maven()
     install_maven_jars(maven_deps)

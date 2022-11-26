@@ -20,8 +20,9 @@ public abstract class IrIpAddr {
 
   @Override
   public String toString() {
-    return switch (kind()) {
-      case ABS_TEXT -> "TX[" + absText() + "]";
-    };
+    if (kind() == AddrKind.ABS_TEXT) {
+      return "TX[" + absText() + "]";
+    }
+    throw new IllegalArgumentException();
   }
 }

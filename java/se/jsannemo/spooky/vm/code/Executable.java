@@ -2,9 +2,11 @@ package se.jsannemo.spooky.vm.code;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import jsinterop.annotations.JsType;
 
 /** A parsed Spooky code executable. */
 @AutoValue
+@JsType
 public abstract class Executable {
   Executable() {}
 

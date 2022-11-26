@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableMap;
 import java.io.PrintStream;
+import jsinterop.annotations.JsMethod;
 import se.jsannemo.spooky.vm.code.Executable;
 import se.jsannemo.spooky.vm.code.Instructions;
 import se.jsannemo.spooky.vm.code.Instructions.Add;
@@ -45,8 +46,8 @@ public final class SpookyVm {
   private int ip;
 
   private final PrintStream stdOut;
-  private int instructions = 0;
-  private int maxMemory = -1;
+  private int instructionsExecuted = 0;
+  private int maxMemoryUsed = -1;
 
   private SpookyVm(
       Executable executable,
@@ -66,7 +67,7 @@ public final class SpookyVm {
    * <p>If the instruction pointer points to an invalid instruction (i.e. one that is smaller or
    * larger than the amount of instructions in the current executable), an error is thrown.
    *
-   * @return false if and only if the program halted.
+   * @return {@literal false} if and only if the program halted.
    * @throws VmException if the instruction caused a run-time fault in the VM.
    */
   public boolean executeInstruction() throws VmException {
@@ -74,7 +75,7 @@ public final class SpookyVm {
     if (ip < 0 || ip >= curExecutable.text().size()) {
       throw new VmException("Instruction pointer out-of-bounds");
     }
-    instructions++;
+    instructionsExecuted++;
     Instructions.Instruction ins = curExecutable.text().get(ip++);
     checkState(ins.isExecutable());
     if (ins instanceof Instructions.Move) {
@@ -133,7 +134,6 @@ public final class SpookyVm {
       JumpN jmp = (JumpN) ins;
       if (getM(jmp.flag()) != 0) {
         ip = jmp.addr();
-        System.out.println("JNZ jump to " + ip + " of " + curExecutable.text().size());
       }
     } else if (ins instanceof JumpAddress) {
       JumpAddress jmp = (JumpAddress) ins;
@@ -150,10 +150,11 @@ public final class SpookyVm {
   }
 
   private void callExtern(String extern) throws VmException {
-    if (!externs.containsKey(extern)) {
+    ExternCall externCall = externs.get(extern);
+    if (externCall == null) {
       throw new VmException("Attempted to call non-existent extern " + extern);
     }
-    externs.get(extern).call(this);
+    externCall.call(this);
   }
 
   /**
@@ -166,7 +167,7 @@ public final class SpookyVm {
    */
   public int getM(int pos) throws VmException {
     if (0 <= pos && pos < memory.length) {
-      maxMemory = Math.max(pos, maxMemory);
+      maxMemoryUsed = Math.max(pos, maxMemoryUsed);
       return memory[pos];
     }
     if (-this.curExecutable.data().size() <= pos && pos < 0) {
@@ -204,21 +205,23 @@ public final class SpookyVm {
   }
 
   /** Returns a new builder for {@link SpookyVm} instances. */
+  @JsMethod
   public static Builder newBuilder(Executable executable) {
     return new Builder(executable);
   }
 
   /** Returns the number of instructions the VM has executed so far. */
-  public int getInstructions() {
-    return instructions;
+  @JsMethod
+  public int getInstructionsExecuted() {
+    return instructionsExecuted;
   }
 
   /** Returns the maximum stack/heap size used so far. */
-  public int getMaxMemory() {
-    return maxMemory + 1;
+  @JsMethod
+  public int getMaxMemoryUsed() {
+    return maxMemoryUsed + 1;
   }
 
-  /** A builder for {@link SpookyVm} instances. */
   public static class Builder {
     private final Executable executable;
     private final ImmutableMap.Builder<String, ExternCall> externBuilder = ImmutableMap.builder();
@@ -232,12 +235,14 @@ public final class SpookyVm {
     }
 
     /** Make available an external call named {@code name} invoking {@code callback} when called. */
+    @JsMethod
     public Builder addExtern(String name, ExternCall callback) {
       externBuilder.put(name, callback);
       return this;
     }
 
     /** Add the external calls that the standard library provides. */
+    @JsMethod
     public Builder addStdLib() {
       externBuilder.put("random", StdLib::random);
       externBuilder.put("print", StdLib::printChar);
@@ -246,11 +251,13 @@ public final class SpookyVm {
     }
 
     /** Set the memory size in (integer-sized) cells. */
+    @JsMethod
     public Builder setMemorySize(int memoryCells) {
       this.memoryCells = memoryCells;
       return this;
     }
 
+    @JsMethod
     public SpookyVm build() {
       return new SpookyVm(executable, externBuilder.build(), memoryCells, stdOut);
     }

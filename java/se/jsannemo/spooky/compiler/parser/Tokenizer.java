@@ -3,6 +3,7 @@ package se.jsannemo.spooky.compiler.parser;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.ImmutableMap;
+import jsinterop.annotations.JsMethod;
 import se.jsannemo.spooky.compiler.ast.SourcePos;
 import se.jsannemo.spooky.compiler.ast.SourceRange;
 import se.jsannemo.spooky.compiler.ast.Token;
@@ -25,12 +26,16 @@ public final class Tokenizer {
           .put("extern", TokenKind.EXTERN)
           .put("false", TokenKind.FALSE)
           .put("for", TokenKind.FOR)
-          .put("func", TokenKind.FUNC)
           .put("if", TokenKind.IF)
           .put("return", TokenKind.RETURN)
           .put("while", TokenKind.WHILE)
           .put("struct", TokenKind.STRUCT)
           .put("default", TokenKind.DEFAULT)
+          .put("void", TokenKind.VOID)
+          .put("int", TokenKind.INT)
+          .put("bool", TokenKind.BOOL)
+          .put("char", TokenKind.CHAR)
+          .put("float", TokenKind.FLOAT)
           .build();
 
   private final char[] input;
@@ -279,7 +284,7 @@ public final class Tokenizer {
   private void ignoreBefore() {
     while (true) {
       // Ignore whitespace
-      while (Character.isWhitespace(peek())) {
+      while (peek() != -1 && Character.isWhitespace(peek())) {
         eat();
       }
       // Ignore comments
@@ -342,6 +347,7 @@ public final class Tokenizer {
     return ('0' <= nx && nx <= '9');
   }
 
+  @JsMethod
   public static Tokenizer create(String input) {
     return new Tokenizer(input.toCharArray());
   }

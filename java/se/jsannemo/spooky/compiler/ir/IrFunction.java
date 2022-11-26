@@ -12,7 +12,11 @@ public final class IrFunction {
   public IrIpAddr address; // In global address space.
   public final ArrayList<IrStatement> body = new ArrayList<>();
   public int labels = 0;
+
+  // Stack pointer offset of where to store the return value of the function.
   public int retValue;
+
+  // Stack pointer-relative address of what instruction address to jump to upon returning.
   public int retAddress;
   public boolean isMain;
 

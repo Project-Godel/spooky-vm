@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import jsinterop.annotations.JsMethod;
 import se.jsannemo.spooky.compiler.ir.IrAddr;
 import se.jsannemo.spooky.compiler.ir.IrFunction;
 import se.jsannemo.spooky.compiler.ir.IrIpAddr;
@@ -25,6 +26,7 @@ public final class CodeGen {
   private CodeGen() {}
 
   /** Generates a list of Spooky VM instructions executing {@code program}. */
+  @JsMethod
   public static List<Instructions.Instruction> codegen(String programName, IrProgram program) {
     ArrayList<Instructions.Instruction> code = new ArrayList<>();
     code.add(Instructions.BinDef.create(programName));
@@ -241,10 +243,15 @@ public final class CodeGen {
   }
 
   private static Address addressTo(IrAddr addr) {
-    return switch (addr.kind()) {
-      case REL_SP -> Address.baseAndOffset(IrAddr.STACK_POINTER.absStack(), addr.relSp());
-      case ABS_DATA -> Address.baseAndOffset(IrAddr.CONST_ZERO.absData(), addr.absData());
-      case ABS_STACK -> Address.baseAndOffset(IrAddr.CONST_ZERO.absData(), addr.absStack());
-    };
+    switch (addr.kind()) {
+      case REL_SP:
+        return Address.baseAndOffset(IrAddr.STACK_POINTER.absStack(), addr.relSp());
+      case ABS_DATA:
+        return Address.baseAndOffset(IrAddr.CONST_ZERO.absData(), addr.absData());
+      case ABS_STACK:
+        return Address.baseAndOffset(IrAddr.CONST_ZERO.absData(), addr.absStack());
+      default:
+        throw new IllegalArgumentException();
+    }
   }
 }

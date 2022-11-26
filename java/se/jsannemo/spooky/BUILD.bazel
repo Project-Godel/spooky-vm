@@ -1,0 +1,15 @@
+java_binary(
+    name = "spooky",
+    srcs = ["CLI.java"],
+    main_class = "se.jsannemo.spooky.CLI",
+    deps = [
+        "//java/se/jsannemo/spooky/compiler:common",
+        "//java/se/jsannemo/spooky/compiler/ast",
+        "//java/se/jsannemo/spooky/compiler/codegen",
+        "//java/se/jsannemo/spooky/compiler/ir",
+        "//java/se/jsannemo/spooky/compiler/parser",
+        "//java/se/jsannemo/spooky/vm",
+        "//java/se/jsannemo/spooky/vm/code",
+        "//third_party:guava",
+    ],
+)

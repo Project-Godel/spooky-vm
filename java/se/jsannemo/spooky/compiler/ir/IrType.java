@@ -8,17 +8,17 @@ import java.util.Objects;
 import se.jsannemo.spooky.compiler.ast.Type;
 
 public class IrType {
-  public static final ImmutableSet<String> TYPES = ImmutableSet.of("Int", "Void", "__ERROR");
+  public static final ImmutableSet<String> TYPES = ImmutableSet.of("int", "void", "__ERROR");
   public static final ImmutableMap<String, Map.Entry<String, Integer>> ALIAS =
       ImmutableMap.of(
-          "String", new AbstractMap.SimpleEntry<>("Char", 1),
-          "Char", new AbstractMap.SimpleEntry<>("Int", 0),
-          "Boolean", new AbstractMap.SimpleEntry<>("Int", 0));
+          "string", new AbstractMap.SimpleEntry<>("char", 1),
+          "char", new AbstractMap.SimpleEntry<>("int", 0),
+          "bool", new AbstractMap.SimpleEntry<>("int", 0));
 
-  public static final IrType CHAR = new IrType("Char", 0);
-  public static final IrType INT = new IrType("Int", 0);
-  public static final IrType BOOL = new IrType("Boolean", 0);
-  public static final IrType VOID = new IrType("Void", 0);
+  public static final IrType CHAR = new IrType("char", 0);
+  public static final IrType INT = new IrType("int", 0);
+  public static final IrType BOOL = new IrType("bool", 0);
+  public static final IrType VOID = new IrType("void", 0);
   public static final IrType ERROR = new IrType("__ERROR", 0);
 
   public final String baseType;

@@ -4,10 +4,19 @@ public final class CallingConvention {
 
   private CallingConvention() {}
 
+  // Stack address of the stack pointer
   public static final int STACK_POINTER_STACK = 0;
+
+  // Stack address of register 1
   public static final int REG_1_STACK = 1;
+
+  // Starting address of the free stack space
   public static final int NEXT_STACK_STACK = 2;
+
+  // Data address guaranteed to contain 0
   public static final int CONST_ZERO_DATA = 0;
+
+  // Data address guaranteed to contain 1
   public static final int CONST_ONE_DATA = 1;
 
   /**

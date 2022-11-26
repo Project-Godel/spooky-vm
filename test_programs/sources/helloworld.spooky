@@ -1,6 +1,6 @@
-extern print(ch: Char)
+extern void print(char ch)
 
-func main() {
+void main() {
   print('H');
   print('e');
   print('l');

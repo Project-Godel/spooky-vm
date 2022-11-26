@@ -1,7 +1,7 @@
-extern printInt(i: Int)
+extern void printInt(int i)
 
-func main() {
-  for (i: Int = 1; i <= 15; ++i) {
+void main() {
+  for (int i = 1; i <= 15; ++i) {
       if (i % 3 == 0 && i % 5 == 0) {
         printInt(12);
       } else if (i % 3 == 0) {

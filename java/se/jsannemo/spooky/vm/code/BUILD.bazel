@@ -16,5 +16,6 @@ java_j2cl_library(
     deps = [
         "//third_party:autovalue",
         "//third_party:guava",
+        "//third_party:jsinterop",
     ],
 )

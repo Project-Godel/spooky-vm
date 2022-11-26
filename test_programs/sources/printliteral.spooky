@@ -1,5 +1,5 @@
-extern printInt(i: Int)
+extern void printInt(int i)
 
-func main() {
+void main() {
     printInt(42);
 }

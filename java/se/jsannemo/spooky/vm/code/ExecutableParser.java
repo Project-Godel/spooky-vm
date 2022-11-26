@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.collect.ImmutableList;
 import java.util.List;
+import jsinterop.annotations.JsMethod;
 import se.jsannemo.spooky.vm.code.Instructions.BinDef;
 import se.jsannemo.spooky.vm.code.Instructions.Data;
 import se.jsannemo.spooky.vm.code.Instructions.Text;
@@ -40,7 +41,7 @@ public final class ExecutableParser {
       throws InstructionException {
     checkArgument(!instructions.isEmpty(), "Expected TEXT, was EOF");
     Instructions.Instruction first = instructions.get(0);
-    checkArgument(first instanceof Text, "Expected TEXT, was EOF");
+    checkArgument(first instanceof Text, "Expected TEXT, was " + first);
 
     instructions = instructions.subList(1, instructions.size());
     ImmutableList.Builder<Instructions.Instruction> textSegment = ImmutableList.builder();
@@ -98,6 +99,7 @@ public final class ExecutableParser {
    *   <li>Optionally, data, starting with a DATA followed by binary data
    * </ul>
    */
+  @JsMethod
   public static Executable fromInstructions(List<Instructions.Instruction> instructions)
       throws InstructionException {
     Executable.Builder builder = Executable.builder();

@@ -14,5 +14,6 @@ java_j2cl_library(
         "//java/se/jsannemo/spooky/vm/code",
         "//third_party:autovalue",
         "//third_party:guava",
+        "//third_party:jsinterop",
     ],
 )

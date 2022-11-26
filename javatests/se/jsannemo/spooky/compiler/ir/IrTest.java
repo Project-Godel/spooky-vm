@@ -20,122 +20,117 @@ public class IrTest {
 
   @Test
   public void testGlobals() {
-    assertOk("x: Int = 1;");
+    assertOk("int x = 1;");
 
-    assertErr("x: Int = false;", "type conversion");
+    assertErr("int x = false;", "type conversion");
   }
 
   @Test
   public void testExterns() {
-    assertOk("extern fisk()");
-    assertOk("extern fisk() -> Int");
-    assertOk("extern fisk(x: Int)");
-    assertOk("extern fisk(x: Int, y: Boolean)");
+    assertOk("extern void fisk()");
+    assertOk("extern int fisk()");
+    assertOk("extern void fisk(int x)");
+    assertOk("extern void fisk(int x, bool y)");
   }
 
   @Test
   public void testFuncs() {
-    assertOk("func fisk() {}");
-    assertOk("func fisk() -> Int { return 1; }");
-    assertOk("func fisk(x: Int) {}");
-    assertOk("func fisk(x: Int, y: Boolean) {}");
+    assertOk("void fisk() {}");
+    assertOk("int fisk() { return 1; }");
+    assertOk("void fisk(int x) {}");
+    assertOk("void fisk(int x, bool y) {}");
   }
 
   @Test
   public void testReturn() {
-    assertOk("func x() { return; }");
-    assertErr("func x() { return 1; }", "value from void");
-    assertErr("func fisk() -> Int {}", "return");
-    assertErr("func fisk() -> Int { return true; }", "wrong type");
+    assertOk("void x() { return; }");
+    assertErr("void x() { return 1; }", "value from void");
+    assertErr("int fisk() {}", "return");
+    assertErr("int fisk() { return true; }", "wrong type");
   }
 
   @Test
   public void testWhile() {
-    assertOk("func x() { while(true) {} }");
-    assertOk("func x() { while(true) ; }");
+    assertOk("void x() { while(true) {} }");
+    assertOk("void x() { while(true) ; }");
 
-    assertErr("func x() { while(1) ; }", "incorrect type");
+    assertErr("void x() { while(1) ; }", "incorrect type");
   }
 
   @Test
   public void testFor() {
-    assertOk("func x() { for(;;) {} }");
-    assertOk("func x() { for(x: Int = 2; x < 5; x += 1){} }");
-    assertOk("func x() { for(x: Int = 2;; x += 1){} }");
-    assertOk("func x() { for(x: Int = 2; x < 5;){} }");
-    assertOk("func x() { x: Int = 1; for(; x < 5;){} }");
+    assertOk("void x() { for(;;) {} }");
+    assertOk("void x() { for(int x = 2; x < 5; x += 1){} }");
+    assertOk("void x() { for(int x = 2;; x += 1){} }");
+    assertOk("void x() { for(int x = 2; x < 5;){} }");
+    assertOk("void x() { int x = 1; for(; x < 5;){} }");
 
-    assertErr("func x() { for(; x < 5; x += 1){} }", "Undefined variable x");
+    assertErr("void x() { for(; x < 5; x += 1){} }", "Undefined variable x");
   }
 
   @Test
   public void testIf() {
-    assertOk("func x() { if(true) ; }");
-    assertErr("func x() { if(1) ; }", "incorrect type");
+    assertOk("void x() { if(true) ; }");
+    assertErr("void x() { if(1) ; }", "incorrect type");
   }
 
   @Test
   public void testExpressions() {
     // Assign
     assertOk(
-        """
-            func x(){
-              a: Int = 4; b: Int = 5; c: Int = 6; d: Int = 7; e: Int = 8; f: Int = 9; g: Int = 10;
-              a += b /= c *= d -= e %= f = g;
-            }
-          """);
+        "void x(){"
+            + "int a = 4; int b = 5; int c = 6; int d = 7; int e = 8; int f = 9; int g = 10;"
+            + "a += b /= c *= d -= e %= f = g;"
+            + "}");
 
-    assertErr("func x() { 1 + true; }", "incorrect type");
+    assertErr("void x() { 1 + true; }", "incorrect type");
     // TODO: assertOk("func x(){ a.b = c ;}");
     // TODO: assertOk("func x(){ a[b] = c ;}");
 
-    assertOk("func x(){  true ? 1 : 2; }");
-    assertErr("func x(){  2 ? 1 : 2; }", "incorrect type");
-    assertErr("func x(){  true ? 1 : false; }", "incompatible types");
+    assertOk("void x(){  true ? 1 : 2; }");
+    assertErr("void x(){  2 ? 1 : 2; }", "incorrect type");
+    assertErr("void x(){  true ? 1 : false; }", "incompatible types");
 
     // Binary operators
     assertOk(
-        """
-            func x() {
-              a: Int = 4; b: Int = 5; c: Int = 6; d: Int = 7; e: Int = 8; f: Int = 9; g: Int = 10;
-              (a + b - c / d * e % f) > 1;
-              1 < 2;
-              3 >= 4;
-              5 == 6 && 7 <= 8 || 9 != 0;
-            }
-             """);
+        "void x() {"
+            + "int a = 4; int b = 5; int c = 6; int d = 7; int e = 8; int f = 9; int g = 10;"
+            + "(a + b - c / d * e % f) > 1;"
+            + "1 < 2;"
+            + "3 >= 4;"
+            + "5 == 6 && 7 <= 8 || 9 != 0;"
+            + "}");
 
-    assertErr("func x() { 1 < true; }", "incorrect type");
+    assertErr("void x() { 1 < true; }", "incorrect type");
 
-    // TODO: RTL unary
-    assertOk("func x() { !true; }");
-    assertOk("func x() { b: Int = 1; -b; }");
-    assertOk("func x() { b: Int = 1; -b * -b; }");
-    assertOk("func x() { true && !!!false; }");
-    assertOk("func x() { b: Int = 1; --b; }");
-    assertOk("func x() { b: Int = 1; ++b; }");
+    assertOk("void x() { !true; }");
+    assertOk("void x() { int b = 1; -b; }");
+    assertOk("void x() { int b = 1; -b * -b; }");
+    assertOk("void x() { true && !!!false; }");
+    assertOk("void x() { int b = 1; --b; }");
+    assertOk("void x() { int b = 1; ++b; }");
 
-    assertErr("func x() { !1; }", "incorrect type");
-    assertErr("func x() { -false; }", "incorrect type");
+    assertErr("void x() { !1; }", "incorrect type");
+    assertErr("void x() { -false; }", "incorrect type");
 
     // LTR unary
-    assertOk("func x() { a: Int = 1; a++; }");
-    assertOk("func x() { a: Int = 1; a--; }");
+    assertOk("void x() { int a = 1; a++; }");
+    assertOk("void x() { int a = 1; a--; }");
     // TODO:
-    // assertOk("func x() { a()[123]; }");
-    // assertOk("func x() { a[123]; }");
-    // assertOk("func x() { a[123][321]; }");
-    // assertOk("func x() { a.b; }");
-    // assertOk("func x() { a.b[123]; }");
-    // assertOk("func x() { a().b; }");
+    // assertOk("void x() { a()[123]; }");
+    // assertOk("void x() { a[123]; }");
+    // assertOk("void x() { a[123][321]; }");
+    // assertOk("void x() { a.b; }");
+    // assertOk("void x() { a.b[123]; }");
+    // assertOk("void x() { a().b; }");
 
     // Stress-tests
-    // assertOk("func x(){ x + 5 ? a : b(!4, -3, 5 || a || x2 % c(65) && 123 - (a[b + c])); }");
+    // assertOk("void x(){ x + 5 ? a : b(!4, -3, 5 || a || x2 % c(65) && 123 - (a[b + c])); }");
   }
 
   @Test
   public void testFunctionCalls() {
-    assertOk("func x() { x(); }");
+    assertOk("void x() { x(); }");
   }
 
   @Test
@@ -144,13 +139,13 @@ public class IrTest {
     // assertOk("func x(){ \"hej\\n\"; }");
     // assertOk("func x(){ \"\\\"\"; }");
     // assertOk("func x(){ \"\\n\\r\\t\\\"\\\\\\' \"; }");
-    assertOk("func x(){ 'a'; }");
-    assertOk("func x(){ '\\\\'; }");
-    assertOk("func x(){ '\\''; }");
-    assertOk("func x(){ 2147483647; }");
-    assertOk("func x(){ -2147483648; }");
-    assertOk("func x(){ true; }");
-    assertOk("func x(){ false; }");
+    assertOk("void x(){ 'a'; }");
+    assertOk("void x(){ '\\\\'; }");
+    assertOk("void x(){ '\\''; }");
+    assertOk("void x(){ 2147483647; }");
+    assertOk("void x(){ -2147483648; }");
+    assertOk("void x(){ true; }");
+    assertOk("void x(){ false; }");
   }
 
   // TODO: reenable when structs work
@@ -163,7 +158,7 @@ public class IrTest {
 
   @Test
   public void testInits() {
-    assertOk("func x(){ x: Int = 0; }");
+    assertOk("void x(){ int x = 0; }");
   }
 
   // TODO: reenable when structs work

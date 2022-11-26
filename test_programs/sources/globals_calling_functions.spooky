@@ -1,13 +1,13 @@
-extern printInt(i: Int)
+extern void printInt(int i)
 
-func get(i: Int) -> Int {
+int get(int i) {
   return i;
 }
 
-x: Int = get(4);
-y: Int = get(2);
+int x = get(4);
+int y = get(2);
 
-func main() {
+void main() {
   printInt(x);
   printInt(y);
 }

@@ -1,7 +1,7 @@
-extern printInt(i: Int)
+extern void printInt(int i)
 
-res: Int = 1;
+int res = 1;
 
-func main() {
+void main() {
     printInt(res);
 }

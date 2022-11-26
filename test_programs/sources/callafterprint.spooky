@@ -1,8 +1,8 @@
-extern print(ch: Int)
+extern void print(int ch)
 
-func main() {
+void main() {
   print(65);
   test();
 }
 
-func test() { }
+void test() { }

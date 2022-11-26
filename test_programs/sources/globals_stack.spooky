@@ -1,18 +1,18 @@
-extern printInt(i: Int)
-extern random() -> Int
+extern void printInt(int i)
+extern int random()
 
 
-x: Int = 1;
+int x = 1;
 
-func xPlus(y: Int) -> Int {
+int xPlus(int y) {
   return x + y;
 }
 
-func assignX() {
+void assignX() {
   x = xPlus(2);
 }
 
-func main() {
+void main() {
   assignX();
   printInt(x);
 }

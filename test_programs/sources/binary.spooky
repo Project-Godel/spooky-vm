@@ -1,6 +1,6 @@
-extern print(ch: Int)
+extern void print(int ch)
 
-func printBinary(n: Int) {
+void printBinary(int n) {
     while (n != 0) {
         print(48 + n % 2);
         n = n / 2;
@@ -8,7 +8,7 @@ func printBinary(n: Int) {
     print(10);
 }
 
-func main() {
+void main() {
     printBinary(1);
     printBinary(7);
     printBinary(10);

@@ -1,4 +1,5 @@
 load("@//:rules.bzl", "java_j2cl_library")
+load("@com_google_j2cl//build_defs:rules.bzl", "j2cl_import")
 
 java_library(
     name = "errorprone",
@@ -76,12 +77,7 @@ java_library(
     ],
 )
 
-alias(
-    name = "autovalue-annotations-j2cl",
-    actual = "@com_google_auto_value_auto_value_annotations-j2cl",
-)
-
-java_j2cl_library(
+java_library(
     name = "autovalue",
     exported_plugins = [
         ":auto_value_plugin",
@@ -89,4 +85,22 @@ java_j2cl_library(
     ],
     visibility = ["//visibility:public"],
     exports = [":autovalue-annotations"],
+)
+
+j2cl_import(
+    name = "autovalue-j2cl",
+    jar = ":autovalue",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "jsinterop",
+    actual = "@com_google_j2cl//:jsinterop-annotations",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "jsinterop-j2cl",
+    actual = "@com_google_j2cl//:jsinterop-annotations-j2cl",
+    visibility = ["//visibility:public"],
 )

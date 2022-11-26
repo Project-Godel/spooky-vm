@@ -16,181 +16,194 @@ public class ParserTest {
 
   @Test
   public void testGlobals() {
-    assertErr("x: = 1;", "type");
-    assertErr("x = 1;", "expected fun");
-    assertErr("x: = 1;", "type");
-    assertErr("1: = 1;", "expected func");
-    assertErr(": Int = 1;", "expected func");
-    assertErr("x: Int 1;", "expected =");
-    assertErr("x: Int = 1", "expected ;");
-    assertErr("x: Int = ;", "unexpected ;");
-    assertOk("x: Int = 1;");
+    assertOk("int x = 1;");
+
+    assertErr("x = 1;", "expected func");
+    assertErr("int = 1;", "expected func");
+    assertErr("int x 1;", "expected func");
+    assertErr("int x = 1", "expected ;");
+    assertErr("int x = ;", "unexpected ;");
   }
 
   @Test
   public void testExterns() {
-    assertErr("extern", "function name");
-    assertErr("extern fisk(x)", "expected :");
-    assertErr("extern fisk(x:)", "type");
-    assertErr("extern fisk(: Int)", "expected )");
-    assertErr("extern fisk(x Int)", "expected :");
-    assertErr("extern fisk", "expected (");
-    assertOk("extern fisk()");
-    assertOk("extern fisk() -> Int");
-    assertOk("extern fisk(x: Int)");
-    assertOk("extern fisk(x: Int, y: Boolean)");
+    assertOk("extern void fisk()");
+    assertOk("extern int fisk()");
+    assertOk("extern void fisk(int x)");
+    assertOk("extern void fisk(int x, bool y)");
+
+    assertErr("extern", "expected type");
+    assertErr("extern fisk()", "expected type");
+    assertErr("extern void fisk(x)", "expected )");
+    assertErr("extern void fisk(int)", "expected parameter");
+    assertErr("extern void", "expected (");
   }
 
   @Test
   public void testFuncs() {
-    assertErr("func {}", "function name");
-    assertErr("func (){}", "function name");
-    assertErr("func fisk(x) {}", "expected :");
-    assertErr("func fisk(x:) {}", "type");
-    assertErr("func fisk(: Int) {}", "expected )");
-    assertErr("func fisk(x Int) {}", "expected :");
-    assertErr("func fisk()\nx: Int = 1;", "expected block");
-    assertOk("func fisk() {}");
-    assertOk("func fisk() -> Int {}");
-    assertOk("func fisk(x: Int) {}");
-    assertOk("func fisk(x: Int, y: Boolean) {}");
+    assertOk("void fisk() {}");
+    assertOk("int fisk() {}");
+    assertOk("void fisk(int x) {}");
+    assertOk("void fisk(int x, bool y) {}");
+
+    assertErr("void {}", "expected function");
+    assertErr("void (){}", "expected function");
+    assertErr("void fisk(x) {}", "expected )");
+    assertErr("void fisk(int) {}", "expected parameter");
+    assertErr("void fisk(x y) {}", "expected )");
+    assertErr("int fisk()\nx: Int = 1;", "expected block");
   }
 
   @Test
   public void testBlocks() {
-    assertErr("func x() {", "Unterminated");
-    assertOk("func x() {}");
-    assertOk("func x() { x = 1; }");
-    assertOk("func x() { x = 1; y = 1; }");
+    assertOk("void x() {}");
+    assertOk("void x() { x = 1; }");
+    assertOk("void x() { x = 1; y = 1; }");
+
+    assertErr("void x() {", "Unterminated");
   }
 
   @Test
   public void testReturn() {
-    assertOk("func x() { return; }");
-    assertOk("func x() { return 1; }");
-    assertErr("func x() { return 1 }", "expected ;");
-    assertErr("func x() { return }", "unexpected }");
+    assertOk("void x() { return; }");
+    assertOk("void x() { return 1; }");
+
+    assertErr("void x() { return 1 }", "expected ;");
+    assertErr("void x() { return }", "unexpected }");
   }
 
   @Test
   public void testWhile() {
-    assertOk("func x() { while(true) {} }");
-    assertOk("func x() { while(true) ; }");
-    assertOk("func x() { while(true) x; }");
-    assertOk("func x() { while(true) { x; } }");
-    assertErr("func x() { while {} }", "expected (");
-    assertErr("func x() { while(true) }", "unexpected }");
-    assertErr("func x() { while() {} }", "unexpected )");
-    assertErr("func x() { while( {} }", "expected )");
-    assertErr("func x() { while) {} }", "expected (");
+    assertOk("void x() { while(true) {} }");
+    assertOk("void x() { while(true) ; }");
+    assertOk("void x() { while(true) x; }");
+    assertOk("void x() { while(true) { x; } }");
+
+    assertErr("void x() { while {} }", "expected (");
+    assertErr("void x() { while(true) }", "unexpected }");
+    assertErr("void x() { while() {} }", "unexpected )");
+    assertErr("void x() { while( {} }", "expected )");
+    assertErr("void x() { while) {} }", "expected (");
   }
 
   @Test
   public void testFor() {
-    assertOk("func x() { for(;;) {} }");
-    assertOk("func x() { for(;;) ; }");
-    assertOk("func x() { for(;;) x; }");
-    assertOk("func x() { for(x: Int = 2; x < 5; x += 1){} }");
-    assertOk("func x() { for(x: Int = 2;; x += 1){} }");
-    assertOk("func x() { for(; x < 5; x += 1){} }");
-    assertOk("func x() { for(x: Int = 2; x < 5;){} }");
+    assertOk("void x() { for(;;) {} }");
+    assertOk("void x() { for(;;) ; }");
+    assertOk("void x() { for(;;) x; }");
+    assertOk("void x() { for(int x = 2; x < 5; x += 1){} }");
+    assertOk("void x() { for(int x = 2;; x += 1){} }");
+    assertOk("void x() { for(; x < 5; x += 1){} }");
+    assertOk("void x() { for(int x = 2; x < 5;){} }");
 
-    assertErr("func x() { for(x: Int = 2; x < 5){} }", "expected ;");
-    assertErr("func x() { for(return x;;){} }", "unexpected return");
-    assertErr("func x() { for(;return x;) {} }", "unexpected return");
-    assertErr("func x() { for(;;return x;) {} }", "unexpected return");
-    assertErr("func x() { for ;;) {} }", "expected (");
-    assertErr("func x() { for(;; {} }", "expected )");
-    assertErr("func x() { for(;;)  }", "unexpected }");
+    assertErr("void x() { for(int x = 2; x < 5){} }", "expected ;");
+    assertErr("void x() { for(return x;;){} }", "unexpected return");
+    assertErr("void x() { for(;return x;) {} }", "unexpected return");
+    assertErr("void x() { for(;;return x;) {} }", "unexpected return");
+    assertErr("void x() { for ;;) {} }", "expected (");
+    assertErr("void x() { for(;; {} }", "expected )");
+    assertErr("void x() { for(;;)  }", "unexpected }");
   }
 
   @Test
   public void testIf() {
-    assertOk("func x() { if(true) {} }");
-    assertOk("func x() { if(true) ; }");
-    assertOk("func x() { if(true) x; }");
+    assertOk("void x() { if(true) {} }");
+    assertOk("void x() { if(true) ; }");
+    assertOk("void x() { if(true) x; }");
 
-    assertErr("func x() { if(true) }", "unexpected }");
-    assertErr("func x() { if() {} }", "unexpected )");
-    assertErr("func x() { if true) {} }", "expected (");
-    assertErr("func x() { if (true {} }", "expected )");
+    assertErr("void x() { if(true) }", "unexpected }");
+    assertErr("void x() { if() {} }", "unexpected )");
+    assertErr("void x() { if true) {} }", "expected (");
+    assertErr("void x() { if (true {} }", "expected )");
   }
 
   @Test
   public void testExpressions() {
     // Assign
     assertOk(
-        """
-                  func x(){ a: Int = 4; b: Int = 5; c: Int = 6; d: Int = 7; e: Int = 8; f: Int = 9; g: Int = 10;
-                  a += b /= c *= d -= e %= f = g;}
-              """);
-    assertOk("func x(){ a.b = c ;}");
-    // TODO: assertOk("func x(){ a[b] = c ;}");
+        "void x(){ int a = 4; int b = 5; int c = 6; int d = 7; int e = 8; int f = 9; int g = 10;"
+            + "a += b /= c *= d -= e %= f = g;}");
+    // TODO assertOk("void x(){ a.b = c ;}");
+    // assertOk("void x(){ a[b] = c ;}");
 
     // Ternary
-    assertOk("func x(){ a ? b : c ? d : e ? f : g;}");
-    assertOk("func x(){ a ? b ? c ? d : e : f : g;}");
+    assertOk("void x(){ a ? b : c ? d : e ? f : g;}");
+    assertOk("void x(){ a ? b ? c ? d : e : f : g;}");
 
     // Binary operators
-    assertOk("func x() { a + b - c / d * e % f > 1 < 2 >= 3 <= 4 == 5 && 6 || 7 != 8; }");
+    assertOk("void x() { a + b - c / d * e % f > 1 < 2 >= 3 <= 4 == 5 && 6 || 7 != 8; }");
 
     // RTL unary
-    assertOk("func x() { -b; }");
-    assertOk("func x() { -c * -b; }");
-    assertOk("func x() { ++a; }");
-    assertOk("func x() { --a; }");
-    assertOk("func x() { a && !!!b; }");
+    assertOk("void x() { -b; }");
+    assertOk("void x() { -c * -b; }");
+    assertOk("void x() { ++a; }");
+    assertOk("void x() { --a; }");
+    assertOk("void x() { a && !!!b; }");
 
     // LTR unary
-    assertOk("func x() { a; }");
-    assertOk("func x() { a(1, 2, 3); }");
-    assertOk("func x() { a++; }");
-    assertOk("func x() { a--; }");
+    assertOk("void x() { a; }");
+    assertOk("void x() { a(1, 2, 3); }");
+    assertOk("void x() { a++; }");
+    assertOk("void x() { a--; }");
 
     // TODO:
     // assertOk("func x() { a()[123]; }");
     // assertOk("func x() { a[123]; }");
     // assertOk("func x() { a[123][321]; }");
-    assertOk("func x() { a.b; }");
-    assertOk("func x() { b(); }");
+    // assertOk("void x() { a.b; }");
+    assertOk("void x() { b(); }");
     // TODO: assertOk("func x() { a.b[123]; }");
-    assertOk("func x() { a().b; }");
-    assertOk("func x() { b(); }");
-    assertErr("func x() { a()(); }", "function name");
-    assertErr("func x() { 'a'(); }", "function name");
-    // TODO: assertErr("func x() { a[]; }", "unexpected ]");
-    assertErr("func x() { a(; }", "unexpected ;");
-    assertErr("func x() { a); }", "expected ;");
+    // assertOk("void x() { a().b; }");
+    assertOk("void x() { b(); }");
+    assertErr("void x() { a()(); }", "function name");
+    assertErr("void x() { 'a'(); }", "function name");
+    // assertErr("void x() { a[]; }", "unexpected ]");
+    assertErr("void x() { a(; }", "unexpected ;");
+    assertErr("void x() { a); }", "expected ;");
 
     // Parenthesized
-    assertErr("func x() { ((a + b) & (c + d)); }", "");
+    assertErr("void x() { ((a + b) & (c + d)); }", "");
 
     // Stress-tests
     // assertOk("func x(){ x + 5 ? a : b(!4, -3, 5 || a || x2 % c(65) && 123 - (a[b + c])); }");
   }
 
   @Test
-  public void testLiterals() {
-    assertOk("func x(){ \"hej\"; }");
-    assertOk("func x(){ \"hej\\n\"; }");
-    assertOk("func x(){ \"\\\"\"; }");
-    assertOk("func x(){ \"\\n\\r\\t\\\"\\\\\\' \"; }");
-    assertOk("func x(){ 'a'; }");
-    assertOk("func x(){ '\\\\'; }");
-    assertOk("func x(){ '\\''; }");
-    assertOk("func x(){ 2147483647; }");
-    assertOk("func x(){ -2147483648; }");
-    assertOk("func x(){ true; }");
-    assertOk("func x(){ false; }");
+  public void testCharLiterals() {
+    assertOk("void x(){ 'a'; }");
+    assertOk("void x(){ '\\\\'; }");
+    assertOk("void x(){ '\\''; }");
 
-    assertErr("func x(){ \"hej\\\"; }", "Unterminated");
-    assertErr("func x(){ \"; }", "Unterminated");
-    assertErr("func x(){ '\\'; }", "Unterminated");
-    assertErr("func x(){ '; }", "Unterminated");
-    assertErr("func x(){ \"\\!\"; }", "escape");
-    assertErr("func x(){ '\\!'; }", "escape");
-    assertErr("func x(){ 2147483648; }", "range");
-    assertErr("func x(){ -2147483649; }", "range");
+    assertErr("void x(){ '\\'; }", "Unterminated");
+    assertErr("void x(){ '; }", "Unterminated");
+    assertErr("void x(){ '\\!'; }", "escape");
+  }
+
+  @Test
+  public void testBoolLiterals() {
+    assertOk("void x(){ true; }");
+    assertOk("void x(){ false; }");
+  }
+
+  @Test
+  public void testIntLiterals() {
+    assertOk("void x(){ 2147483647; }");
+    assertOk("void x(){ -2147483648; }");
+    assertErr("void x(){ 2147483648; }", "range");
+    assertErr("void x(){ -2147483649; }", "range");
+  }
+
+  // TODO: enable when strings are supported
+  @Ignore
+  public void testStringLiterals() {
+    assertOk("void x(){ \"hej\"; }");
+    assertOk("void x(){ \"hej\\n\"; }");
+    assertOk("void x(){ \"\\\"\"; }");
+    assertOk("void x(){ \"\\n\\r\\t\\\"\\\\\\' \"; }");
+
+    assertErr("void x(){ \"hej\\\"; }", "Unterminated");
+    assertErr("void x(){ \"; }", "Unterminated");
+    assertErr("void x(){ \"\\!\"; }", "escape");
   }
 
   // TODO: reenable when structs work
@@ -199,6 +212,7 @@ public class ParserTest {
     assertOk("struct s {}");
     assertOk("struct s {x: Int;}");
     assertOk("struct s {x: Int; y: Int;}");
+
     assertErr("struct s {x: Int a;}", "expected ;");
     assertErr("struct s {x: Int}", "expected ;");
     assertErr("struct s {x: Int;", "expected }");
@@ -208,9 +222,9 @@ public class ParserTest {
 
   @Test
   public void testInits() {
-    assertOk("func x(){ x: Int = 0; }");
-    assertErr("func x(){ x: Int = ; }", "unexpected ;");
-    assertErr("func x(){ x: Int = 0 }", "expected ;");
+    assertOk("void x(){ int x= 0; }");
+    assertErr("void x(){ int x= ; }", "unexpected ;");
+    assertErr("void x(){ int x= 0 }", "expected ;");
   }
 
   // TODO: reenable when structs work
@@ -246,11 +260,6 @@ public class ParserTest {
 
     assertErr("func x(){ x: Int[5] = {default...}; }", "expected }");
     assertErr("func x(){ x: In)t[5] = {{...}}; }", "expected }");
-  }
-
-  @Test
-  public void testFailing() {
-    assertErr("func main { for (i: Int = 0; i << 5; i++) ; }", "expected (");
   }
 
   private static void assertOk(String s) {

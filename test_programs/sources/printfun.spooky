@@ -1,11 +1,11 @@
-extern printInt(x: Int)
+extern void printInt(int x)
 
-func fun(a: Int, b: Int, c: Int) {
+void fun(int a, int b, int c) {
    printInt(a);
    printInt(b);
    printInt(c);
 }
 
-func main() {
+void main() {
     fun(1, -2, 3);
 }

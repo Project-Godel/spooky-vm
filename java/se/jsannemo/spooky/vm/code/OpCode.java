@@ -44,7 +44,7 @@ enum OpCode {
   NEQ((byte) 0x13),
   // A jump-not-zero instruction.
   JMPN((byte) 0x14),
-// Next: 0x14
+// Next: 0x15
 ;
 
   final byte code;

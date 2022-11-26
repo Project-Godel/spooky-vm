@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import jsinterop.annotations.JsMethod;
 import se.jsannemo.spooky.compiler.Errors;
 import se.jsannemo.spooky.compiler.ast.Assignment;
 import se.jsannemo.spooky.compiler.ast.BinaryExpr;
@@ -34,6 +35,7 @@ public final class ToIr {
     this.errors = errors;
   }
 
+  @JsMethod
   public static IrProgram generate(Program p, Errors errors) {
     return new ToIr(errors).generate(p);
   }
@@ -74,8 +76,7 @@ public final class ToIr {
 
   private void funcDecl(FuncDecl declaration, boolean extern) {
     IrFunction function = new IrFunction();
-    function.returnSignature =
-        declaration.returnType().map(IrType::fromTypeName).orElse(IrType.VOID);
+    function.returnSignature = IrType.fromTypeName(declaration.returnType());
     function.extern = extern;
     ctx.program.functions.put(declaration.name().text(), function);
 
@@ -138,19 +139,24 @@ public final class ToIr {
   }
 
   private void statement(Statement stmt) {
-    switch (stmt.kind()) {
-      case BLOCK -> statementList(stmt.block().statements());
-      case VAR_DECL -> varDecl(stmt.varDecl(), false);
-      case LOOP -> loop(stmt.loop());
-      case CONDITIONAL -> conditional(stmt.conditional());
-      case EXPRESSION -> {
-        // Make sure we don't leak stack after an expression statement
-        IrContext.Scope cur = ctx.scope;
-        int sp = cur.spOffset;
-        expr(stmt.expression());
-        cur.spOffset = sp;
-      }
-      case RETURN_VALUE -> returns(stmt.returnValue().pos(), stmt.returnValue().value());
+    Statement.Kind kind = stmt.kind();
+    if (kind == Statement.Kind.BLOCK) {
+      statementList(stmt.block().statements());
+    } else if (kind == Statement.Kind.VAR_DECL) {
+      varDecl(stmt.varDecl(), false);
+    } else if (kind == Statement.Kind.LOOP) {
+      loop(stmt.loop());
+    } else if (kind == Statement.Kind.CONDITIONAL) {
+      conditional(stmt.conditional());
+    } else if (kind
+        == Statement.Kind
+            .EXPRESSION) { // Make sure we don't leak stack after an expression statement
+      IrContext.Scope cur = ctx.scope;
+      int sp = cur.spOffset;
+      expr(stmt.expression());
+      cur.spOffset = sp;
+    } else if (kind == Statement.Kind.RETURN_VALUE) {
+      returns(stmt.returnValue().pos(), stmt.returnValue().value());
     }
   }
 
@@ -251,67 +257,76 @@ public final class ToIr {
   }
 
   private IrType expr(Expression expression) {
-    return switch (expression.kind()) {
-      case VALUE -> value(expression.value());
-      case BINARY -> binary(expression.binary());
-      case REFERENCE -> reference(expression.reference());
-      case CALL -> functionCall(expression.call());
-      case ASSIGNMENT -> assign(expression.assignment());
-      case CONDITIONAL -> conditionalExpr(expression.conditional());
-      case UNARY -> unary(expression.unary());
+    switch (expression.kind()) {
+      case VALUE:
+        return value(expression.value());
+      case BINARY:
+        return binary(expression.binary());
+      case REFERENCE:
+        return reference(expression.reference());
+      case CALL:
+        return functionCall(expression.call());
+      case ASSIGNMENT:
+        return assign(expression.assignment());
+      case CONDITIONAL:
+        return conditionalExpr(expression.conditional());
+      case UNARY:
+        return unary(expression.unary());
+      case ARRAY:
+      case SELECT:
         // TODO
-      case ARRAY, SELECT -> throw new UnsupportedOperationException("Not implemented");
-    };
+        throw new UnsupportedOperationException("Not implemented");
+      default:
+        throw new IllegalArgumentException();
+    }
   }
 
   private IrType unary(UnaryExpr unary) {
-    switch (unary.op()) {
-      case NEGATE -> {
-        int sp = evalType(unary.operand(), IrType.INT);
-        ctx.function.newStatement(
-            IrStatement.IrSub.forTermsAndTarget(
-                IrAddr.CONST_ZERO, IrAddr.relSp(sp), IrAddr.relSp(sp)));
-        return IrType.INT;
+    UnaryOp op = unary.op();
+    if (op == UnaryOp.NEGATE) {
+      int sp = evalType(unary.operand(), IrType.INT);
+      ctx.function.newStatement(
+          IrStatement.IrSub.forTermsAndTarget(
+              IrAddr.CONST_ZERO, IrAddr.relSp(sp), IrAddr.relSp(sp)));
+      return IrType.INT;
+    } else if (op == UnaryOp.NOT) {
+      int sp = evalType(unary.operand(), IrType.BOOL);
+      ctx.function.newStatement(
+          IrStatement.IrSub.forTermsAndTarget(
+              IrAddr.CONST_ONE, IrAddr.relSp(sp), IrAddr.relSp(sp)));
+      return IrType.BOOL;
+    } else if (op == UnaryOp.POSTFIX_INCREMENT
+        || op == UnaryOp.POSTFIX_DECREMENT
+        || op == UnaryOp.PREFIX_DECREMENT
+        || op == UnaryOp.PREFIX_INCREMENT) {
+      Expression reference = unary.operand();
+      if (reference.kind() != Expression.Kind.REFERENCE) {
+        errors.error(reference.pos(), "LHS of assignment is not variable");
+        return IrType.ERROR;
       }
-      case NOT -> {
-        int sp = evalType(unary.operand(), IrType.BOOL);
-        ctx.function.newStatement(
-            IrStatement.IrSub.forTermsAndTarget(
-                IrAddr.CONST_ONE, IrAddr.relSp(sp), IrAddr.relSp(sp)));
-        return IrType.BOOL;
+      String varName = reference.reference().text();
+      Optional<IrValue> varOpt = ctx.scope.resolve(varName);
+      if (varOpt.isEmpty()) {
+        errors.error(reference.pos(), "Undefined variable " + varName);
+        return IrType.ERROR;
       }
-      case POSTFIX_INCREMENT, POSTFIX_DECREMENT, PREFIX_DECREMENT, PREFIX_INCREMENT -> {
-        Expression reference = unary.operand();
-        if (reference.kind() != Expression.Kind.REFERENCE) {
-          errors.error(reference.pos(), "LHS of assignment is not variable");
-          return IrType.ERROR;
-        }
-        String varName = reference.reference().text();
-        Optional<IrValue> varOpt = ctx.scope.resolve(varName);
-        if (varOpt.isEmpty()) {
-          errors.error(reference.pos(), "Undefined variable " + varName);
-          return IrType.ERROR;
-        }
-        IrValue var = varOpt.get();
+      IrValue var = varOpt.get();
 
-        IrStatement stmt =
-            unary.op() == UnaryOp.POSTFIX_INCREMENT || unary.op() == UnaryOp.PREFIX_INCREMENT
-                ? IrStatement.IrAdd.forTermsAndTarget(
-                    var.address(), IrAddr.CONST_ONE, var.address())
-                : IrStatement.IrSub.forTermsAndTarget(
-                    var.address(), IrAddr.CONST_ONE, var.address());
+      IrStatement stmt =
+          unary.op() == UnaryOp.POSTFIX_INCREMENT || unary.op() == UnaryOp.PREFIX_INCREMENT
+              ? IrStatement.IrAdd.forTermsAndTarget(var.address(), IrAddr.CONST_ONE, var.address())
+              : IrStatement.IrSub.forTermsAndTarget(var.address(), IrAddr.CONST_ONE, var.address());
 
-        if (unary.op() == UnaryOp.POSTFIX_INCREMENT || unary.op() == UnaryOp.POSTFIX_DECREMENT) {
-          ctx.function.newStatement(
-              IrStatement.IrCopy.fromTo(var.address(), IrAddr.relSp(ctx.scope.spOffset)));
-          ctx.function.newStatement(stmt);
-        } else {
-          ctx.function.newStatement(stmt);
-          ctx.function.newStatement(
-              IrStatement.IrCopy.fromTo(var.address(), IrAddr.relSp(ctx.scope.spOffset)));
-        }
-        ctx.scope.spOffset += var.type().memSize();
+      if (unary.op() == UnaryOp.POSTFIX_INCREMENT || unary.op() == UnaryOp.POSTFIX_DECREMENT) {
+        ctx.function.newStatement(
+            IrStatement.IrCopy.fromTo(var.address(), IrAddr.relSp(ctx.scope.spOffset)));
+        ctx.function.newStatement(stmt);
+      } else {
+        ctx.function.newStatement(stmt);
+        ctx.function.newStatement(
+            IrStatement.IrCopy.fromTo(var.address(), IrAddr.relSp(ctx.scope.spOffset)));
       }
+      ctx.scope.spOffset += var.type().memSize();
     }
     return IrType.ERROR;
   }
@@ -340,27 +355,27 @@ public final class ToIr {
 
   private IrType value(Value value) {
     IrContext.Scope cur = ctx.scope;
-    return switch (value.kind()) {
-      case INT_LIT -> {
+    switch (value.kind()) {
+      case INT_LIT:
         ctx.function.newStatement(
             IrStatement.IrStore.of(IrAddr.relSp(cur.spOffset), value.intLit().value()));
         cur.spOffset += IrType.INT.memSize();
-        yield IrType.INT;
-      }
-      case CHAR_LIT -> {
+        return IrType.INT;
+      case CHAR_LIT:
         ctx.function.newStatement(
             IrStatement.IrStore.of(IrAddr.relSp(cur.spOffset), value.charLit().value()));
         cur.spOffset += IrType.INT.memSize();
-        yield IrType.CHAR;
-      }
-      case BOOL_LIT -> {
+        return IrType.CHAR;
+      case BOOL_LIT:
         ctx.function.newStatement(
             IrStatement.IrStore.of(IrAddr.relSp(cur.spOffset), value.boolLit().value() ? 1 : 0));
         cur.spOffset += IrType.BOOL.memSize();
-        yield IrType.BOOL;
-      }
-      case STRING_LIT -> throw new UnsupportedOperationException("Unimplemented");
-    };
+        return IrType.BOOL;
+      case STRING_LIT:
+        throw new UnsupportedOperationException("Unimplemented");
+      default:
+        throw new IllegalArgumentException();
+    }
   }
 
   private IrType functionCall(FuncCall functionCall) {
@@ -419,14 +434,28 @@ public final class ToIr {
   }
 
   private IrType binary(BinaryExpr binary) {
-    return switch (binary.op()) {
-      case ADD, SUBTRACT, MULTIPLY, DIVIDE, MODULO -> arithmetic(
-          binary.op(), binary.left(), binary.right());
-      case LESS_THAN, GREATER_THAN, LESS_EQUALS, GREATER_EQUALS, EQUALS, NOT_EQUALS -> comparison(
-          binary.op(), binary.left(), binary.right());
-      case OR, AND -> logical(binary.op(), binary.left(), binary.right());
-      case ARRAY_ACCESS -> throw new UnsupportedOperationException("Unimplemented");
-    };
+    switch (binary.op()) {
+      case ADD:
+      case SUBTRACT:
+      case MULTIPLY:
+      case DIVIDE:
+      case MODULO:
+        return arithmetic(binary.op(), binary.left(), binary.right());
+      case LESS_THAN:
+      case GREATER_THAN:
+      case LESS_EQUALS:
+      case GREATER_EQUALS:
+      case EQUALS:
+      case NOT_EQUALS:
+        return comparison(binary.op(), binary.left(), binary.right());
+      case OR:
+      case AND:
+        return logical(binary.op(), binary.left(), binary.right());
+      case ARRAY_ACCESS:
+        throw new UnsupportedOperationException("Unimplemented");
+      default:
+        throw new IllegalArgumentException();
+    }
   }
 
   private IrType assign(Assignment assignment) {
@@ -446,16 +475,21 @@ public final class ToIr {
     IrValue ref = refOpt.get();
     int sp = evalType(value, ref.type());
     if (assignment.compound().isPresent()) {
-      switch (assignment.compound().get()) {
-        case ADD -> ctx.function.newStatement(
+      BinaryOp binaryOp = assignment.compound().get();
+      if (binaryOp == BinaryOp.ADD) {
+        ctx.function.newStatement(
             IrStatement.IrAdd.forTermsAndTarget(IrAddr.relSp(sp), ref.address(), ref.address()));
-        case SUBTRACT -> ctx.function.newStatement(
+      } else if (binaryOp == BinaryOp.SUBTRACT) {
+        ctx.function.newStatement(
             IrStatement.IrSub.forTermsAndTarget(IrAddr.relSp(sp), ref.address(), ref.address()));
-        case DIVIDE -> ctx.function.newStatement(
+      } else if (binaryOp == BinaryOp.DIVIDE) {
+        ctx.function.newStatement(
             IrStatement.IrDiv.forTermsAndTarget(IrAddr.relSp(sp), ref.address(), ref.address()));
-        case MULTIPLY -> ctx.function.newStatement(
+      } else if (binaryOp == BinaryOp.MULTIPLY) {
+        ctx.function.newStatement(
             IrStatement.IrMul.forTermsAndTarget(IrAddr.relSp(sp), ref.address(), ref.address()));
-        case MODULO -> ctx.function.newStatement(
+      } else if (binaryOp == BinaryOp.MODULO) {
+        ctx.function.newStatement(
             IrStatement.IrMod.forTermsAndTarget(IrAddr.relSp(sp), ref.address(), ref.address()));
       }
     } else {
@@ -469,20 +503,24 @@ public final class ToIr {
     IrContext.Scope cur = ctx.scope;
     int addr1 = evalType(left, IrType.INT);
     int addr2 = evalType(right, IrType.INT);
-    switch (op) {
-      case ADD -> ctx.function.newStatement(
+    if (op == BinaryOp.ADD) {
+      ctx.function.newStatement(
           IrStatement.IrAdd.forTermsAndTarget(
               IrAddr.relSp(addr1), IrAddr.relSp(addr2), IrAddr.relSp(addr1)));
-      case SUBTRACT -> ctx.function.newStatement(
+    } else if (op == BinaryOp.SUBTRACT) {
+      ctx.function.newStatement(
           IrStatement.IrSub.forTermsAndTarget(
               IrAddr.relSp(addr1), IrAddr.relSp(addr2), IrAddr.relSp(addr1)));
-      case MULTIPLY -> ctx.function.newStatement(
+    } else if (op == BinaryOp.MULTIPLY) {
+      ctx.function.newStatement(
           IrStatement.IrMul.forTermsAndTarget(
               IrAddr.relSp(addr1), IrAddr.relSp(addr2), IrAddr.relSp(addr1)));
-      case DIVIDE -> ctx.function.newStatement(
+    } else if (op == BinaryOp.DIVIDE) {
+      ctx.function.newStatement(
           IrStatement.IrDiv.forTermsAndTarget(
               IrAddr.relSp(addr1), IrAddr.relSp(addr2), IrAddr.relSp(addr1)));
-      case MODULO -> ctx.function.newStatement(
+    } else if (op == BinaryOp.MODULO) {
+      ctx.function.newStatement(
           IrStatement.IrMod.forTermsAndTarget(
               IrAddr.relSp(addr1), IrAddr.relSp(addr2), IrAddr.relSp(addr1)));
     }

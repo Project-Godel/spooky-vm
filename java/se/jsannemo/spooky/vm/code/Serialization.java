@@ -15,7 +15,7 @@ final class Serialization {
     checkArgument(iterator.position + 4 <= iterator.content.length, "Not enough bytes to read int");
     int res = 0;
     for (int i = 0; i < 4; i++) {
-      res = (res << 8) | Byte.toUnsignedInt(iterator.currentByte());
+      res = (res << 8) | (((int) iterator.currentByte()) & 0xff);
       iterator.advance(1);
     }
     return res;
@@ -32,7 +32,7 @@ final class Serialization {
 
   static String readString(ByteStreamIterator iterator) {
     checkArgument(!iterator.finished(), "Not enough bytes to read string length");
-    int length = Byte.toUnsignedInt(iterator.currentByte());
+    int length = ((int) iterator.currentByte()) & 0xff;
     iterator.advance(1);
     checkArgument(
         iterator.position + length <= iterator.content.length, "Not enough bytes to read string ");
