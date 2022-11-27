@@ -1,4 +1,4 @@
-load("@//:rules.bzl", "java_j2cl_library")
+load("//:rules.bzl", "java_j2cl_library")
 load("@com_google_j2cl//build_defs:rules.bzl", "j2cl_import")
 
 java_library(

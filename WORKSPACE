@@ -1,3 +1,5 @@
+workspace(name = "spooky-vm")
+
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 J2CL_TAG = "3038a77a114d6a52612d756b7d94ce096c0ece04"

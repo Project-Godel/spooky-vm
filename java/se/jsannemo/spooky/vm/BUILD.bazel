@@ -1,4 +1,4 @@
-load("@//:rules.bzl", "java_j2cl_library")
+load("//:rules.bzl", "java_j2cl_library")
 
 java_j2cl_library(
     name = "vm",
