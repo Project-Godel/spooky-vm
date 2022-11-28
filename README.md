@@ -4,7 +4,17 @@ Spooky is a simple programming language with an accompanying compiler and virtua
 
 ## Requirements
 
-To run the compiler, you need to have Java 14 installed.
+To run the compiler, you'll need:
+* Java 14
+* Bazel
+
+## Building
+
+Run the following command to build a local version of the compiler:
+
+```bash
+bazel build //java/se/jsannemo/spooky:spooky
+```
 
 ## Usage
 
@@ -17,7 +27,7 @@ spooky compile source.spooky exec.spook
 To execute the program, run
 
 ```
-spooky spooky.jar run exec.spook
+spooky run exec.spook
 ```
 
 ## Language features
@@ -41,7 +51,7 @@ These are declared as `extern` functions in your source and provided by the exec
 
 ```c
 extern void printInt(int i)
-extern void print(int ch)
+extern void print(char ch)
 
 bool isPrime(int n) {
     int p = 1;
@@ -49,17 +59,16 @@ bool isPrime(int n) {
         if (n % i == 0) {
             return false;
         }
-    }
   }
   return true;
 }
 
 void main() {
-    for (int n = 90; n < 100; n++) {
-        printInt(n);
-        print(' ');
-        printInt(isPrime(n));
-        print('\n');
+    for (int n = 2; n < 100; n++) {
+        if (isPrime(n)) {
+            printInt(n);
+            print('\n');
+        }
     }
 }
 ```
